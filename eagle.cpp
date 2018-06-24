@@ -7,7 +7,7 @@
 #include <string> 
 #include <iostream>
 
-#define defaultCSV "C:\\Users\\Administrator\\Desktop\\Project1\\tData.csv"
+#define defaultCSV "C:\\Users\\Administrator\\Desktop\\E-N TabConverter\\tData.csv"
 
 using namespace cv;
 using namespace cv::ml;

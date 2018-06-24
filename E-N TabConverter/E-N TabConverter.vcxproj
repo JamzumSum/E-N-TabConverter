@@ -69,7 +69,14 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <IncludePath>C:\Users\Administrator\Desktop\E-N TabConverter\OpenCV\opencv\build\include\opencv2;C:\Users\Administrator\Desktop\E-N TabConverter\OpenCV\opencv\build\include\opencv;C:\Users\Administrator\Desktop\E-N TabConverter\OpenCV\opencv\build\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\Administrator\Desktop\E-N TabConverter\OpenCV\opencv\build\x64\vc15\lib;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IncludePath>C:\Users\Administrator\Desktop\E-N TabConverter\OpenCV\opencv\build\include\opencv2;C:\Users\Administrator\Desktop\E-N TabConverter\OpenCV\opencv\build\include\opencv;C:\Users\Administrator\Desktop\E-N TabConverter\OpenCV\opencv\build\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\Administrator\Desktop\E-N TabConverter\OpenCV\opencv\build\x64\vc15\lib;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -85,6 +92,9 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
+    <Link>
+      <AdditionalDependencies>opencv_world340d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -112,9 +122,29 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>opencv_world340.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\Dodo.cpp" />
+    <ClCompile Include="..\eagle.cpp" />
+    <ClCompile Include="..\framework.cpp" />
+    <ClCompile Include="..\frmain.cpp" />
+    <ClCompile Include="..\maincpp.cpp" />
+    <ClCompile Include="..\tinyxml2\tinyxml2.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Cuckoo.h" />
+    <ClInclude Include="..\global.h" />
+    <ClInclude Include="..\GUI.h" />
+    <ClInclude Include="..\myheader.h" />
+    <ClInclude Include="..\swan.h" />
+    <ClInclude Include="..\tinyxml2\tinyxml2.h" />
+    <ClInclude Include="..\type.h" />
+    <ClInclude Include="resource.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="E-N TabConverter.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
