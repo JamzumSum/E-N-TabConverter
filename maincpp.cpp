@@ -30,7 +30,7 @@ copy:
 	return;
 }
 
-int go(string f) {
+int go(string f,bool isCut) {
 #if mode == 1
 	train();
 	return 0;
@@ -182,7 +182,11 @@ int go(string f) {
 				cut(toOCR, lines, 0, section, true);
 				cut(piece[i], lines, 0, origin, true);
 			}
-			
+			if (rowLenth) { 
+				if(piece[i].rows > rowLenth / 2 && piece[i].rows < rowLenth * 2)
+					rowLenth = (rowLenth + piece[i].rows) / 2;
+			}
+			else  rowLenth = piece[i].rows;
 			for (size_t j = 0; j < section.size(); j++) {
 				measure newSec(origin[j],section[j],rows,(int)k);
 				if (SUCCEED(newSec.id)) {

@@ -70,11 +70,11 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>C:\Users\Administrator\Desktop\E-N TabConverter\OpenCV\opencv\build\include\opencv2;C:\Users\Administrator\Desktop\E-N TabConverter\OpenCV\opencv\build\include\opencv;C:\Users\Administrator\Desktop\E-N TabConverter\OpenCV\opencv\build\include;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Users\Administrator\Desktop\E-N TabConverter\tinyxml2;C:\Users\Administrator\Desktop\E-N TabConverter\OpenCV\opencv\build\include\opencv2;C:\Users\Administrator\Desktop\E-N TabConverter\OpenCV\opencv\build\include\opencv;C:\Users\Administrator\Desktop\E-N TabConverter\OpenCV\opencv\build\include;$(IncludePath)</IncludePath>
     <LibraryPath>C:\Users\Administrator\Desktop\E-N TabConverter\OpenCV\opencv\build\x64\vc15\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>C:\Users\Administrator\Desktop\E-N TabConverter\OpenCV\opencv\build\include\opencv2;C:\Users\Administrator\Desktop\E-N TabConverter\OpenCV\opencv\build\include\opencv;C:\Users\Administrator\Desktop\E-N TabConverter\OpenCV\opencv\build\include;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Users\Administrator\Desktop\E-N TabConverter\tinyxml2;C:\Users\Administrator\Desktop\E-N TabConverter\OpenCV\opencv\build\include\opencv2;C:\Users\Administrator\Desktop\E-N TabConverter\OpenCV\opencv\build\include\opencv;C:\Users\Administrator\Desktop\E-N TabConverter\OpenCV\opencv\build\include;$(IncludePath)</IncludePath>
     <LibraryPath>C:\Users\Administrator\Desktop\E-N TabConverter\OpenCV\opencv\build\x64\vc15\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -91,6 +91,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalOptions>/D_CRT_SECURE_NO_WARNINGS %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>opencv_world340d.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -118,6 +119,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalOptions>/D_CRT_SECURE_NO_WARNINGS %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
