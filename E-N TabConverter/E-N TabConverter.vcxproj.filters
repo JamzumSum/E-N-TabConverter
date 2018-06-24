@@ -65,4 +65,12 @@
       <Filter>资源文件</Filter>
     </ResourceCompile>
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\icon\192.ico">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="..\icon\64.ico">
+      <Filter>资源文件</Filter>
+    </Image>
+  </ItemGroup>
 </Project>

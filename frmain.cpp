@@ -1,6 +1,6 @@
 #include"GUI.h"
-#define IDI_ICON1 103
-#define IDI_WINDOW1 104
+#define IDI_ICON1 101
+#define IDI_WINDOW1 102
 #define IDB_BITMAP1 106
 form main("form", "E-Land Chord Converter",240,240,840,528);
 int pix = 80;
@@ -13,7 +13,7 @@ bool isCut = false;
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine, int iCmdShow) {
 	main.setIcon(MAKEINTRESOURCE(IDI_WINDOW1), MAKEINTRESOURCE(IDI_ICON1));
-	main.bitmapName = MAKEINTRESOURCE(IDB_BITMAP1);
+	//main.bitmapName = MAKEINTRESOURCE(IDB_BITMAP1);
 	main.create();
 	main.Event_Window_Resize = [](form* me) {
 		pix = me->w / 12;
