@@ -318,7 +318,8 @@ keepnote:
 		technicals[i] = doc.NewElement("technical");
 
 		if (toSave.notes[i].chord) notes[i]->InsertEndChild(doc.NewElement("chord"));
-		char pi[2]; bool up;
+		char pi[3]; 
+		bool up;
 		switch (toSave.notes[i].notation.technical.string)
 		{
 		case 6:							//E2
@@ -340,8 +341,9 @@ keepnote:
 			pitch(toSave.notes[i].notation.technical.string, toSave.notes[i].notation.technical.fret, "E4", pi,up);
 			break;
 		}
-		char qu[1];
+		char qu[2];
 		qu[0] = pi[0];
+		qu[1] = 0;
 		//if (sta == 1) pi[1] = pi[1] + 1;
 		steps[i]->InsertEndChild(doc.NewText(qu));
 		octaves[i]->InsertEndChild(doc.NewText(&pi[1]));

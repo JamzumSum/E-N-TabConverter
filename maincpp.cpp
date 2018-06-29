@@ -61,21 +61,22 @@ int go(string f,bool isCut) {
 	if (cutTimes == 3) {
 		return 1;
 	}
+
 	n = coll.size();
-	bool *r = new bool[n];
+	vector<int> t;
+	vector<bool> r(n,false);
+	
 	for (size_t i = 0; i < n; i++) r[i] = false;
-	for (;;) {
-		int a = interCheck(coll);
-		if (a == -1) break;
-		else r[a] = true;
-	};
-	bool* mm = KClassify(coll);
+	interCheck(coll, t);
+	n = coll.size();
+	vector<bool> mm(n, false);
+	for (int i:t) r[i] = true;
+	KClassify(coll,mm);
 	for (size_t k = 0,i = 0; i < n; i++) {
 		if (!r[i]) {
 			r[i] = mm[k++];
 		}
 	}
-	delete[] mm;
 	n = coll.size();
 	
 	/*cv::Mat ccolor;
@@ -101,7 +102,6 @@ int go(string f,bool isCut) {
 		dog = true;
 	}
 	n = toCut.size();
-	delete[] r;
 
 	std::vector<cv::Mat> piece;
 	std::vector<cv::Mat> chords;
@@ -130,17 +130,13 @@ int go(string f,bool isCut) {
 		std::vector<space> toJoin;
 		for (int i = 1; i <= n; i++) toJoin.push_back({0,piece[i].rows});
 		bool* b = new bool[toCut.size()+1]();
-		do{
-			int a = interCheck(toJoin);
-			if(SUCCEED(a)) b[a] = true;
-			else break;
-		}while(1);
-		r = KClassify(toJoin);
+		interCheck(toJoin, t);
+		for (int i : t) r[i] = true;
+		KClassify(toJoin,r);
 		for (int k=0,i = 1; i <= n; i++) {
 			if (b[i]) b[i] = false;
 			else b[i] = r[k++];
 		}
-		delete[] r;
 		for (size_t i = n; i > 0; i--) {
 			if (!b[i]) {
 				//将piece[i]与piece[i-1]拼接在一起

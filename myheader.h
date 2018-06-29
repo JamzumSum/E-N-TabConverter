@@ -11,8 +11,8 @@ extern void findRow(cv::Mat img, double rangeTheta, std::vector<cv::Vec4i> &line
 extern void findCol(cv::Mat img, double rangeTheta, int upper,int lower, int thickness , std::vector<cv::Vec4i> &lines);
 extern int whichLine(cv::Vec4i character, std::vector<cv::Vec4i> rows);
 extern void saveNums(std::string folder, std::vector<cv::Mat> nums);
-extern bool* KClassify(std::vector<space> collection);
-extern int interCheck(std::vector<space> &collection);
+extern void KClassify(std::vector<space> collection,std::vector<bool> &classifier);
+extern void interCheck(std::vector<space> &collection,std::vector<int> &f);
 extern cv::Mat Morphology(cv::Mat img, int len, bool horizontal, bool open);
 //eagle.cpp
 extern int rec(cv::Mat character, std::vector<int> &possible);
