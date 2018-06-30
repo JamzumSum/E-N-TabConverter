@@ -1,9 +1,9 @@
 #pragma once
-
-
 #include"Cuckoo.h"
 #include "swan.h"
+
 using namespace std;
+
 #define mode 0  //0-main program  1-train  2-test
 
 int col;
@@ -167,8 +167,8 @@ int go(string f,bool isCut) {
 			//imshow("2", dilated); cvWaitKey();
 			toOCR = cv::max(dilated, piece[i]);
 			
-			std::vector<cv::Vec4i> lines;
-			int max = std::min(rows[5][1], rows[5][3]);
+			vector<cv::Vec4i> lines;
+			int max = min(rows[5][1], rows[5][3]);
 			int min = std::max(rows[0][1], rows[0][3]);
 
 			findCol(piece[i], CV_PI / 18 * 8, max, min, thick, lines);

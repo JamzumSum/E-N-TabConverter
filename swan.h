@@ -1,10 +1,14 @@
-﻿#include "myheader.h"
+﻿#pragma once
+#include "myheader.h"
+
 using namespace tinyxml2;
 
 #define ele(x) XMLElement* x = doc.NewElement(#x)
 #define txtx(x) XMLText* x##Text = doc.NewText(x)
 #define txts(x,s) XMLText* x##Text = doc.NewText(#s)
 #define txt(x) txts(x,x)
+
+extern string GBKToUTF8(const char* strGBK);
 
 static char* pitch(int string,int fret,const char* tuning,char* r,bool & up) {
 	char law[13] = "CCDDEFFGGAAB";
@@ -48,9 +52,10 @@ static void CopyNode(tinyxml2::XMLDocument *desdoc, const tinyxml2::XMLDocument 
 	
 }
 
-inline saveDoc::saveDoc(const char* title, const char* composer, const char* lyricist, const char* artist, const char* tabber, const char* irights)
+
+inline saveDoc::saveDoc(char* title, const char* composer, const char* lyricist, const char* artist, const char* tabber, const char* irights)
 {
-	XMLDocument doc;
+	tinyxml2::XMLDocument doc;
 	doc.Parse("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
 		"<!DOCTYPE score-partwise PUBLIC '-//Recordare//DTD MusicXML 2.0 Partwise//EN' 'http://www.musicxml.org/dtds/2.0/partwise.dtd'>");
 	XMLElement* root = doc.NewElement("score-partwise");
@@ -59,9 +64,10 @@ inline saveDoc::saveDoc(const char* title, const char* composer, const char* lyr
 
 	ele(work);
 	XMLElement* workTitle = doc.NewElement("work-title");
-	txtx(title);
+
+	string UTF8Title = GBKToUTF8(title);
 	work->InsertEndChild(workTitle);
-	workTitle->InsertEndChild(titleText);
+	workTitle->InsertEndChild(doc.NewText(UTF8Title.c_str()));
 	root->InsertEndChild(work);
 
 	ele(identification);
@@ -153,7 +159,7 @@ inline int saveDoc::save(const char* xmlPath) {
 	return backup.SaveFile(xmlPath);
 }
 inline void saveDoc::saveMeasure(measure toSave) {
-	XMLDocument doc;
+	tinyxml2::XMLDocument doc;
 	CopyNode(&doc,&backup);
 	XMLElement* part = doc.FirstChildElement("score-partwise")->FirstChildElement("part");
 	XMLElement* measure = doc.NewElement("measure");

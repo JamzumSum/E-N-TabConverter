@@ -6,7 +6,6 @@
 #include "opencv2/opencv.hpp"
 #include "opencv2/imgproc.hpp"
 #include "tinyxml2.h"
-
 #include <iostream>
 #include<vector>
 
@@ -73,7 +72,7 @@ class saveDoc {
 private:
 	tinyxml2::XMLDocument backup;
 public:
-	saveDoc(const char* title, const char* composer, const char* lyricist, const char* artist, const char* tabber, const char* irights);
+	saveDoc(char* title, const char* composer, const char* lyricist, const char* artist, const char* tabber, const char* irights);
 	int save(const char* xmlPath);
 	void saveMeasure(measure toSave);
 };
