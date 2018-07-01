@@ -3,8 +3,8 @@
 
 由我[原来的项目](https://github.com/EscapeLand/ELand-chordConverter)迁移而来，这次完全由我自己开发:P
 
->近期将整合手头的代码，理顺各文件之间的关系；<br>
-之后会实现一些已经想好的优化。。。<br>
+>我希望能实现识别任何一张照片中的吉他谱<br>
+但现在连机器生成的正置图都费劲hhhh<br>
 至于这个项目到底该何去何从，我也不知道。。我只是单纯想把它做下去而已2333
 
 ### 文件列表：
@@ -40,3 +40,10 @@
 |sample_picture|测试用图                      |
 |tData.csv    |机器学习训练数据                |
 |tinyxml2     |tinyxml2库                     |
+
+### 引用
+
+  * [OpenCV](https://github.com/opencv/opencv)
+  * [tinyxml2](https://github.com/leethomason/tinyxml2)
+
+Thanks sincerely.
