@@ -15,12 +15,12 @@ typedef struct space {
 }space;
 
 enum Value {
-	whole = 32,
-	half = 16,
-	quarter = 8,
-	eighth = 4,
-	sixteenth = 2,
-	thirty_second = 1
+	whole = 1,
+	half = 2,
+	quarter = 4,
+	eighth = 8,
+	sixteenth = 16,
+	thirty_second = 32
 };
 typedef struct technical {
 	int string;									//弦
@@ -35,7 +35,7 @@ typedef struct notations {
 typedef struct note {
 	bool chord = false;							//和声标记，为true与上一个音符同时发声
 	std::vector<int> possible;					//其他可能的品数
-	Value timeValue = quarter;					//时值
+	Value timeValue = whole;					//时值
 	bool dot = false;							//附点
 	int voice = 1;								//发声类型
 	int duration = 1;							//延音值

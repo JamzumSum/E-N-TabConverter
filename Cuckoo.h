@@ -2,21 +2,29 @@
 #include "global.h"
 using namespace std;
 
+#define savepic 0
+#define showRectangle 0
+#define picFolder "C:\\Users\\Administrator\\Desktop\\oh"
+
 int count(cv::Mat img, cv::Vec4i range, int delta);
-int valueSignalLen;
+int valueSignalLen = 0;
+int characterWidth = 0;
 
 inline void measure::recNum(cv::Mat section, std::vector<cv::Vec4i> rows) {
 	/*
-	* 函数：Dsection::recNum
+	* 函数：measure::recNum
 	* 功能：从传入图像中提取数字等
 	* 参数：
-	section，Mat，传入图像
-	rows，Vec4i，传入的网格信息（谱线）
+		section，Mat，传入图像
+		rows，Vec4i，传入的网格信息（谱线）
 	*/
 	//imshow("2", section); cvWaitKey();
 	std::vector<std::vector<cv::Point>> cont;
 	cv::Mat inv = 255 - section;
-	//cvtColor(section, ccolor, CV_GRAY2BGR);
+#if showRectangle
+	cv::Mat ccolor;
+	cvtColor(section, ccolor, CV_GRAY2BGR);
+#endif
 	cv::findContours(inv, cont, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
 	for (int q = 0; q < cont.size(); q++) {
 		cv::Vec4i tmp = { section.cols,section.rows,0,0 };
@@ -28,16 +36,26 @@ inline void measure::recNum(cv::Mat section, std::vector<cv::Vec4i> rows) {
 		}
 		//限定筛选
 		if (tmp[3] - tmp[1] < rows[1][1] - rows[0][1]					//网格限定
+			&& tmp[3] - tmp[1] < 5 * (tmp[2] - tmp[0])
 			&& tmp[3] - tmp[1] > tmp[2] - tmp[0]						//形状限定
+			&& (characterWidth ? (tmp[2] - tmp[0] > characterWidth / 4) : 1)
 			&& (tmp[3] - tmp[1])*(tmp[2] - tmp[0]) > 9)					//大小限定
 		{
 			note newNote;
 			cv::Mat number = section(cv::Range(tmp[1], tmp[3] + 1), cv::Range(tmp[0], tmp[2] + 1)).clone();
-			//rectangle(ccolor,cv::Point(tmp[0],tmp[1]),cv::Point(tmp[2],tmp[3]),cv::Scalar(0,0,255));
+			int sum = 0;
+			for (int y = 0; y < number.rows; y++) {
+				uchar *ptr = number.ptr<uchar>(y);
+				for (int w = 0; w < number.cols; w++) {
+					if (!ptr[w]) sum++;
+				}
+			}
+			if (sum > 0.8 * number.rows * number.cols) continue;
 			cvtColor(number, number, CV_GRAY2BGR);
 			if (number.cols != 8 || number.rows != 10) number = perspect(number, 8, 10);
-
-			//savePic("C:\\Users\\Administrator\\Desktop\\oh", number);
+			#if savepic
+				savePic(picFolder, number);
+			#endif
 
 			newNote.notation.technical.string = whichLine(tmp, rows);										//几何关系判断string
 			if (!newNote.notation.technical.string) continue;
@@ -46,13 +64,26 @@ inline void measure::recNum(cv::Mat section, std::vector<cv::Vec4i> rows) {
 				//TODO: 识别错误
 				return;
 			}
+			#if showRectangle
+				rectangle(ccolor, cv::Point(tmp[0], tmp[1]), cv::Point(tmp[2], tmp[3]), cv::Scalar(0, 0, 255));
+			#endif
 			newNote.pos = (tmp[0] + tmp[2]) / 2;
+			
+			if (characterWidth) {
+				if(characterWidth / 4 < tmp[2] - tmp[0])
+					characterWidth = (characterWidth + tmp[2] - tmp[0]) / 2;
+			}
+			else {
+				characterWidth = tmp[2] - tmp[0];
+			}
 			this->maxCharacterWidth = max(maxCharacterWidth, tmp[2] - tmp[0]);
 			this->noteBottom = max(noteBottom, tmp[3]);
 			this->notes.push_back(newNote);
 		}
 	}
-	
+#if showRectangle
+	imshow("2", ccolor); cvWaitKey();
+#endif
 	int t = maxCharacterWidth;
 	auto n = notes.end();
 	auto m = notes.end();
@@ -119,7 +150,9 @@ inline measure::measure(cv::Mat org, cv::Mat img, vector<cv::Vec4i> rows,int id)
 			cv::Mat inv = 255 - Morphology(picValue, picValue.rows / tr++, false, true);
 			cv::findContours(inv, cont, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
 			if (picValue.rows / tr < 2) {
-				imshow("2", org); cvWaitKey();
+#if _DEBUG
+				imshow("2", picValue); cvWaitKey();
+#endif
 				return;
 			}
 		}
@@ -138,7 +171,8 @@ inline measure::measure(cv::Mat org, cv::Mat img, vector<cv::Vec4i> rows,int id)
 	}
 	inv = 255 - Morphology(picValue, predLen / 3, false, true);
 	cv::findContours(inv, cont, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
-	//一个规模庞大。。。倾我毕生所学的筛选算法，去掉节拍记号再往下的乱七八糟的东西
+
+	//去掉节拍记号再往下的乱七八糟的东西
 	auto m = cont.end();
 	while (1) {
 		m = find_if(cont.begin(), cont.end(), [cont](vector<cv::Point> x) ->bool {
@@ -156,9 +190,11 @@ inline measure::measure(cv::Mat org, cv::Mat img, vector<cv::Vec4i> rows,int id)
 		if (m == cont.end()) break;
 		else cont.erase(m);
 	};
+
 	sort(cont.begin(), cont.end(), [](vector<cv::Point> x, vector<cv::Point> y) ->bool {
 		return x[0].x < y[0].x;
 	});
+
 	vector<int> time;
 	for (int i = 0; i < cont.size(); i++) {
 		cv::Vec4i tmp = { picValue.cols,picValue.rows,0,0 };
@@ -168,66 +204,8 @@ inline measure::measure(cv::Mat org, cv::Mat img, vector<cv::Vec4i> rows,int id)
 			tmp[1] = std::min(tmp[1], cont[i][j].y);
 			tmp[3] = std::max(tmp[3], cont[i][j].y);
 		}
+
 		int sum1 = 0, sum2 = 0, sum3 = 0;
-		
-		/*bool lock1 = false, lock2 = false, lock3 = false;
-		for (int y = (tmp[1] + tmp[3]) / 2; y < tmp[3]; y++)
-		{
-			uchar *ptr1 = picValue.ptr<uchar>(y);
-			uchar *ptr2 = picValue.ptr<uchar>(y + 1);
-
-			if (ptr1[tmp[0] - 2] && !ptr2[tmp[0] - 2]) {
-				if (!lock1) {
-					lock1 = true;
-					y++;
-				}
-			}
-			else if (!ptr1[tmp[0] - 2] && ptr2[tmp[0] - 2]) {
-				if (lock1) {
-					sum1++;
-					lock1 = false;
-				}
-			}
-		}
-		for (int y = tmp[1]; y < tmp[3]; y++)
-		{
-			uchar *ptr1 = picValue.ptr<uchar>(y);
-			uchar *ptr2 = picValue.ptr<uchar>(y + 1);
-
-			if (ptr1[tmp[2] + 2] && !ptr2[tmp[2] + 2]) {
-				if (!lock2) {
-					lock2 = true;
-					y++;
-				}
-			}
-			else if (!ptr1[tmp[2] + 2] && ptr2[tmp[2] + 2]) {
-				if (lock2) {
-					sum2++;
-					lock2 = false;
-				}
-			}
-		}
-		for (int y = tmp[1]; y < tmp[3]; y++)
-		{
-			uchar *ptr1 = picValue.ptr<uchar>(y);
-			uchar *ptr2 = picValue.ptr<uchar>(y + 1);
-
-			if (ptr1[tmp[2] + 1] && !ptr2[tmp[2] + 1]) {
-				if (!lock3) {
-					lock3 = true;
-					y++;
-				}
-			}
-			else if (!ptr1[tmp[2] + 1] && ptr2[tmp[2] + 1]) {
-				if (lock3) {
-					sum3++;
-					lock3 = false;
-				}
-			}
-		}
-		if (lock1) sum1++;
-		if (lock2) sum2++;
-		if (lock3) sum3++;*/
 		sum1 = count(picValue, tmp, -2);
 		sum2 = count(picValue, tmp, 2);
 		sum3 = count(picValue, tmp, 1);
