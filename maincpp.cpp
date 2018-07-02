@@ -4,9 +4,10 @@
 
 using namespace std;
 
-#define mode 0  //0-main program  1-train  2-test
+#define mode 0
+//0-main program  1-train
 
-int col;
+int col = 0;
 
 void fname(const char* path,char* name) {
 	int start, end;
@@ -40,12 +41,6 @@ int go(string f,bool isCut) {
 	bool flag = false, dog = false;
 	std::vector<space> coll;
 	std::vector<space> toCut;
-#if mode == 2
-	std::vector<int> poss;
-	std::cout << rec(cv::imread(f),poss) << std::endl;
-	system("pause");
-	return 0;
-#endif
 	cv::Mat img = threshold(f);
 	col = img.cols;
 	if (img.empty()) {

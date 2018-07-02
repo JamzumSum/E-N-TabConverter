@@ -2,7 +2,7 @@
 #include "global.h"
 using namespace std;
 
-#define savepic 0
+#define savepic 1
 #define showRectangle 0
 #define picFolder "C:\\Users\\Administrator\\Desktop\\oh"
 

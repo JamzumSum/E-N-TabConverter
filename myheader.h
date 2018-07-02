@@ -1,6 +1,9 @@
 #pragma once
 #include"type.h"
+
 #define SUCCEED(x) (x>=0)
+#define defaultCSV "C:\\Users\\Administrator\\Desktop\\E-N TabConverter\\tData.csv"
+
 //Dodo.cpp
 extern cv::Mat threshold(std::string);
 extern cv::Mat perspect(cv::Mat img, int width, int height);
@@ -14,9 +17,10 @@ extern void saveNums(std::string folder, std::vector<cv::Mat> nums);
 extern void KClassify(std::vector<space> collection,std::vector<bool> &classifier);
 extern void interCheck(std::vector<space> &collection,std::vector<int> &f);
 extern cv::Mat Morphology(cv::Mat img, int len, bool horizontal, bool open);
+extern void savePic(std::string folder, cv::Mat pic);
 //eagle.cpp
 extern int rec(cv::Mat character, std::vector<int> &possible);
-extern void train(std::string save = "tData.csv");
+extern void train(std::string save = "C:\\Users\\Administrator\\Desktop\\E-N TabConverter\\tData.csv");
 //framework.cpp
 extern int cut(cv::Mat img, std::vector<cv::Vec4i> divideBy, int direction, std::vector<cv::Mat> &container, bool includeAll = true);
 extern int split(cv::Mat img, std::vector<space> &coll);

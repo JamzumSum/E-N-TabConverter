@@ -4,10 +4,10 @@
 #include <fstream>
 #include <Windows.h>  
 #include <iterator>  
-#include <string> 
+#include "myheader.h"
 #include <iostream>
 
-#define defaultCSV "C:\\Users\\Administrator\\Desktop\\E-N TabConverter\\tData.csv"
+#define samplePath "C:\\Users\\Administrator\\Desktop\\E-N TabConverter\\sample_classified\\"
 
 using namespace cv;
 using namespace cv::ml;
@@ -34,14 +34,14 @@ int rec(Mat character,std::vector<int> &possible) {
 	return (int)res.at<float>(0, 0);
 }
 
-void train(std::string save = defaultCSV) {
+void train(std::string save) {
 	//trainData 个数*大小
 	//Labels 个数*10
 	Mat trainData, Label ,CSV;
 	//录入训练样本和标记
 	int num;															//num 是样本是什么数字
 	std::vector<std::string> fileList;
-	std::string path = "C:\\Users\\Administrator\\Desktop\\";
+	std::string path = samplePath;
 	for (num = 0; num < 10; num++) {
 		char c = num + '0';
 		ls((path + c).c_str(), fileList);
