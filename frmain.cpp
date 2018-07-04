@@ -1,15 +1,33 @@
 #include"GUI.h"
+#include"type.h"
 #define IDI_ICON1 101
 #define IDI_WINDOW1 102
 #define IDB_BITMAP1 106
-form main("form", "E-Land Chord Converter",240,240,840,528);
-int pix = 80;
-char f[MAX_PATH];
 
-button scan(&main, 5 * pix, 200, 112, 56, "Go!");
-Label info(&main, 0, 464, 560, 24, "");
-extern int go(std::string f,bool);
+int pix = 80;
+std::string noti;
+char f[MAX_PATH];
+char prog[4];
 bool isCut = false;
+
+form main("form", "E-Land Chord Converter", 240, 240, 840, 528);
+button scan(&main, 5 * pix, 200, 112, 56, "Go!");
+Label info(&main, 4, 464, 560, 24, "Press \"Go\" to begin.");
+extern int go(std::string f,bool);
+std::string conc(std::string n, char p[4]);
+
+
+notify<int>progress([](int p) {
+	char num[4];
+	_itoa_s(p, num, 10);
+	strncpy_s(prog, num, 4);
+	info.name = conc(noti, prog).c_str();
+});
+
+notify<std::string>notification([](std::string n) {
+	noti = n;
+	info.name = conc(noti,prog).c_str();
+});
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine, int iCmdShow) {
 	main.setIcon(MAKEINTRESOURCE(IDI_WINDOW1), MAKEINTRESOURCE(IDI_ICON1));
@@ -33,14 +51,17 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 		ofn.lpstrInitialDir = 0;
 		ofn.lpstrTitle = "Ñ¡ÔñÀÖÆ×£º";
 		ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+
+		info.name = "Then choose a tab.";
+
 		if (GetOpenFileName(&ofn))
 		{
 			info.name = f;
 			if (go(std::string(f),isCut) == 0) {
-				info.name = "success";
+				notification = "success";
 			}
 			else {
-				info.name = "failure";
+				notification = "failure";
 			}
 			main.show();
 		}
@@ -73,4 +94,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 	cut.create();
 
 	main();
+}
+
+std::string conc(std::string n,char p[4]) {
+	return n + "------" + p + "%";
 }

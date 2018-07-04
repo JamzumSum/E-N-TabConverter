@@ -3,7 +3,7 @@
 using namespace std;
 
 #define savepic 0
-#define showRectangle 1
+#define showRectangle 0
 #define picFolder "C:\\Users\\Administrator\\Desktop\\oh"
 
 int count(cv::Mat img, cv::Vec4i range, int delta);

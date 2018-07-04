@@ -7,6 +7,8 @@ using namespace std;
 #define mode 0
 //0-main program  1-train
 
+extern notify<int>progress;
+extern notify<std::string>notification;
 int col = 0;
 
 void fname(const char* path,char* name) {
@@ -89,8 +91,9 @@ int go(string f,bool isCut) {
 	}
 	//imwrite("as.jpg",ccolor);
 	if (toCut.size() > 2) {
-		std::cout << "过滤算法正常" << std::endl;
+		notification = "过滤算法正常";
 		coll.clear();
+		progress = 0;
 	}
 	else {
 		toCut.swap(coll);
@@ -121,7 +124,7 @@ int go(string f,bool isCut) {
 	trimmed(cv::Range(toCut[n - 1].start + toCut[n - 1].length + 1, trimmed.rows), cv::Range(0, trimmed.cols)).copyTo(piece[n]);
 	
 	if (dog && cutTimes == 2) {
-		std::cout << "运行修补算法" << std::endl;
+		notification = "运行修补算法";
 		std::vector<space> toJoin;
 		for (int i = 1; i <= n; i++) toJoin.push_back({0,piece[i].rows});
 		bool* b = new bool[toCut.size()+1]();
@@ -219,6 +222,8 @@ int go(string f,bool isCut) {
 		cout << endl << endl;
 	}
 	system("pause");*/
+	notification = "扫描完成，准备写入文件";
+	progress = 50;
 	char name[256] = "";
 	fname(f.c_str(),name);
 	saveDoc finish(name,"unknown","unknown","unknown","chordConverter","Escapeland");
@@ -237,10 +242,12 @@ int go(string f,bool isCut) {
 				break;
 			}
 		}
+		progress = progress + 50 / (int)sections.size();
 	}
 	string fn = name;
 	fn = fn + ".xml";
 	finish.save(fn.c_str());
+	progress = 100;
 	cvDestroyAllWindows();
 	return 0;
 }

@@ -82,3 +82,24 @@ public:
 	int save(const char* xmlPath);
 	void saveMeasure(measure toSave);
 };
+
+template<typename va>
+class notify {
+private:
+	va v;
+	void (*Set)(va newNoti) = NULL;
+public:
+	va operator = (const va newV) {
+		assert(Set);
+		Set(newV);
+		v = newV;
+		return newV;
+	}
+	operator va() {
+		return v;
+	}
+	notify(void (*pSet)(va newV))
+	{
+		Set = pSet;
+	}
+};
