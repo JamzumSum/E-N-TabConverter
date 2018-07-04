@@ -215,5 +215,6 @@ int go(string f,bool isCut) {
 	string fn = name;
 	fn = fn + ".xml";
 	finish.save(fn.c_str());
+	cvDestroyAllWindows();
 	return 0;
 }
