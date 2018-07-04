@@ -414,7 +414,8 @@ keepnote:
 			notes[i]->InsertEndChild(doc.NewText("64th"));
 			break;
 		default:
-			std::cerr << "timeValue unexpected value: " << (int)toSave.notes[i].timeValue << std::endl;
+			err ex = {2,__LINE__,"timeValue: unexpected value in switch."};
+			throw ex;
 			break;
 		}
 		notes[i]->InsertEndChild(types[i]);

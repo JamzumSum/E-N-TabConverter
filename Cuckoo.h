@@ -110,7 +110,8 @@ inline void measure::recNum(cv::Mat section, std::vector<cv::Vec4i> rows) {
 						goto mfind;
 					}
 				}
-				cerr << "fret合并：不可置信条件. 检查模型" << endl;
+				err ex = {0,__LINE__,"fret合并：不可置信条件. 检查模型" };
+				throw ex;
 			}
 			m->pos = (m->pos + n->pos) / 2;
 			m->notation.technical.fret = 10 + n->notation.technical.fret;
@@ -135,7 +136,20 @@ inline measure::measure(cv::Mat org, cv::Mat img, vector<cv::Vec4i> rows,int id)
 		return;
 	}
 	int predLen = 0;
-	recNum(img, rows);
+	try {
+		recNum(img, rows);
+	}
+	catch (err ex) {
+		switch (ex.id)
+		{
+		case 0:
+			//包含不合理数据
+			break;
+		default:
+			throw ex;
+			break;
+		}
+	}
 	cv::Mat picValue = org(cv::Range(max(noteBottom, rows[5][1]) + 1, img.rows), cv::Range::all()).clone();
 	cv::Mat inv;
 	std::vector<std::vector<cv::Point>> cont;
@@ -222,7 +236,8 @@ inline measure::measure(cv::Mat org, cv::Mat img, vector<cv::Vec4i> rows,int id)
 			if (k == time.size()) {
 #if _DEBUG
 				imshow("2", org); cvWaitKey();
-				cerr << "time 越界，自动跳出，建议检查该小节 notes 的 chord 划分" << endl;
+				err ex = {1,__LINE__,"time 越界，自动跳出，建议检查该小节 notes 的 chord 划分" };
+				throw ex;
 #endif
 				break;
 			}

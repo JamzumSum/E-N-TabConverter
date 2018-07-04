@@ -14,6 +14,12 @@ typedef struct space {
 	int length;
 }space;
 
+typedef struct err {
+	int id;
+	int line;
+	std::string description;
+}err;
+
 enum Value {
 	whole = 1,
 	half = 2,

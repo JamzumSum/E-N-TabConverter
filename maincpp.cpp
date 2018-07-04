@@ -179,11 +179,24 @@ int go(string f,bool isCut) {
 			}
 			else  rowLenth = piece[i].rows;
 			for (size_t j = 0; j < section.size(); j++) {
-				measure newSec(origin[j],section[j],rows,(int)k);
-				if (SUCCEED(newSec.id)) {
-					k++;
+				try {
+					measure newSec(origin[j], section[j], rows, (int)k);
+					if (SUCCEED(newSec.id)) {
+						k++;
+					}
+					sections.push_back(newSec);
 				}
-				sections.push_back(newSec);
+				catch (err ex) {
+					switch (ex.id)
+					{
+					case 1:
+						//timeValueÔ½½ç
+						break;
+					default:
+						throw ex;
+						break;
+					}
+				}
 			}
 		}
 		else {
@@ -210,7 +223,20 @@ int go(string f,bool isCut) {
 	fname(f.c_str(),name);
 	saveDoc finish(name,"unknown","unknown","unknown","chordConverter","Escapeland");
 	for (measure& i : sections) {
-		if(SUCCEED(i.id)) finish.saveMeasure(i);
+		if(SUCCEED(i.id))
+		try { 
+			finish.saveMeasure(i); 
+		}
+		catch (err ex) {
+			switch (ex.id)
+			{
+			case 3:
+				//unexpected timeValue
+				break;
+			default:
+				break;
+			}
+		}
 	}
 	string fn = name;
 	fn = fn + ".xml";
