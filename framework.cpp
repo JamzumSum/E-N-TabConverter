@@ -98,9 +98,8 @@ int split(Mat img, vector<space> &coll) {
 
 		}
 		if (coll.size() < 2) {
-			cout << "二次裁剪失败，请手动处理" << endl;
-			imshow("WTF", img);
-			cvWaitKey(0);
+			err ex = { 4,__LINE__,"二次裁剪失败，请手动处理" };
+			
 			return 3;
 		}
 		/*cv::Mat ccolor;

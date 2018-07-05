@@ -23,6 +23,7 @@ int go(string f,bool isCut) {
 	std::vector<space> coll;
 	std::vector<space> toCut;
 	cv::Mat img = threshold(f);
+
 	col = img.cols;
 	if (img.empty()) {
 		err ex = { 3,__LINE__,"Wrong format." };
@@ -32,10 +33,19 @@ int go(string f,bool isCut) {
 	cv::Mat trimmed = trim(img);
 	//imshow("2", trimmed); cvWaitKey();
 	
-	
-	cutTimes = split(trimmed, coll);
-	if (cutTimes == 3) {
-		return 1;
+	try {
+		cutTimes = split(trimmed, coll);
+	}
+	catch (err ex) {
+		switch (ex.id)
+		{
+		case 4:
+			imshow("WTF", trimmed);cvWaitKey();
+			cvDestroyAllWindows();
+			return 1;
+		default:
+			break;
+		}
 	}
 
 	n = coll.size();
@@ -45,6 +55,7 @@ int go(string f,bool isCut) {
 	for (size_t i = 0; i < n; i++) r[i] = false;
 	interCheck(coll, t);
 	n = coll.size();
+
 	vector<bool> mm(n, false);
 	for (int i:t) r[i] = true;
 	KClassify(coll,mm);
@@ -103,6 +114,11 @@ int go(string f,bool isCut) {
 	trimmed(cv::Range(toCut[n - 1].start + toCut[n - 1].length + 1, trimmed.rows), cv::Range(0, trimmed.cols)).copyTo(piece[n]);
 	
 	if (dog && cutTimes == 2) {
+		/*
+			这个if块里是一种用于补救的手段。。如果分割效果不好会触发这个条件。。。
+			但是现在分割效果还算好，而且本身这个补救手段就很欠考虑。。。
+			另外，在多次算法改进之后，这个if块是否还正确亦未可知。。。
+		*/
 		notification = "运行修补算法";
 		std::vector<space> toJoin;
 		for (int i = 1; i <= n; i++) toJoin.push_back({0,piece[i].rows});
@@ -125,8 +141,10 @@ int go(string f,bool isCut) {
 	}
 	
 	for (int i = 0; i <= n; i++) {
+		//每个分割出来的行再剪去空白
 		piece[i] = trim(piece[i]);
 	}
+
 	int k = 1;
 	for (int i = 0; i <= n; i++) {
 		if (piece[i].empty()) continue;
@@ -188,19 +206,6 @@ int go(string f,bool isCut) {
 	}
 	piece.clear();
 
-	//saveNums("C:\\Users\\Administrator\\Desktop\\oh", nums);
-	//system("pause");
-
-	/*system("pause");
-	system("cls");
-	for (measure &i : sections) {
-		for (note &j : i.notes) {
-			if(!j.chord) cout << " | " << j.timeValue << "   ";
-			cout << j.notation.technical.string << "弦" << j.notation.technical.fret << "品";
-		}
-		cout << endl << endl;
-	}
-	system("pause");*/
 	notification = "扫描完成，准备写入文件";
 	progress = 50;
 	char name[256] = "";

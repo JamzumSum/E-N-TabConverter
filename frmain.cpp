@@ -69,14 +69,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 				{
 				case 3:
 					//不支持的格式
-					info.name = ex.description.insert(0,"failure: ").c_str();
+					info.name = ex.description.insert(0,"Failure: ").c_str();
 					return;
 				default:
+					info.name = ex.description.insert(0, "Error: ").c_str();
 					break;
 				}
 			}
 			notification = "Success";
-			
+			main.top();
 		}
 	};
 	main.Event_Load_Complete = [](form* me) {
