@@ -31,7 +31,6 @@ Dsetter(na,ty)
 #define MAXSIZE 1024
 #define ID_MENU 9001
 
-#define assert(expression) ((void)0)
 HINSTANCE hi = GetModuleHandleA(0);
 LRESULT CALLBACK WinProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 

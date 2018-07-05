@@ -4,18 +4,19 @@
 
 using namespace std;
 
-#define mode 0
-//0-main program  1-train
+int col = 0;
+
+#if workMode
+int main() {
+	train();
+	return 0;
+}
+#else
 
 extern notify<int>progress;
 extern notify<std::string>notification;
-int col = 0;
 
 int go(string f,bool isCut) {
-#if mode == 1
-	train();
-	return 0;
-#endif
 	size_t n;
 	int cutTimes;
 	bool flag = false, dog = false;
@@ -229,3 +230,5 @@ int go(string f,bool isCut) {
 	cvDestroyAllWindows();
 	return 0;
 }
+
+#endif

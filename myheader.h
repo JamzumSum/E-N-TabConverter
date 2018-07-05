@@ -1,6 +1,15 @@
 #pragma once
 #include"type.h"
 
+#define workMode 0
+/*
+	* workMode
+	|value	|function		|
+	|:-----:|:-------------:|
+	|0		|main program	|
+	|1		|trian			|
+*/
+
 #define SUCCEED(x) (x>=0)
 #define defaultCSV "C:\\Users\\Administrator\\Desktop\\E-N TabConverter\\tData.csv"
 

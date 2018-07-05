@@ -1,5 +1,9 @@
+#include"myheader.h"
+#if workMode == 0
+/*
+	frmain.cpp ¿ØÖÆ³ÌÐòµÄGUI
+*/
 #include"GUI.h"
-#include"type.h"
 #define IDI_ICON1 101
 #define IDI_WINDOW1 102
 #define IDB_BITMAP1 106
@@ -99,3 +103,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 std::string conc(std::string n,char p[4]) {
 	return n + "------" + p + "%";
 }
+
+
+
+
+#endif

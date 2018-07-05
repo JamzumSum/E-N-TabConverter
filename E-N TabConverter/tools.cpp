@@ -2,6 +2,7 @@
 	与图像处理无关的过程
 */
 #include <Windows.h>
+#include "resource.h"
 #include <string>
 
 using namespace std;
@@ -63,4 +64,41 @@ void fname(const char* path, char* name) {
 copy:
 	strncpy(name, &path[start], end - start);
 	return;
+}
+
+BOOL FreeResFile(DWORD dwResName, LPCSTR lpResType, LPCSTR lpFilePathName)
+{
+	/*
+		功能：释放资源文件
+		参数：
+			DWORD dwResName   资源ID，如IDR_ML_CSV1
+			LPCSTR lpResType 指定释放的资源的资源类型，如"ML_CSV"
+			LPCSTR lpFilePathName 释放路径（包含文件名）
+
+		返回值：成功则返回TRUE,失败返回FALSE
+	*/
+	HMODULE hInstance = ::GetModuleHandle(NULL);//得到自身实例句柄  
+
+	HRSRC hResID = ::FindResource(hInstance, MAKEINTRESOURCE(dwResName), lpResType);//查找资源  
+	HGLOBAL hRes = ::LoadResource(hInstance, hResID);//加载资源  
+	LPVOID pRes = ::LockResource(hRes);//锁定资源  
+
+	if (pRes == NULL)//锁定失败  
+	{
+		return false;
+	}
+	DWORD dwResSize = ::SizeofResource(hInstance, hResID);//得到待释放资源文件大小  
+	HANDLE hResFile = CreateFile(lpFilePathName, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);//创建文件  
+
+	if (INVALID_HANDLE_VALUE == hResFile)
+	{
+		//TRACE("创建文件失败！");  
+		return false;
+	}
+
+	DWORD dwWritten = 0;//写入文件的大小     
+	WriteFile(hResFile, pRes, dwResSize, &dwWritten, NULL);//写入文件  
+	CloseHandle(hResFile);//关闭文件句柄  
+
+	return (dwResSize == dwWritten);//若写入大小等于文件大小，返回成功，否则失败  
 }
