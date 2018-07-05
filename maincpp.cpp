@@ -25,8 +25,8 @@ int go(string f,bool isCut) {
 	cv::Mat img = threshold(f);
 	col = img.cols;
 	if (img.empty()) {
-		std::cout << "Wrong format." << std::endl;
-		system("pause");
+		err ex = { 3,__LINE__,"Wrong format." };
+		throw ex;
 		return 1;
 	}
 	cv::Mat trimmed = trim(img);

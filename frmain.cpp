@@ -61,13 +61,22 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 		if (GetOpenFileName(&ofn))
 		{
 			info.name = f;
-			if (go(std::string(f),isCut) == 0) {
-				notification = "success";
+			try {
+				go(std::string(f), isCut);
 			}
-			else {
-				notification = "failure";
+			catch (err ex) {
+				switch (ex.id)
+				{
+				case 3:
+					//不支持的格式
+					info.name = ex.description.insert(0,"failure: ").c_str();
+					return;
+				default:
+					break;
+				}
 			}
-			main.show();
+			notification = "Success";
+			
 		}
 	};
 	main.Event_Load_Complete = [](form* me) {
