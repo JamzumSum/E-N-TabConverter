@@ -134,6 +134,7 @@
     <ClCompile Include="..\frmain.cpp" />
     <ClCompile Include="..\maincpp.cpp" />
     <ClCompile Include="..\tinyxml2\tinyxml2.cpp" />
+    <ClCompile Include="tools.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Cuckoo.h" />
@@ -151,6 +152,9 @@
   <ItemGroup>
     <Image Include="..\icon\192.ico" />
     <Image Include="..\icon\64.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\tData.csv" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

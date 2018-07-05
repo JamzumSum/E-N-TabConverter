@@ -11,28 +11,6 @@ extern notify<int>progress;
 extern notify<std::string>notification;
 int col = 0;
 
-void fname(const char* path,char* name) {
-	int start, end;
-	int n = (int)strnlen_s(path, 260);
-	for (int i = n - 1; i >= 0; i--) {
-		if (path[i] == '.' || path[i] == '\\') {
-			end = i;
-			for (i = i - 1; i >= 0; i--) {
-				if (path[i] == '\\') {
-					break;
-				}
-			}
-			start = i + 1;
-			goto copy;
-		}
-	}
-	strncpy(name,path,n);
-	return;
-copy:
-	strncpy(name, &path[start], end - start);
-	return;
-}
-
 int go(string f,bool isCut) {
 #if mode == 1
 	train();
