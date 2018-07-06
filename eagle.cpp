@@ -1,19 +1,22 @@
-#include "cv.h"
 #include "ml.hpp"
-#include "opencv.hpp"
 #include <fstream>
-#include <Windows.h>  
-#include <iterator>  
+#include <io.h>
+#include <iterator> 
 #include "myheader.h"
-#include <iostream>
+#include <string>
 
+#define IDR_ML_CSV1 103
 #define samplePath "C:\\Users\\Administrator\\Desktop\\E-N TabConverter\\sample_classified\\"
+
+typedef unsigned long       DWORD;
+typedef _Null_terminated_ const char *LPCSTR;
 
 using namespace cv;
 using namespace cv::ml;
 
 cv::Ptr<cv::ml::KNearest> &load(std::string csv, Ptr<KNearest> &knn);
-void ls(const char* lpPath, std::vector<std::string> &fileList);
+extern void ls(const char* lpPath, std::vector<std::string> &fileList);
+extern bool FreeResFile(DWORD dwResName, LPCSTR lpResType, LPCSTR lpFilePathName);
 
 int rec(Mat character,std::vector<int> &possible) {
 	Mat res,tmp,neighbour;
@@ -21,7 +24,8 @@ int rec(Mat character,std::vector<int> &possible) {
 	static Ptr<KNearest> knn = KNearest::create();
 	knn = load(defaultCSV, knn);
 	if (!knn->isTrained()) {
-		//TODO：读取错误
+		err ex = {5,__LINE__,"knn网络读取失败"};
+		throw ex;
 		return -1;
 	}
 	knn->findNearest(tmp, 5, res, neighbour);
@@ -47,7 +51,6 @@ void train(std::string save) {
 		ls((path + c).c_str(), fileList);
 		for (int i = 0; i < (int)fileList.size(); i++) {
 			Mat tmp = imread(std::string(fileList[i]));
-			//std::cout << tmp.type() << std::endl;
 			trainData.push_back(tmp.reshape(1, 1));
 			Label.push_back(num);										//与trainData对应的标记
 		}
@@ -69,11 +72,14 @@ Ptr<KNearest> &load(std::string csv, Ptr<KNearest> &knn) {
 	if (knn->isTrained()) {
 		return knn;											//避免重复
 	}
+	if (_access(csv.c_str(), 0) < 0) {
+		FreeResFile(IDR_ML_CSV1, (char*)"ML_CSV", (char*)defaultCSV);
+	}
 	int K = 5;
 	Ptr<TrainData> trainData = TrainData::loadFromCSV(csv, 0, 0, -1);
 	if (trainData.empty()) {
-		//TODO: 读取错误
-		return knn;
+		FreeResFile(IDR_ML_CSV1, (char*)"ML_CSV", (char*)defaultCSV);
+		Ptr<TrainData> trainData = TrainData::loadFromCSV(csv, 0, 0, -1);
 	}
 	knn->setDefaultK(K);
 	knn->setIsClassifier(true);
@@ -83,40 +89,3 @@ Ptr<KNearest> &load(std::string csv, Ptr<KNearest> &knn) {
 	return knn;
 }
 
-void ls(const char* lpPath, std::vector<std::string> &fileList)
-{
-	char szFind[MAX_PATH];
-	WIN32_FIND_DATA FindFileData;
-
-	strcpy_s(szFind, lpPath);
-	strcat_s(szFind, "\\*.jpg");
-
-	HANDLE hFind = ::FindFirstFile(szFind, &FindFileData);
-	if (INVALID_HANDLE_VALUE == hFind)    return;
-
-	while (true)
-	{
-		if (FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-		{
-			if (FindFileData.cFileName[0] != '.')
-			{
-				char szFile[MAX_PATH];
-				strcpy_s(szFile, lpPath);
-				strcat_s(szFile, "\\");
-				strcat_s(szFile, (char*)(FindFileData.cFileName));
-				ls(szFile, fileList);
-			}
-		}
-		else
-		{
-			//std::cout << FindFileData.cFileName << std::endl;  
-			char szFile[MAX_PATH];
-			strcpy_s(szFile,lpPath);
-			strcat_s(szFile, "\\");
-			strcat_s(szFile, FindFileData.cFileName);
-			fileList.push_back(std::string(szFile));
-		}
-		if (!FindNextFile(hFind, &FindFileData))    break;
-	}
-	FindClose(hFind);
-}

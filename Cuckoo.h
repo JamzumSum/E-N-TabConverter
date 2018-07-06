@@ -164,9 +164,12 @@ inline measure::measure(cv::Mat org, cv::Mat img, vector<cv::Vec4i> rows,int id)
 			cv::Mat inv = 255 - Morphology(picValue, picValue.rows / tr++, false, true);
 			cv::findContours(inv, cont, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
 			if (picValue.rows / tr < 2) {
-#if _DEBUG
-				imshow("2", picValue); cvWaitKey();
-#endif
+				for (int i = 0; i < picValue.rows; i++) {
+					if (!isEmptyLine(picValue, i, 0)) {
+						err ex = { 6,__LINE__,"未扫描到纵向结构" };
+						throw ex;
+					}
+				}
 				return;
 			}
 		}
@@ -228,18 +231,23 @@ inline measure::measure(cv::Mat org, cv::Mat img, vector<cv::Vec4i> rows,int id)
 		}
 		time.push_back((int)(this->time.beat_type * pow(2, max(sum1, !sum3 && sum2 ? sum2 - 1 : sum2)) * (!sum3 && sum2 ? 1.5 : 1)));
 	}
+	for (int i : time) {
+		if (i != quarter) {
+			goto distribute;
+		}
+	}
+	for (int &i : time) {
+		i = half;
+	}
+distribute:
 	for (int k = 0, i = 0; i < notes.size(); i++) {
 		if (notes[i].chord) {
 			notes[i].timeValue = notes[i - 1].timeValue;
 		}
 		else {
 			if (k == time.size()) {
-#if _DEBUG
-				imshow("2", org); cvWaitKey();
 				err ex = {1,__LINE__,"time 越界，自动跳出，建议检查该小节 notes 的 chord 划分" };
 				throw ex;
-#endif
-				break;
 			}
 			notes[i].timeValue = (Value)time[k++];
 		}

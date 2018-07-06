@@ -48,6 +48,8 @@ int go(string f,bool isCut) {
 		}
 	}
 
+	//此时所有条件满足，算法开始
+
 	n = coll.size();
 	vector<int> t;
 	vector<bool> r(n,false);
@@ -83,7 +85,7 @@ int go(string f,bool isCut) {
 	if (toCut.size() > 2) {
 		notification = "过滤算法正常";
 		coll.clear();
-		progress = 0;
+		progress = 1;
 	}
 	else {
 		toCut.swap(coll);
@@ -191,6 +193,11 @@ int go(string f,bool isCut) {
 					{
 					case 1:
 						//timeValue越界
+					case 6:
+						//没有竖直结构用以判断时值
+						#if _DEBUG
+							imshow("2", origin[j]); cvWaitKey();
+						#endif
 						break;
 					default:
 						throw ex;
@@ -203,6 +210,7 @@ int go(string f,bool isCut) {
 			if(flag) notes.push_back(piece[i]);
 			else info.push_back(piece[i]);
 		}
+		progress = progress + 49 / (int)(n + 1);
 	}
 	piece.clear();
 

@@ -2,6 +2,7 @@
 	与图像处理无关的过程
 */
 #include <Windows.h>
+#include <vector>
 #include "resource.h"
 #include <string>
 
@@ -66,8 +67,7 @@ copy:
 	return;
 }
 
-BOOL FreeResFile(DWORD dwResName, LPCSTR lpResType, LPCSTR lpFilePathName)
-{
+bool FreeResFile(DWORD dwResName, LPCSTR lpResType, LPCSTR lpFilePathName){
 	/*
 		功能：释放资源文件
 		参数：
@@ -101,4 +101,41 @@ BOOL FreeResFile(DWORD dwResName, LPCSTR lpResType, LPCSTR lpFilePathName)
 	CloseHandle(hResFile);//关闭文件句柄  
 
 	return (dwResSize == dwWritten);//若写入大小等于文件大小，返回成功，否则失败  
+}
+
+void ls(const char* lpPath, std::vector<std::string> &fileList){
+	char szFind[MAX_PATH];
+	WIN32_FIND_DATA FindFileData;
+
+	strcpy_s(szFind, lpPath);
+	strcat_s(szFind, "\\*.jpg");
+
+	HANDLE hFind = ::FindFirstFile(szFind, &FindFileData);
+	if (INVALID_HANDLE_VALUE == hFind)    return;
+
+	while (true)
+	{
+		if (FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+		{
+			if (FindFileData.cFileName[0] != '.')
+			{
+				char szFile[MAX_PATH];
+				strcpy_s(szFile, lpPath);
+				strcat_s(szFile, "\\");
+				strcat_s(szFile, (char*)(FindFileData.cFileName));
+				ls(szFile, fileList);
+			}
+		}
+		else
+		{
+			//std::cout << FindFileData.cFileName << std::endl;  
+			char szFile[MAX_PATH];
+			strcpy_s(szFile, lpPath);
+			strcat_s(szFile, "\\");
+			strcat_s(szFile, FindFileData.cFileName);
+			fileList.push_back(std::string(szFile));
+		}
+		if (!FindNextFile(hFind, &FindFileData))    break;
+	}
+	FindClose(hFind);
 }
