@@ -75,7 +75,7 @@ int split(Mat img, vector<space> &coll) {
 		cout << "裁剪失败，等待二次裁剪" << endl;
 		//二次裁剪为缩减判断空行的范围，从之前的从像素x=0 至x=col到检测到的横线的x1至x2
 		vector<cv::Vec4i> rows;
-		int thick = 0;
+		vector<int> thick;
 		findRow(img, CV_PI / 18, rows, thick);
 		if (rows.size() > 5) {
 			cout << "二次裁剪开始." << endl;

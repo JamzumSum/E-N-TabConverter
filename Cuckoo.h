@@ -129,27 +129,8 @@ inline void measure::recNum(cv::Mat section, std::vector<cv::Vec4i> rows) {
 	}
 	//imshow("2", ccolor); cvWaitKey();
 }
-inline measure::measure(cv::Mat org, cv::Mat img, vector<cv::Vec4i> rows,int id) {
-	this->id = id;
-	if (org.cols < colLenth / 5) {
-		this->id = -1;
-		return;
-	}
+inline void measure::recTime(cv::Mat org,cv::Mat img,std::vector<cv::Vec4i> rows) {
 	int predLen = 0;
-	try {
-		recNum(img, rows);
-	}
-	catch (err ex) {
-		switch (ex.id)
-		{
-		case 0:
-			//包含不合理数据
-			break;
-		default:
-			throw ex;
-			break;
-		}
-	}
 	cv::Mat picValue = org(cv::Range(max(noteBottom, rows[5][1]) + 1, img.rows), cv::Range::all()).clone();
 	cv::Mat inv;
 	std::vector<std::vector<cv::Point>> cont;
@@ -179,7 +160,7 @@ inline measure::measure(cv::Mat org, cv::Mat img, vector<cv::Vec4i> rows,int id)
 				temp[0] = std::min(temp[0], cont[i][j].y);
 				temp[1] = std::max(temp[1], cont[i][j].y);
 			}
-			predLen = std::max(predLen, temp[1] - temp[0]);
+			predLen = max(predLen, temp[1] - temp[0]);
 		}
 		valueSignalLen = ((valueSignalLen ? valueSignalLen : predLen) + predLen) / 2;
 	}
@@ -246,12 +227,41 @@ distribute:
 		}
 		else {
 			if (k == time.size()) {
-				err ex = {1,__LINE__,"time 越界，自动跳出，建议检查该小节 notes 的 chord 划分" };
+				err ex = { 1,__LINE__,"time 越界，自动跳出，建议检查该小节 notes 的 chord 划分" };
 				throw ex;
 			}
 			notes[i].timeValue = (Value)time[k++];
 		}
 	}
+}
+inline measure::measure(cv::Mat org, cv::Mat img, vector<cv::Vec4i> rows,int id) {
+	this->id = id;
+	if (org.cols < colLenth / 5) {
+		this->id = -1;
+		return;
+	}
+	try {
+		recNum(img, rows);
+		recTime(org, img, rows);
+	}
+	catch (err ex) {
+		switch (ex.id)
+		{
+		case 0:
+			//包含不合理数据
+			break;
+		case 6:
+			//没有竖直结构用以判断时值
+			#if _DEBUG
+				imshow("2", org); cvWaitKey();
+			#endif
+			break;
+		default:
+			throw ex;
+			break;
+		}
+	}
+	
 	
 }
 

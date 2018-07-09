@@ -65,6 +65,7 @@ private:
 	int noteBottom = 0;
 	int maxCharacterWidth = 0;
 	void recNum(cv::Mat section, std::vector<cv::Vec4i> rows);
+	void recTime(cv::Mat org, cv::Mat img, std::vector<cv::Vec4i> rows);
 public:
 	int id;
 	unsigned int number;						//Ð¡½ÚÊý

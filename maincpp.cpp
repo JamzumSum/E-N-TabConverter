@@ -193,8 +193,6 @@ int go(string f,bool isCut) {
 					{
 					case 1:
 						//timeValue越界
-					case 6:
-						//没有竖直结构用以判断时值
 						#if _DEBUG
 							imshow("2", origin[j]); cvWaitKey();
 						#endif
