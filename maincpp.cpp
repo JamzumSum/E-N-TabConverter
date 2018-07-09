@@ -94,7 +94,6 @@ int go(string f,bool isCut) {
 	n = toCut.size();
 
 	std::vector<cv::Mat> piece;
-	std::vector<cv::Mat> chords;
 	std::vector<measure> sections;
 	std::vector<cv::Mat> timeValue;
 	std::vector<cv::Mat> info;
@@ -153,17 +152,10 @@ int go(string f,bool isCut) {
 		std::vector<cv::Vec4i> rows;
 		vector<int> thick;
 		findRow(piece[i], CV_PI / 18, rows,thick);
-		if (rows.size() > 5) {
+		if (rows.size() == 6) {
 			flag = true;
-			chords.push_back(piece[i]);
-			//为OCR去掉横线
-			//用形态学腐蚀得到mask 将mask上的点置0
-			cv::Mat dilated;
-			dilated = 255 - Morphology(piece[i],piece[i].cols/50,true,true);
-			dilated = Morphology(dilated, 2, true, true);
-			//imshow("2", dilated); cvWaitKey();
-			toOCR = cv::max(dilated, piece[i]);
-			
+			toOCR = Denoise(piece[i]);
+
 			vector<cv::Vec4i> lines;
 			int max = min(rows[5][1], rows[5][3]);
 			int min = std::max(rows[0][1], rows[0][3]);

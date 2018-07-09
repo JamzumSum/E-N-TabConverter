@@ -24,7 +24,6 @@ extern void findCol(cv::Mat img, double rangeTheta, int upper,int lower, std::ve
 extern int whichLine(cv::Vec4i character, std::vector<cv::Vec4i> rows);
 extern void saveNums(std::string folder, std::vector<cv::Mat> nums);
 extern void KClassify(std::vector<space> collection,std::vector<bool> &classifier);
-extern void interCheck(std::vector<space> &collection,std::vector<int> &f);
 extern cv::Mat Morphology(cv::Mat img, int len, bool horizontal, bool open);
 extern void savePic(std::string folder, cv::Mat pic);
 //eagle.cpp
@@ -34,8 +33,10 @@ extern void train(std::string save = "C:\\Users\\Administrator\\Desktop\\E-N Tab
 extern int cut(cv::Mat img, std::vector<cv::Vec4i> divideBy, int direction, std::vector<cv::Mat> &container, bool includeAll = true);
 extern int split(cv::Mat img, std::vector<space> &coll);
 extern void extractNum(std::vector<cv::Vec4i> &pos, std::vector<cv::Mat> &nums, std::vector<cv::Mat> section, std::vector<cv::Vec4i> rows,int &bottom,int range);
+extern cv::Mat Denoise(cv::Mat img);
 //maincpp.cpp
 void fname(const char* path,char* name);
 //tools.cpp
 extern std::string getPath();
 extern void fname(const char* path, char* name);
+extern void interCheck(std::vector<space> &collection, std::vector<int> &f);

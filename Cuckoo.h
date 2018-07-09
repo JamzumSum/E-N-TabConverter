@@ -129,9 +129,9 @@ inline void measure::recNum(cv::Mat section, std::vector<cv::Vec4i> rows) {
 	}
 	//imshow("2", ccolor); cvWaitKey();
 }
-inline void measure::recTime(cv::Mat org,cv::Mat img,std::vector<cv::Vec4i> rows) {
+inline void measure::recTime(std::vector<cv::Vec4i> rows) {
 	int predLen = 0;
-	cv::Mat picValue = org(cv::Range(max(noteBottom, rows[5][1]) + 1, img.rows), cv::Range::all()).clone();
+	cv::Mat picValue = org(cv::Range(max(noteBottom, rows[5][1]) + 1, org.rows), cv::Range::all()).clone();
 	cv::Mat inv;
 	std::vector<std::vector<cv::Point>> cont;
 	if (org.rows < rowLenth * 2 && org.rows > rowLenth / 2) {
@@ -236,13 +236,14 @@ distribute:
 }
 inline measure::measure(cv::Mat org, cv::Mat img, vector<cv::Vec4i> rows,int id) {
 	this->id = id;
+	this->org = org;
 	if (org.cols < colLenth / 5) {
 		this->id = -1;
 		return;
 	}
 	try {
 		recNum(img, rows);
-		recTime(org, img, rows);
+		recTime(rows);
 	}
 	catch (err ex) {
 		switch (ex.id)
