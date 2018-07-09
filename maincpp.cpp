@@ -151,7 +151,7 @@ int go(string f,bool isCut) {
 	for (int i = 0; i <= n; i++) {
 		if (piece[i].empty()) continue;
 		std::vector<cv::Vec4i> rows;
-		int thick = 0;
+		vector<int> thick;
 		findRow(piece[i], CV_PI / 18, rows,thick);
 		if (rows.size() > 5) {
 			flag = true;

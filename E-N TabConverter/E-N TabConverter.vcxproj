@@ -134,7 +134,7 @@
     <ClCompile Include="..\frmain.cpp" />
     <ClCompile Include="..\maincpp.cpp" />
     <ClCompile Include="..\tinyxml2\tinyxml2.cpp" />
-    <ClCompile Include="tools.cpp" />
+    <ClCompile Include="..\tools.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Cuckoo.h" />
