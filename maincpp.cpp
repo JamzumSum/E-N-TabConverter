@@ -154,7 +154,7 @@ int go(string f,bool isCut) {
 		findRow(piece[i], CV_PI / 18, rows,thick);
 		if (rows.size() == 6) {
 			flag = true;
-			toOCR = Denoise(piece[i]);
+			toOCR = Denoise(piece[i],rows,thick);
 
 			vector<cv::Vec4i> lines;
 			int max = min(rows[5][1], rows[5][3]);
@@ -208,7 +208,7 @@ int go(string f,bool isCut) {
 	progress = 50;
 	char name[256] = "";
 	fname(f.c_str(),name);
-	saveDoc finish(name,"unknown","unknown","unknown","chordConverter","Escapeland");
+	saveDoc finish(name,"unknown","unknown","unknown","E-N TabConverter","Internet");
 	for (measure& i : sections) {
 		if(SUCCEED(i.id))
 		try { 

@@ -3,6 +3,7 @@
 using namespace std;
 using namespace cv;
 
+#define useInpaint 1
 int cut(Mat img, vector<Vec4i> divideBy, int direction, vector<Mat> &container, bool includeAll) {
 	//direction: 0是竖直裁剪, 1是水平裁剪
 	if (direction > 1) return 0;
@@ -151,12 +152,23 @@ inline void extractNum(vector<Vec4i> &pos, vector<Mat> &nums, vector<Mat> sectio
 	}
 }
 
-Mat Denoise(Mat img) {
+Mat Denoise(Mat img,vector<Vec4i> lines,vector<int> thick) {
 	//为OCR去掉横线
 	//用形态学腐蚀得到mask 将mask上的点置0
+#if !useInpaint
 	Mat dilated;
 	dilated = 255 - Morphology(img, img.cols / 50, true, true);
 	dilated = Morphology(dilated, 2, true, true);
 	//imshow("2", dilated); cvWaitKey();
 	return cv::max(dilated, img);
+#endif
+	Mat mask = Mat(img.size(), CV_8UC1, Scalar::all(0));
+	for (size_t i = 0; i < lines.size(); i++) {
+		line(mask, Point(lines[i][0], lines[i][1]), Point(lines[i][2], lines[i][3]), Scalar(255), thick[i]);
+		
+	}
+	inpaint(img, mask, img, *max_element(thick.begin(),thick.end()), INPAINT_TELEA);
+	threshold(img, img, 185, 255, THRESH_BINARY);
+	//imshow("2", img); cvWaitKey();
+	return img;
 }
