@@ -12,6 +12,7 @@
 
 #define SUCCEED(x) (x>=0)
 #define defaultCSV "C:\\Users\\Administrator\\Desktop\\E-N TabConverter\\tData.csv"
+#define cfgPath "C:\\Users\\Administrator\\Desktop\\E-N TabConverter\\global.cfg"
 
 //Dodo.cpp
 extern cv::Mat threshold(std::string);

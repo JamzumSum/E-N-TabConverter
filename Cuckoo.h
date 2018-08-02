@@ -1,4 +1,4 @@
-#include"myheader.h"
+#include "myheader.h"
 #include "global.h"
 using namespace std;
 
@@ -7,8 +7,6 @@ using namespace std;
 #define picFolder "C:\\Users\\Administrator\\Desktop\\oh"
 
 int count(cv::Mat img, cv::Vec4i range, int delta);
-int valueSignalLen = 0;
-int characterWidth = 0;
 
 inline void measure::recNum(cv::Mat section, std::vector<cv::Vec4i> rows) {
 	/*
@@ -38,7 +36,7 @@ inline void measure::recNum(cv::Mat section, std::vector<cv::Vec4i> rows) {
 		if (tmp[3] - tmp[1] < rows[1][1] - rows[0][1]					//网格限定
 			&& tmp[3] - tmp[1] < 5 * (tmp[2] - tmp[0])
 			&& tmp[3] - tmp[1] > tmp[2] - tmp[0]						//形状限定
-			&& (characterWidth ? (tmp[2] - tmp[0] > characterWidth / 4) : 1)
+			&& (global->characterWidth ? (tmp[2] - tmp[0] > global->characterWidth / 4) : 1)
 			&& (tmp[3] - tmp[1])*(tmp[2] - tmp[0]) > 9)					//大小限定
 		{
 			note newNote;
@@ -69,13 +67,9 @@ inline void measure::recNum(cv::Mat section, std::vector<cv::Vec4i> rows) {
 			#endif
 			newNote.pos = (tmp[0] + tmp[2]) / 2;
 			
-			if (characterWidth) {
-				if(characterWidth / 4 < tmp[2] - tmp[0])
-					characterWidth = (characterWidth + tmp[2] - tmp[0]) / 2;
-			}
-			else {
-				characterWidth = tmp[2] - tmp[0];
-			}
+			if (global->characterWidth / 4 < tmp[2] - tmp[0] || !global->characterWidth)
+				global->characterWidth += tmp[2] - tmp[0];
+			
 			this->maxCharacterWidth = max(maxCharacterWidth, tmp[2] - tmp[0]);
 			this->noteBottom = max(noteBottom, tmp[3]);
 			this->notes.push_back(newNote);
@@ -134,7 +128,7 @@ inline void measure::recTime(std::vector<cv::Vec4i> rows) {
 	cv::Mat picValue = org(cv::Range(max(noteBottom, rows[5][1]) + 1, org.rows), cv::Range::all()).clone();
 	cv::Mat inv;
 	std::vector<std::vector<cv::Point>> cont;
-	if (org.rows < rowLenth * 2 && org.rows > rowLenth / 2) {
+	if (org.rows < global->rowLenth * 2 && org.rows > global->rowLenth / 2) {
 		inv = 255 - Morphology(picValue, picValue.rows / 3, false, true);
 		cv::findContours(inv, cont, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
 
@@ -162,10 +156,10 @@ inline void measure::recTime(std::vector<cv::Vec4i> rows) {
 			}
 			predLen = max(predLen, temp[1] - temp[0]);
 		}
-		valueSignalLen = ((valueSignalLen ? valueSignalLen : predLen) + predLen) / 2;
+		global->valueSignalLen += predLen;
 	}
 	else {
-		predLen = valueSignalLen;
+		predLen = global->valueSignalLen;
 	}
 	inv = 255 - Morphology(picValue, predLen / 3, false, true);
 	cv::findContours(inv, cont, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
@@ -237,7 +231,7 @@ distribute:
 inline measure::measure(cv::Mat org, cv::Mat img, vector<cv::Vec4i> rows,int id) {
 	this->id = id;
 	this->org = org;
-	if (org.cols < colLenth / 5) {
+	if (org.cols < global->colLenth / 5) {
 		this->id = -1;
 		return;
 	}
@@ -269,7 +263,7 @@ inline measure::measure(cv::Mat org, cv::Mat img, vector<cv::Vec4i> rows,int id)
 int count(cv::Mat img,cv::Vec4i range,int delta) {
 	bool lock = false;
 	int sum = 0, x = range[delta > 0 ? 2 : 0] + delta;
-	int blocksize = 2 * (int)max(1.0, round(col / 1000.0)) + 1;
+	//int blocksize = 2 * (int)max(1.0, round(global->col / 1000.0)) + 1;
 	for (int y = (range[1] + range[3]) / 2; y <= range[3]; y++)
 	{
 		uchar *ptr1 = img.ptr<uchar>(y);

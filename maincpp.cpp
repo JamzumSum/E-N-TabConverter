@@ -1,10 +1,8 @@
 #pragma once
-#include"Cuckoo.h"
+#include "Cuckoo.h"
 #include "swan.h"
 
 using namespace std;
-
-int col = 0;
 
 #if workMode
 int main() {
@@ -15,6 +13,7 @@ int main() {
 
 extern notify<int>progress;
 extern notify<std::string>notification;
+GlobalPool *global = NULL;
 
 int go(string f,bool isCut) {
 	size_t n;
@@ -23,8 +22,6 @@ int go(string f,bool isCut) {
 	std::vector<space> coll;
 	std::vector<space> toCut;
 	cv::Mat img = threshold(f);
-
-	col = img.cols;
 	if (img.empty()) {
 		err ex = { 3,__LINE__,"Wrong format." };
 		throw ex;
@@ -50,6 +47,7 @@ int go(string f,bool isCut) {
 
 	//此时所有条件满足，算法开始
 
+	global = new GlobalPool(cfgPath,img.cols);
 	n = coll.size();
 	vector<int> t;
 	vector<bool> r(n,false);
@@ -167,11 +165,7 @@ int go(string f,bool isCut) {
 				cut(toOCR, lines, 0, section, true);
 				cut(piece[i], lines, 0, origin, true);
 			}
-			if (rowLenth) { 
-				if(piece[i].rows > rowLenth / 2 && piece[i].rows < rowLenth * 2)
-					rowLenth = (rowLenth + piece[i].rows) / 2;
-			}
-			else  rowLenth = piece[i].rows;
+			global->rowLenth += piece[i].rows;
 			for (size_t j = 0; j < section.size(); j++) {
 				try {
 					measure newSec(origin[j], section[j], rows, (int)k);
@@ -206,6 +200,7 @@ int go(string f,bool isCut) {
 
 	notification = "扫描完成，准备写入文件";
 	progress = 50;
+	delete global;
 	char name[256] = "";
 	fname(f.c_str(),name);
 	saveDoc finish(name,"unknown","unknown","unknown","E-N TabConverter","Internet");
