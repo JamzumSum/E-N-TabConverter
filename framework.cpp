@@ -4,6 +4,9 @@ using namespace std;
 using namespace cv;
 
 #define useInpaint 1
+#if _DEBUG
+#define ShowDenoise 0
+#endif
 int cut(Mat img, vector<Vec4i> divideBy, int direction, vector<Mat> &container, bool includeAll) {
 	//direction: 0是竖直裁剪, 1是水平裁剪
 	if (direction > 1) return 0;
@@ -55,7 +58,7 @@ int split(Mat img, vector<space> &coll) {
 	bool flag = false;
 	for (int st = img.rows, i = 0; i < img.rows; i++) {
 		//初步设为0.04 以后再说
-		if (isEmptyLine(img, i, 0.001)) {
+		if (isEmptyLine(img, i, 0.004)) {
 			if (!flag) {
 				st = i;
 				flag = true;
@@ -77,7 +80,8 @@ int split(Mat img, vector<space> &coll) {
 		//二次裁剪为缩减判断空行的范围，从之前的从像素x=0 至x=col到检测到的横线的x1至x2
 		vector<cv::Vec4i> rows;
 		vector<int> thick;
-		findRow(img, CV_PI / 18, rows, thick);
+		cv::Mat toOCR;
+		findRow(img, toOCR, CV_PI / 18, rows, thick);
 		if (rows.size() > 5) {
 			cout << "二次裁剪开始." << endl;
 			flag = false;
@@ -152,7 +156,7 @@ inline void extractNum(vector<Vec4i> &pos, vector<Mat> &nums, vector<Mat> sectio
 	}
 }
 
-Mat Denoise(Mat img,vector<Vec4i> lines,vector<int> thick) {
+Mat Denoise(Mat img,vector<Vec4i> lines, double radius) {
 	//为OCR去掉横线
 	//用形态学腐蚀得到mask 将mask上的点置0
 #if !useInpaint
@@ -164,11 +168,13 @@ Mat Denoise(Mat img,vector<Vec4i> lines,vector<int> thick) {
 #endif
 	Mat mask = Mat(img.size(), CV_8UC1, Scalar::all(0));
 	for (size_t i = 0; i < lines.size(); i++) {
-		line(mask, Point(lines[i][0], lines[i][1]), Point(lines[i][2], lines[i][3]), Scalar(255), thick[i]);
+		line(mask, Point(lines[i][0], lines[i][1]), Point(lines[i][2], lines[i][3]), Scalar(255));
 		
 	}
-	inpaint(img, mask, img, *max_element(thick.begin(),thick.end()), INPAINT_TELEA);
-	threshold(img, img, 185, 255, THRESH_BINARY);
-	//imshow("2", img); cvWaitKey();
+	inpaint(img, mask, img, radius, INPAINT_TELEA);
+	threshold(img, img, 217, 255, THRESH_BINARY);
+#if ShowDenoise
+	imshow("2", img); cvWaitKey();
+#endif
 	return img;
 }

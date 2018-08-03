@@ -149,10 +149,9 @@ int go(string f,bool isCut) {
 		if (piece[i].empty()) continue;
 		std::vector<cv::Vec4i> rows;
 		vector<int> thick;
-		findRow(piece[i], CV_PI / 18, rows,thick);
+		findRow(piece[i],toOCR, CV_PI / 18, rows,thick);
 		if (rows.size() == 6) {
 			flag = true;
-			toOCR = Denoise(piece[i],rows,thick);
 
 			vector<cv::Vec4i> lines;
 			int max = min(rows[5][1], rows[5][3]);

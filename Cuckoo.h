@@ -3,8 +3,10 @@
 using namespace std;
 
 #define savepic 0
-#define showRectangle 0
 #define picFolder "C:\\Users\\Administrator\\Desktop\\oh"
+#if _DEBUG
+#define showRectangle 0
+#endif
 
 int count(cv::Mat img, cv::Vec4i range, int delta);
 
@@ -117,7 +119,7 @@ inline void measure::recNum(cv::Mat section, std::vector<cv::Vec4i> rows) {
 		return x.pos < y.pos || (x.pos == y.pos && x.notation.technical.string < y.notation.technical.string);
 	});
 	for (size_t i = 1; i < notes.size(); i++) {
-		if (notes[i].pos - notes[i - 1].pos <= 1) {
+		if (notes[i].pos - notes[i - 1].pos <= t / 2) {
 			notes[i].chord = true;
 		}
 	}

@@ -95,7 +95,7 @@ inline GlobalPool::~GlobalPool() {
 		}
 	}
 	for (int j = 0; j < 5; j++) {
-		for (int i = 0;i < (int)cols.size() - 1;i++) {
+		for (int i = 0;i < (int)cols.size() - ((pos > 0) ? 1 : 0);i++) {
 			fso >> buffer;
 			vals[j].push_back(buffer);
 		}
