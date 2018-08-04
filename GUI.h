@@ -49,7 +49,7 @@ private:
 	Value (Container::*Get)() = NULL;
 	bool flag = true;
 public:
-	Property(){}
+	Property() noexcept {}
 	void setContainer(Container* x)
 	{
 		me = x;
@@ -107,13 +107,13 @@ private:
 	Dgesetter(Classname,LPCSTR)
 	Dgesetter(Parent,void*)
 public:
-	int x;
-	int y;
-	int w;
-	int h;
-	char type;
+	int x = CW_USEDEFAULT;
+	int y = CW_USEDEFAULT;
+	int w = CW_USEDEFAULT;
+	int h = CW_USEDEFAULT;
+	char type = 0;
 	unsigned int id;
-	window() {
+	window() noexcept {
 		name.setContainer(this);
 		hWnd.setContainer(this);
 		feature.setContainer(this);
@@ -136,7 +136,7 @@ public:
 	Property<window, long, readWrite, false> feature;
 	Property<window, void*, readOnly, true> parent;
 
-	int create();
+	virtual int create();
 	void hide() {
 		ShowWindow(hWnd, 0);
 	}
@@ -170,7 +170,7 @@ private:
 	bool isCreated() { return this->createOver; };
 public:
 	//构造
-	form() {}
+	form() noexcept {}
 	form(const char* className, const char* title,int x = CW_USEDEFAULT,int y = CW_USEDEFAULT,int w = CW_USEDEFAULT,int h = CW_USEDEFAULT) {
 		this->x = x; this->y = y; this->w = w; this->h = h;
 		this->type = 'f';
@@ -201,7 +201,7 @@ public:
 	Property<form, bool, readOnly,false> MessageCreated;
 	int brush = 0;
 	std::vector<void*> tab;
-	LPCSTR bitmapName;
+	LPCSTR bitmapName = NULL;
 	//方法
 	
 	
@@ -340,14 +340,14 @@ public:
 	//属性
 	std::string tag;
 	//方法
-	control(){
+	control() noexcept {
 		this->feature = this->feature | WS_CHILD | WS_VISIBLE;
 	}
 };
 
 class button :public control {
 public:
-	button() {}
+	button() noexcept {}
 	button(form* parent, int x, int y, int w, int h, const char* Name) {
 		this->x = x;
 		this->y = y;
@@ -367,7 +367,7 @@ public:
 class Label :public control {
 public:
 	
-	Label() {}
+	Label() noexcept {}
 	Label(form* parent, int x, int y, int w, int h, const char* Name) {
 		this->x = x;
 		this->y = y;
@@ -400,8 +400,8 @@ public:
 class Picture :public control {
 	//.bmp only
 public:
-	LPCSTR path;
-	Picture() {}
+	LPCSTR path = NULL;
+	Picture() noexcept {}
 	Picture(form* parent, int x, int y, int w, int h, const char* Name,char* picPath) {
 		this->x = x;
 		this->y = y;
@@ -419,10 +419,10 @@ public:
 
 class Textbox :public control {
 private:
-	long preProc;
+	long preProc = NULL;
 	bool multiline;
 public:
-	Textbox() {}
+	Textbox() noexcept {}
 	Textbox(form* parent, int x, int y, int w, int h, const char* Name, bool Multiline = true) {
 		this->x = x;
 		this->y = y;
@@ -475,7 +475,7 @@ class ProgressBar :public control {
 public:
 	int step = 10;
 	int range = 100;
-	ProgressBar() {}
+	ProgressBar() noexcept {}
 	ProgressBar(form* parent, int x, int y, int w, int h, const char* Name) {
 		this->x = x;
 		this->y = y;
@@ -529,10 +529,10 @@ private:
 	}
 public:
 	//属性
-	bool head;
+	bool head = false;
 	Property<radio, bool, readWrite,false> Value;
 	//方法
-	radio() {}
+	radio() noexcept {}
 	radio(form* parent, int x, int y, int w, int h, const char* Name, bool head = false) {
 		this->x = x;
 		this->y = y;
@@ -564,7 +564,7 @@ private:
 	}
 public:
 	Property<Checkbox, bool, readWrite,false> Value;
-	Checkbox() {}
+	Checkbox() noexcept {}
 	Checkbox(form* parent, int x, int y, int w, int h, const char* Name) {
 		this->x = x;
 		this->y = y;

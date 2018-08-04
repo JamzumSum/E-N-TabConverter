@@ -5,7 +5,7 @@ using namespace std;
 #define savepic 0
 #define picFolder "C:\\Users\\Administrator\\Desktop\\oh"
 #if _DEBUG
-#define showRectangle 0
+#define showRectangle 1
 #endif
 
 int count(cv::Mat img, cv::Vec4i range, int delta);
@@ -38,7 +38,7 @@ inline void measure::recNum(cv::Mat section, std::vector<cv::Vec4i> rows) {
 		if (tmp[3] - tmp[1] < rows[1][1] - rows[0][1]					//网格限定
 			&& tmp[3] - tmp[1] < 5 * (tmp[2] - tmp[0])
 			&& tmp[3] - tmp[1] > tmp[2] - tmp[0]						//形状限定
-			&& (global->characterWidth ? (tmp[2] - tmp[0] > global->characterWidth / 4) : 1)
+			&& (global->characterWidth ? (tmp[2] - tmp[0] > global->characterWidth / 2) : 1)
 			&& (tmp[3] - tmp[1])*(tmp[2] - tmp[0]) > 9)					//大小限定
 		{
 			note newNote;
@@ -69,8 +69,7 @@ inline void measure::recNum(cv::Mat section, std::vector<cv::Vec4i> rows) {
 			#endif
 			newNote.pos = (tmp[0] + tmp[2]) / 2;
 			
-			if (global->characterWidth / 4 < tmp[2] - tmp[0] || !global->characterWidth)
-				global->characterWidth += tmp[2] - tmp[0];
+			global->characterWidth += tmp[2] - tmp[0];
 			
 			this->maxCharacterWidth = max(maxCharacterWidth, tmp[2] - tmp[0]);
 			this->noteBottom = max(noteBottom, tmp[3]);

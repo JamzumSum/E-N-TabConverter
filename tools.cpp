@@ -85,6 +85,7 @@ bool FreeResFile(DWORD dwResName, LPCSTR lpResType, LPCSTR lpFilePathName){
 	HMODULE hInstance = ::GetModuleHandle(NULL);//得到自身实例句柄  
 
 	HRSRC hResID = ::FindResource(hInstance, MAKEINTRESOURCE(dwResName), lpResType);//查找资源  
+	if (!hResID) return false;
 	HGLOBAL hRes = ::LoadResource(hInstance, hResID);//加载资源  
 	LPVOID pRes = ::LockResource(hRes);//锁定资源  
 

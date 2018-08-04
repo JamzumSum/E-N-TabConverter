@@ -29,12 +29,12 @@ enum Value {
 	thirty_second = 32
 };
 typedef struct technical {
-	int string;									//弦
-	int fret;									//品
+	int string = 1;									//弦
+	int fret = 0;									//品
 }technical;
 
 typedef struct notations {
-	int dynamics;								//力度
+	char* dynamics = (char*)"mf";						//力度
 	technical technical;
 }notations;
 
@@ -45,7 +45,7 @@ typedef struct note {
 	bool dot = false;							//附点
 	int voice = 1;								//发声类型
 	int duration = 1;							//延音值
-	notations notation;
+	notations notation = { (char*)"mf",{1,0} };
 
 	int pos;									//x坐标
 }note;
@@ -69,7 +69,7 @@ private:
 	cv::Mat org;
 public:
 	int id;
-	unsigned int number;						//小节数
+	unsigned int number = 1;						//小节数
 	Time time;
 	std::vector<note> notes;
 	key key;

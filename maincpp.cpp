@@ -112,33 +112,33 @@ int go(string f,bool isCut) {
 	}
 	trimmed(cv::Range(toCut[n - 1].start + toCut[n - 1].length + 1, trimmed.rows), cv::Range(0, trimmed.cols)).copyTo(piece[n]);
 	
-	if (dog && cutTimes == 2) {
-		/*
-			这个if块里是一种用于补救的手段。。如果分割效果不好会触发这个条件。。。
-			但是现在分割效果还算好，而且本身这个补救手段就很欠考虑。。。
-			另外，在多次算法改进之后，这个if块是否还正确亦未可知。。。
-		*/
-		notification = "运行修补算法";
-		std::vector<space> toJoin;
-		for (int i = 1; i <= n; i++) toJoin.push_back({0,piece[i].rows});
-		bool* b = new bool[toCut.size()+1]();
-		interCheck(toJoin, t);
-		for (int i : t) r[i] = true;
-		KClassify(toJoin,r);
-		for (int k=0,i = 1; i <= n; i++) {
-			if (b[i]) b[i] = false;
-			else b[i] = r[k++];
-		}
-		for (size_t i = n; i > 0; i--) {
-			if (!b[i]) {
-				//将piece[i]与piece[i-1]拼接在一起
-				vconcat(piece[i-1],piece[i], piece[i - 1]);
-				piece[i].release();
-			}
-		}
-		delete[] b;
-	}
-	
+	//if (dog && cutTimes == 2) {
+	//	/*
+	//		这个if块里是一种用于补救的手段。。如果分割效果不好会触发这个条件。。。
+	//		但是现在分割效果还算好，而且本身这个补救手段就很欠考虑。。。
+	//		另外，在多次算法改进之后，这个if块是否还正确亦未可知。。。
+	//	*/
+	//	notification = "运行修补算法";
+	//	std::vector<space> toJoin;
+	//	for (int i = 1; i <= n; i++) toJoin.push_back({0,piece[i].rows});
+	//	bool* b = new bool[toCut.size()+1]();
+	//	interCheck(toJoin, t);
+	//	for (int i : t) r[i] = true;
+	//	KClassify(toJoin,r);
+	//	for (int k=0,i = 1; i <= n; i++) {
+	//		if (b[i]) b[i] = false;
+	//		else b[i] = r[k++];
+	//	}
+	//	for (size_t i = n; i > 0; i--) {
+	//		if (!b[i]) {
+	//			//将piece[i]与piece[i-1]拼接在一起
+	//			vconcat(piece[i-1],piece[i], piece[i - 1]);
+	//			piece[i].release();
+	//		}
+	//	}
+	//	delete[] b;
+	//}
+	//
 	for (int i = 0; i <= n; i++) {
 		//每个分割出来的行再剪去空白
 		piece[i] = trim(piece[i]);
