@@ -141,6 +141,7 @@ public:
 	GlobalUnit valueSignalLen;
 	GlobalUnit characterWidth;				//×Ö·û¿í¶È
 
+
 	GlobalPool(std::string,int);
 	~GlobalPool();
 

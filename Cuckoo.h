@@ -5,7 +5,7 @@ using namespace std;
 #define savepic 0
 #define picFolder "C:\\Users\\Administrator\\Desktop\\oh"
 #if _DEBUG
-#define showRectangle 1
+#define showRectangle 0
 #endif
 
 int count(cv::Mat img, cv::Vec4i range, int delta);
@@ -124,6 +124,7 @@ inline void measure::recNum(cv::Mat section, std::vector<cv::Vec4i> rows) {
 	}
 	//imshow("2", ccolor); cvWaitKey();
 }
+
 inline void measure::recTime(std::vector<cv::Vec4i> rows) {
 	int predLen = 0;
 	cv::Mat picValue = org(cv::Range(max(noteBottom, rows[5][1]) + 1, org.rows), cv::Range::all()).clone();
@@ -135,13 +136,13 @@ inline void measure::recTime(std::vector<cv::Vec4i> rows) {
 
 		//imshow("2", picValue); cvWaitKey();
 		cv::Vec2i temp = { picValue.rows,0 };
-		int tr = 4;
+		int tr = picValue.rows / 4;
 		while (!cont.size()) {
-			cv::Mat inv = 255 - Morphology(picValue, picValue.rows / tr++, false, true);
+			cv::Mat inv = 255 - Morphology(picValue,tr--, false, true);
 			cv::findContours(inv, cont, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
-			if (picValue.rows / tr < 2) {
+			if (tr < 2) {
 				for (int i = 0; i < picValue.rows; i++) {
-					if (!isEmptyLine(picValue, i, 0)) {
+					if (!isEmptyLine(picValue, i, 0.04)) {
 						err ex = { 6,__LINE__,"未扫描到纵向结构" };
 						throw ex;
 					}
@@ -162,7 +163,7 @@ inline void measure::recTime(std::vector<cv::Vec4i> rows) {
 	else {
 		predLen = global->valueSignalLen;
 	}
-	inv = 255 - Morphology(picValue, predLen / 3, false, true);
+	inv = 255 - Morphology(picValue, round(predLen * 0.3), false, true);
 	cv::findContours(inv, cont, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
 
 	//去掉节拍记号再往下的乱七八糟的东西
@@ -188,7 +189,8 @@ inline void measure::recTime(std::vector<cv::Vec4i> rows) {
 		return x[0].x < y[0].x;
 	});
 
-	vector<int> time;
+	vector<int> timeValue;
+	vector<int> timePos;
 	for (int i = 0; i < cont.size(); i++) {
 		cv::Vec4i tmp = { picValue.cols,picValue.rows,0,0 };
 		for (int j = 0; j < cont[i].size(); j++) {
@@ -205,30 +207,52 @@ inline void measure::recTime(std::vector<cv::Vec4i> rows) {
 		if (tmp[3] - tmp[1] <= predLen / 2 && !sum1 && !sum2) {
 			sum1--; sum2--;
 		}
-		time.push_back((int)(this->time.beat_type * pow(2, max(sum1, !sum3 && sum2 ? sum2 - 1 : sum2)) * (!sum3 && sum2 ? 1.5 : 1)));
+		timeValue.push_back((int)(this->time.beat_type * pow(2, max(sum1, !sum3 && sum2 ? sum2 - 1 : sum2)) * (!sum3 && sum2 ? 1.5 : 1)));
+		timePos.push_back((tmp[0] + tmp[2]) / 2);
 	}
-	for (int i : time) {
+	for (int i : timeValue) {
 		if (i != quarter) {
 			goto distribute;
 		}
 	}
-	for (int &i : time) {
+	for (int &i : timeValue) {
 		i = half;
 	}
 distribute:
-	for (int k = 0, i = 0; i < notes.size(); i++) {
+	/*for (int k = 0, i = 0; i < notes.size(); i++) {
 		if (notes[i].chord) {
 			notes[i].timeValue = notes[i - 1].timeValue;
 		}
 		else {
-			if (k == time.size()) {
+			if (k == timeValue.size()) {
 				err ex = { 1,__LINE__,"time 越界，自动跳出，建议检查该小节 notes 的 chord 划分" };
 				throw ex;
 			}
-			notes[i].timeValue = (Value)time[k++];
+			notes[i].timeValue = (Value)timeValue[k++];
+		}
+	}*/
+	vector<note*> noValue;
+	for (note &i : notes) {
+		noValue.push_back(&i);
+	}
+	for (int i = 0; i < timeValue.size();i++) {
+		int pos = timePos[i];
+		int t = maxCharacterWidth;
+		for (;;) {
+			auto s = find_if(noValue.begin(), noValue.end(), [pos,t](note* x)->bool {
+				return abs(x->pos - pos) < t;
+			});
+			if (s == noValue.end()) break;
+			(*s)->timeValue = (Value)timeValue[i];
+			noValue.erase(s);
 		}
 	}
+	if (noValue.size()) {
+		err ex = { 1,__LINE__,"有未分配时值的乐符" };
+		throw ex;
+	}
 }
+
 inline measure::measure(cv::Mat org, cv::Mat img, vector<cv::Vec4i> rows,int id) {
 	this->id = id;
 	this->org = org;
@@ -279,4 +303,221 @@ int count(cv::Mat img,cv::Vec4i range,int delta) {
 		}
 	}
 	return sum;
+}
+
+class cutter
+{
+public:
+	cutter(cv::Mat img);
+	void start();
+
+private:
+	cv::Mat org;
+	vector<space> collection;
+	int split();
+	void interCheck(vector<int> &f);
+	void KClassify(vector<bool> &classifier);
+};
+
+cutter::cutter(cv::Mat img) {
+	this->org = img;
+}
+
+void cutter::start() {
+	try { split(); }
+	catch (err ex) {
+		switch (ex.id)
+		{
+		case 4:
+			throw ex;
+		default:
+			break;
+		}
+	}
+	int n = collection.size();
+	vector<int> t;
+	vector<bool> r(n, false);
+	interCheck(t);
+	for (size_t i = 0; i < n; i++) r[i] = false;
+	interCheck(t);
+	n = collection.size();
+
+	vector<bool> classifier(n, false);
+	for (int i : t) r[i] = true;
+	KClassify(classifier);
+	for (size_t k = 0, i = 0; i < n; i++) {
+		if (!r[i]) {
+			r[i] = classifier[k++];
+		}
+	}
+	n = collection.size();
+#if ShowDivision
+	cv::Mat ccolor;
+	cvtColor(trimmed, ccolor, CV_GRAY2BGR);
+#endif
+	for (int i = 0; i < n; i++) {
+		if (r[i]) {
+
+#if ShowDivision
+			line(ccolor, CvPoint(0, coll[i].start), CvPoint(trimmed.cols, coll[i].start), CvScalar(0, 0, 255));
+			line(ccolor, CvPoint(0, coll[i].start + coll[i].length), CvPoint(trimmed.cols, coll[i].start + coll[i].length), CvScalar(0, 0, 255));
+#endif
+
+			toCut.push_back(coll[i]);
+		}
+	}
+#if ShowDivision
+	imshow("2", ccolor); cvWaitKey();
+#endif
+}
+
+void cutter::interCheck(vector<int> &f) {
+	size_t n = collection.size();
+
+	if (n <= 1) return;
+	f.clear();
+	int **pool = new int*[n];
+	//初始化截止
+	for (int i = 0; i < n; i++) pool[i] = new int[n]();
+	for (int i = 0; i < n; i++) {
+		for (int j = 0; j < n; j++) {
+			if (i == j) continue;
+			pool[i][j] = abs(collection[i].length - collection[j].length);
+		}
+	}
+	//初值设置完毕
+	//校验开始
+	for (int i = 0; i < n; i++) {
+		int min = _CRT_INT_MAX, max = 0;
+		for (int j = 0; j < n; j++) {
+			if (j == i) continue;
+			if (min > pool[i][j]) {
+				min = pool[i][j];
+			}
+			for (int q = 0; q < n; q++) {
+				if (q == i) continue;
+				if (max < pool[q][j]) {
+					max = pool[q][j];
+				}
+			}
+		}
+		if (max < min) {
+			collection.erase(collection.begin() + i);
+			for (int k = 0; k < n; k++) delete[] pool[k];
+			delete[] pool;
+			f.push_back(i);
+			interCheck(f);
+			return;
+		}
+	}
+	for (int k = 0; k < n; k++) delete[] pool[k];
+	delete[] pool;
+	return;
+}
+
+void cutter::KClassify(vector<bool> &classifier) {
+	//函数名：KClassify
+	//功能：分类对象是空白区域 struct _space，分类依据为space.lenth
+	//输出：classifier 算法将各区域分入两类，一类为false，一类为true
+
+	//k1 15:1800    k2 5:1800  （原始数据 此行无效）
+	assert(collection.size() == classifier.size());
+	int k1 = 18, k2 = 5;
+	int min = collection[0].length, max = min;
+	for (int i = 0; i < collection.size(); i++) {
+		if (collection[i].length > max) {
+			max = collection[i].length;
+		}
+		else if (collection[i].length < min) {
+			min = collection[i].length;
+		}
+	}
+	for (int i = 0; i < collection.size(); i++) {
+		if (min + k1 > collection[i].length) {
+			classifier[i] = false;
+		}
+		else if (max - k2 < collection[i].length) {
+			classifier[i] = true;
+		}
+		else {
+			if (collection[i].length - min - k1 < max - k2 - collection[i].length) {
+				k1 = collection[i].length - min + 1;
+				classifier[i] = false;
+			}
+			else if (collection[i].length - min - k1 > max - k2 - collection[i].length) {
+				k2 = max - collection[i].length + 1;
+				classifier[i] = true;
+			}
+			else {
+				//要是等于就不要他了hhh
+				classifier[i] = false;
+			}
+		}
+	}
+}
+
+int cutter::split() {
+	int r = 1;
+	bool flag = false;
+	for (int st = org.rows, i = 0; i < org.rows; i++) {
+		//初步设为0.04 以后再说
+		if (isEmptyLine(org, i, 0.004)) {
+			if (!flag) {
+				st = i;
+				flag = true;
+			}
+		}
+		else {
+			if (flag) {
+				if (i - 1 - st > 0) {
+					collection.push_back({ st,i - 1 - st });
+				}
+				flag = false;
+			}
+		}
+	}
+	if (collection.size() < 2) {
+		collection.clear();
+		r = 2;
+		cout << "裁剪失败，等待二次裁剪" << endl;
+		//二次裁剪为缩减判断空行的范围，从之前的从像素x=0 至x=col到检测到的横线的x1至x2
+		vector<cv::Vec4i> rows;
+		vector<int> thick;
+		cv::Mat toOCR;
+		findRow(org, toOCR, CV_PI / 18, rows, thick);
+		if (rows.size() > 5) {
+			cout << "二次裁剪开始." << endl;
+			flag = false;
+			for (int st = org.rows, i = min(rows[0][1], rows[0][3]); i < org.rows; i++) {
+				if (isEmptyLine(org, i, max(min(rows[0][0], rows[0][2]), min(rows[5][0], rows[5][2])),
+					min(max(rows[0][0], rows[0][2]), max(rows[5][0], rows[5][2])), 0.01)) {
+					if (!flag) {
+						st = i;
+						flag = true;
+					}
+				}
+				else {
+					if (flag) {
+						if (i - 1 - st > 0) collection.push_back({ st,i - 1 - st });
+						flag = false;
+					}
+				}
+			}
+
+		}
+		if (collection.size() < 2) {
+			err ex = { 4,__LINE__,"二次裁剪失败，请手动处理" };
+
+			return 3;
+		}
+		/*cv::Mat ccolor;
+		for (int i = 0; i < coll.size(); i++) {
+			cvtColor(img, ccolor, CV_GRAY2BGR);
+			line(ccolor, CvPoint(0, coll[i].start), CvPoint(img.cols, coll[i].start), CvScalar(0, 0, 255));
+			line(ccolor, CvPoint(0, coll[i].start + coll[i].length), CvPoint(img.cols, coll[i].start + coll[i].length), CvScalar(255, 0, 0));
+		}
+		imshow("2", ccolor); cvWaitKey();*/
+	}
+	return r;
+
 }

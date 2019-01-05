@@ -76,8 +76,10 @@ inline GlobalPool::~GlobalPool() {
 		fso >> buffer;
 		if (buffer) {
 			if (col < buffer) {
-				pos = (int)cols.size() + 1;
-				cols.push_back(col);
+				if (!pos) {
+					pos = (int)cols.size() + 1;
+					cols.push_back(col);
+				}
 				cols.push_back(buffer);
 			}
 			else if (col == buffer) {

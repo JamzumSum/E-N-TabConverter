@@ -3,6 +3,11 @@
 #include "swan.h"
 
 using namespace std;
+GlobalPool *global = NULL;
+
+#if _DEBUG
+#define ShowDivision 0
+#endif
 
 #if workMode
 int main() {
@@ -10,10 +15,8 @@ int main() {
 	return 0;
 }
 #else
-
 extern notify<int>progress;
 extern notify<std::string>notification;
-GlobalPool *global = NULL;
 
 int go(string f,bool isCut) {
 	size_t n;
@@ -65,27 +68,31 @@ int go(string f,bool isCut) {
 		}
 	}
 	n = coll.size();
-	
-	/*cv::Mat ccolor;
-	cvtColor(trimmed, ccolor, CV_GRAY2BGR);*/
+#if ShowDivision
+	cv::Mat ccolor;
+	cvtColor(trimmed, ccolor, CV_GRAY2BGR);
+#endif
 	for (int i = 0; i < n; i++) {
 		if (r[i]) {
 			
-			
-			/*line(ccolor, CvPoint(0, coll[i].start), CvPoint(trimmed.cols, coll[i].start), CvScalar(0, 0, 255));
+#if ShowDivision
+			line(ccolor, CvPoint(0, coll[i].start), CvPoint(trimmed.cols, coll[i].start), CvScalar(0, 0, 255));
 			line(ccolor, CvPoint(0, coll[i].start + coll[i].length), CvPoint(trimmed.cols, coll[i].start + coll[i].length), CvScalar(0, 0, 255));
+#endif
 			
-			*/
 			toCut.push_back(coll[i]);
 		}
 	}
-	//imwrite("as.jpg",ccolor);
+#if ShowDivision
+	imshow("2", ccolor); cvWaitKey();
+#endif
+	progress = 1;
 	if (toCut.size() > 2) {
 		notification = "过滤算法正常";
 		coll.clear();
-		progress = 1;
 	}
 	else {
+		notification = "过滤算法异常：没有足够的段落；尝试放宽条件（可能影响结果）";
 		toCut.swap(coll);
 		dog = true;
 	}

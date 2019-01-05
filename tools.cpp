@@ -173,7 +173,7 @@ void interCheck(vector<space> &collection, vector<int> &f) {
 	//初值设置完毕
 	//校验开始
 	for (int i = 0; i < n; i++) {
-		int min = 99999, max = 0;
+		int min = _CRT_INT_MAX, max = 0;
 		for (int j = 0; j < n; j++) {
 			if (j == i) continue;
 			if (min > pool[i][j]) {
