@@ -103,13 +103,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 	cut.Event_On_Check = [](Checkbox* me) {
 		isCut = me->Value;
 	};
-	scan.create();
-	home.create();
-	history.create();
-	setting.create();
-	exit.create();
-	info.create();
-	cut.create();
 
 	main();
 }

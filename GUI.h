@@ -19,7 +19,7 @@ return this->##na;\
 Dgetter(na,ty)\
 Dsetter(na,ty)
 
-#define GWL_WNDPROC         (-4)
+#define GWL_WNDPROC				(-4)
 #define CLR_DEFAULT             0xFF000000L
 #define PBS_SMOOTH              0x01
 #define PBM_SETRANGE            (WM_USER+1)
@@ -32,22 +32,21 @@ Dsetter(na,ty)
 #define MAXSIZE 1024
 #define ID_MENU 9001
 
-HINSTANCE hi = GetModuleHandleA(0);
+HINSTANCE hi = GetModuleHandle(0);
 LRESULT CALLBACK WinProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 
-static void* getForm(HWND hWnd);
 static std::vector<void*> formSet;
 
 enum permission {
-	readWrite,readOnly,writeOnly
+	readWrite, readOnly, writeOnly
 };
 
-template <typename Container,typename Value,enum permission prop,bool permissive>
+template <typename Container, typename Value, enum permission prop, bool permissive>
 class Property {
 private:
 	Container * me = NULL;
 	void (Container::*Set)(Value value) = NULL;
-	Value (Container::*Get)() = NULL;
+	Value(Container::*Get)() = NULL;
 	bool flag = true;
 public:
 	Property() noexcept {}
@@ -62,9 +61,9 @@ public:
 			return;
 		}
 		if ((prop == writeOnly) || (prop == readWrite)) Set = pSet;
-		
+
 	}
-	void getter(Value (Container::*pGet)())
+	void getter(Value(Container::*pGet)())
 	{
 		if ((prop == readWrite) || (prop == readOnly)) Get = pGet;
 	}
@@ -78,7 +77,7 @@ public:
 		}
 		if (prop == readOnly && flag) {
 			(me->*Set)(value);
-			if(value) flag = false;
+			if (value) flag = false;
 		}
 		return value;
 	}
@@ -92,71 +91,96 @@ public:
 class window {
 private:
 	LPCSTR Name = NULL;
-	
+	HMENU Menu = NULL;
+	HWND Hwnd = NULL;
 	void setName(LPCSTR newName) {
 		if (hWnd) SetWindowTextA(Hwnd, newName);
 		Name = newName;
 	}
 	LPCSTR getName() {
 		static char r[MAXSIZE];
-		GetWindowTextA(Hwnd,r,MAXSIZE);
+		GetWindowTextA(Hwnd, r, MAXSIZE);
 		Name = r;
 		return Name;
 	}
-	Dgesetter(Hwnd,HWND)
-	Dgesetter(Feature, long)
-	Dgesetter(Classname,LPCSTR)
-	Dgesetter(Parent,void*)
+	void setMenu(int ID) {
+		Menu = LoadMenu(hi, MAKEINTRESOURCE(ID));
+	}
+	Dgetter(Menu, HMENU)
+		Dgetter(Hwnd, HWND)
+		Dgesetter(Classname, LPCSTR)
+		Dgesetter(Parent, void*)
+
 public:
 	int x = CW_USEDEFAULT;
 	int y = CW_USEDEFAULT;
 	int w = CW_USEDEFAULT;
 	int h = CW_USEDEFAULT;
 	char type = 0;
-	unsigned int id;
+	size_t id = 0;
 	window() noexcept {
 		name.setContainer(this);
 		hWnd.setContainer(this);
-		feature.setContainer(this);
 		classname.setContainer(this);
 		parent.setContainer(this);
+		menu.setContainer(this);
 		name.setter(&window::setName);
 		name.getter(&window::getName);
 		hWnd.getter(&window::getHwnd);
-		hWnd.setter(&window::setHwnd);
-		feature.setter(&window::setFeature);
-		feature.getter(&window::getFeature);
 		classname.setter(&window::setClassname);
 		classname.getter(&window::getClassname);
 		parent.setter(&window::setParent);
 		parent.getter(&window::getParent);
+		menu.setter(&window::setMenu);
 	}
 	Property<window, LPCSTR, readOnly, true> classname;
-	Property<window, LPCSTR, readWrite,false> name;
-	Property<window, HWND, readOnly,true> hWnd;
-	Property<window, long, readWrite, false> feature;
+	Property<window, LPCSTR, readWrite, false> name;
+	Property<window, HWND, readOnly, false> hWnd;
 	Property<window, void*, readOnly, true> parent;
+	Property<window, int, writeOnly, false> menu;
 
-	virtual int create();
+	long feature = 0;
+	virtual std::vector<void*>& getContainer() = 0;
 	void hide() {
-		ShowWindow(hWnd, 0);
+		ShowWindow(Hwnd, 0);
 	}
-	void show() {
-		ShowWindow(hWnd, 1);
+	virtual void show() {
+		ShowWindow(Hwnd, 1);
 	}
 	void resize(int w, int h) {
 		if (w) this->w = w;
 		if (h) this->h = h;
-		MoveWindow(this->hWnd, x, y, this->w, this->h, true);
+		MoveWindow(Hwnd, x, y, this->w, this->h, true);
 	}
 	void move(int x, int y) {
 		if (x) this->x = x;
 		if (y) this->y = y;
-		MoveWindow(this->hWnd, this->x, this->y, this->w, this->h, true);
+		MoveWindow(Hwnd, this->x, this->y, this->w, this->h, true);
+	}
+	virtual size_t create() {
+		Hwnd = CreateWindowA(
+			this->Classname, this->Name,
+			this->feature,
+			this->x, this->y, this->w, this->h,
+			Parent ? ((window*)Parent)->Hwnd : NULL,
+			Menu, hi, NULL
+		);
+		std::vector<void*> &a = getContainer();
+		if (Hwnd) {
+			return id;
+		}
+		a.pop_back();
+		LPVOID lpMsgBuf;
+		int x = GetLastError();
+		FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+			NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)&lpMsgBuf, 0, NULL);
+		MessageBox(NULL, (LPCTSTR)lpMsgBuf, NULL, MB_OK);
+		LocalFree(lpMsgBuf);
+		return 0;
 	}
 };
 
-class form :public window{
+class form :public window {
 private:
 	//窝已经尽量私有了QAQ
 	std::vector<LPCSTR> menuList;
@@ -172,7 +196,7 @@ private:
 public:
 	//构造
 	form() noexcept {}
-	form(const char* className, const char* title,int x = CW_USEDEFAULT,int y = CW_USEDEFAULT,int w = CW_USEDEFAULT,int h = CW_USEDEFAULT) {
+	form(const char* className, const char* title, int x = CW_USEDEFAULT, int y = CW_USEDEFAULT, int w = CW_USEDEFAULT, int h = CW_USEDEFAULT) {
 		this->x = x; this->y = y; this->w = w; this->h = h;
 		this->type = 'f';
 		this->feature = WS_OVERLAPPEDWINDOW;
@@ -184,7 +208,7 @@ public:
 		RButtonMenu.getter(&form::CONTEXTMENU);
 		MessageCreated.getter(&form::isCreated);
 	}
-	form(form* parent,const char* className, const char* title, int x = CW_USEDEFAULT, int y = CW_USEDEFAULT, int w = CW_USEDEFAULT, int h = CW_USEDEFAULT) {
+	form(form* parent, const char* className, const char* title, int x = CW_USEDEFAULT, int y = CW_USEDEFAULT, int w = CW_USEDEFAULT, int h = CW_USEDEFAULT) {
 		this->x = x; this->y = y; this->w = w; this->h = h;
 		this->type = 'f';
 		this->feature = WS_OVERLAPPEDWINDOW;
@@ -197,38 +221,45 @@ public:
 		MessageCreated.getter(&form::isCreated);
 		this->parent = parent;
 	}
+	~form() {
+		if (parent) top();
+		formSet.erase(find_if(formSet.begin(), formSet.end(), [this](void* x) {
+			return (void*)this == x;
+		}));
+	}
 	//属性
-	Property<form, HMENU, readOnly,false> RButtonMenu;
-	Property<form, bool, readOnly,false> MessageCreated;
+	Property<form, HMENU, readOnly, false> RButtonMenu;
+	Property<form, bool, readOnly, false> MessageCreated;
 	int brush = 0;
 	std::vector<void*> tab;
+	HDC hdc = NULL;
 	LPCSTR bitmapName = NULL;
 	//方法
-	
-	
-	void setIcon(LPCSTR smallIconName,LPCSTR iconName = NULL) {
-		if(iconName) this->icon = iconName;
+
+
+	void setIcon(LPCSTR smallIconName, LPCSTR iconName = NULL) {
+		if (iconName) this->icon = iconName;
 		smallIcon = smallIconName;
 	}
-	void pushmenu(void(*Event_Menu_Click)(),char* menu) {
-		if(!this->RBmenu) RBmenu = CreatePopupMenu();
-		if (AppendMenuA(this->RBmenu, MF_STRING, ID_MENU + this->menuList.size(), menu)) {
+	void pushMenu(void(*Event_Menu_Click)(), char* menu) {
+		if (!this->RBmenu) RBmenu = CreatePopupMenu();
+		if (AppendMenu(this->RBmenu, MF_STRING, ID_MENU + this->menuList.size(), menu)) {
 			LPCSTR A = MAKEINTRESOURCE(ID_MENU + this->menuList.size());
 			this->menuList.push_back(MAKEINTRESOURCE(ID_MENU + this->menuList.size()));
 			this->menuEventList.push_back(Event_Menu_Click);
 		}
 	}
-	void pushMenu(void(*Event_Menu_Click)(),LPCSTR ID) {
-		this->menuList.push_back(ID);
+	void pushMenu(void(*Event_Menu_Click)(), int ID) {
+		this->menuList.push_back(MAKEINTRESOURCE(ID));
 		this->menuEventList.push_back(Event_Menu_Click);
 	}
 	void Event_Menu_Click(WORD ID) {
-		for (UINT i = 0; i < menuList.size(); i++) if ((WORD)(ULONG_PTR)menuList[i] == ID) ((void(*)())menuEventList[i])();
+		for (size_t i = 0; i < menuList.size(); i++) if ((WORD)(ULONG_PTR)menuList[i] == ID) ((void(*)())menuEventList[i])();
 	}
 	void minimum() {
 		ShowWindow(hWnd, SW_SHOWMINNOACTIVE);
 	}
-	
+
 	bool regist() {
 		WNDCLASSEXA wndclass;
 		wndclass.cbSize = sizeof(wndclass);
@@ -254,12 +285,15 @@ public:
 			LocalFree(lpMsgBuf);
 			return false;
 		}
-		
+
 		return true;
 	}
-	
-	int create() {
-		if (!regist()) return -1;
+
+	std::vector<void*>& getContainer() {
+		return formSet;
+	}
+	size_t create() {
+		if (!regist()) return 0;
 		window::create();
 		if (x < 0) {
 			RECT r;
@@ -270,29 +304,43 @@ public:
 			h = r.bottom - y;
 		}
 		if (this->Event_On_Create) this->Event_On_Create(this);
-		return id;
+		return id = formSet.size();
 	}
-	
-	unsigned long long run() {				//在此处主程序挂起
-		MSG msg;
-		ShowWindow(hWnd, SW_SHOW); 
-		UpdateWindow(hWnd);
-		ZeroMemory(&msg, sizeof(msg));
-		if (this->Event_Load_Complete) this->Event_Load_Complete(this);
-		this->createOver = true;						//消息队列建立
-		while (GetMessage(&msg, NULL, 0, 0))
-		{
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-		}
-		UnregisterClassA(classname, hi);
-		return msg.wParam;
-	}
+
+	unsigned long long run();
 	void close() {
 		PostMessage(hWnd, WM_CLOSE, 0, 0);
 	}
 	void top() {
 		SwitchToThisWindow(hWnd, true);
+	}
+	void cls(RECT* area = NULL) {
+		InvalidateRect(hWnd, area, true);
+	}
+	void paintLine(int x1, int y1, int x2, int y2) {
+		//if x1 = x2 = y1 = y2 = 0 then end paint.
+		PAINTSTRUCT ps;
+		hdc = BeginPaint(hWnd, &ps);
+		MoveToEx(hdc, x1, y1, NULL);
+		LineTo(hdc, x2, y2);
+		EndPaint(hWnd, &ps);
+		hdc = NULL;
+	}
+	void paintLine(int x1, int y1, int x2, int y2, RECT* rect) {
+		//if x1 = x2 = y1 = y2 = 0 then end paint.
+		static PAINTSTRUCT ps;
+		if (!hdc) {
+			hdc = BeginPaint(hWnd, &ps);
+		}
+		if (x1 || x2 || y1 || y2) {
+			MoveToEx(hdc, x1, y1, NULL);
+			LineTo(hdc, x2, y2);
+		}
+		else {
+			EndPaint(hWnd, &ps);
+			hdc = NULL;
+			UpdateWindow(hWnd);
+		}
 	}
 	void* getControl(HWND controlHwnd);
 	//事件
@@ -300,49 +348,31 @@ public:
 	void(*Event_On_Unload)(form*) = NULL;
 	void(*Event_Load_Complete)(form*) = NULL;
 	void(*Event_Window_Resize)(form*) = NULL;
+	void(*Event_On_Paint)(form*) = NULL;
 	//运算符重载
 	unsigned long long operator()() {
 		return run();
 	}
 };
 
-inline int window::create() {
-	hWnd = CreateWindowA(
-		this->Classname,
-		this->Name,
-		this->Feature,
-		this->x, this->y, this->w, this->h,
-		Parent ? ((window*)Parent)->Hwnd : NULL,
-		NULL,
-		hi,
-		NULL
-	);
-	
-	std::vector<void*> *a = type == 'f' ? &formSet : &(((form*)Parent)->tab);
-	if (!Hwnd) {
-		a->pop_back();
-		LPVOID lpMsgBuf;
-		int x = GetLastError();
-		FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER |FORMAT_MESSAGE_FROM_SYSTEM |FORMAT_MESSAGE_IGNORE_INSERTS,
-			NULL,GetLastError(),MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)&lpMsgBuf,0,NULL);
-		MessageBox(NULL, (LPCTSTR)lpMsgBuf, NULL, MB_OK);
-		LocalFree(lpMsgBuf);
-		return -1;
-	}
-	id = (UINT)a->size();
-	a->push_back(this);
-	return id;
-}
-
-class control:public window {				//继承类
+class control :public window {				//继承类
 private:
-	
+
 public:
 	//属性
 	std::string tag;
 	//方法
+	std::vector<void*>& getContainer() {
+		void* t = parent;
+		return ((form*)t)->tab;
+	}
 	control() noexcept {
 		this->feature = this->feature | WS_CHILD | WS_VISIBLE;
+	}
+	void push() {
+		std::vector<void*>& a = getContainer();
+		a.push_back(this);
+		id = a.size();
 	}
 };
 
@@ -358,7 +388,8 @@ public:
 		this->parent = parent;
 		this->name = Name;
 		this->classname = "BUTTON";
-		this->feature = this->feature | BS_DEFPUSHBUTTON;
+		this->feature |= BS_DEFPUSHBUTTON;
+		push();
 	}
 	void(*Event_On_Click)(button*) = NULL;
 };
@@ -367,7 +398,7 @@ public:
 
 class Label :public control {
 public:
-	
+
 	Label() noexcept {}
 	Label(form* parent, int x, int y, int w, int h, const char* Name) {
 		this->x = x;
@@ -378,21 +409,22 @@ public:
 		this->parent = parent;
 		this->name = Name;
 		this->classname = "STATIC";
-		this->feature = this->feature | SS_NOTIFY | BS_FLAT;
+		this->feature |= SS_NOTIFY | BS_FLAT;
+		push();
 	}
-	int create() {
+	size_t create() {
 		control::create();
-		HFONT hFont = CreateFont(14, 0, 0, 0, FW_THIN, false, false, false,
-			CHINESEBIG5_CHARSET, OUT_CHARACTER_PRECIS,
-			CLIP_CHARACTER_PRECIS, DEFAULT_QUALITY,
-			FF_MODERN, "宋体");
-		SendMessage(hWnd, WM_SETFONT, (WPARAM)hFont, TRUE);//发送设置字体消息
+		setFont("宋体", 14);
 		return id;
 	}
 	void(*Event_On_Click)(Label*) = NULL;
 
-	int operator()() {
-		return create();
+	void setFont(LPCSTR fontName, int size) {
+		HFONT hFont = CreateFont(size, 0, 0, 0, FW_THIN, false, false, false,
+			CHINESEBIG5_CHARSET, OUT_CHARACTER_PRECIS,
+			CLIP_CHARACTER_PRECIS, DEFAULT_QUALITY,
+			FF_MODERN, fontName);
+		SendMessage(this->hWnd, WM_SETFONT, (WPARAM)hFont, TRUE);//发送设置字体消息
 	}
 };
 
@@ -403,7 +435,7 @@ class Picture :public control {
 public:
 	LPCSTR path = NULL;
 	Picture() noexcept {}
-	Picture(form* parent, int x, int y, int w, int h, const char* Name,char* picPath) {
+	Picture(form* parent, int x, int y, int w, int h, const char* Name, char* picPath) {
 		this->x = x;
 		this->y = y;
 		this->w = w;
@@ -413,7 +445,8 @@ public:
 		this->name = Name;				//x
 		this->path = picPath;
 		this->classname = "STATIC";
-		this->feature = this->feature | SS_NOTIFY | SS_BITMAP;
+		this->feature |= SS_NOTIFY | SS_BITMAP;
+		push();
 	}
 	void(*Event_On_Click)(Picture*) = NULL;
 };
@@ -421,7 +454,7 @@ public:
 class Textbox :public control {
 private:
 	long preProc = NULL;
-	bool multiline;
+	bool multiline = true;
 public:
 	Textbox() noexcept {}
 	Textbox(form* parent, int x, int y, int w, int h, const char* Name, bool Multiline = true) {
@@ -434,10 +467,11 @@ public:
 		this->name = Name;
 		this->multiline = Multiline;
 		this->classname = "Edit";
-		this->feature = this->feature | WS_BORDER | WS_GROUP | WS_TABSTOP | ES_WANTRETURN;
-		if (Multiline) this->feature = this->feature | ES_MULTILINE;
+		this->feature |= WS_BORDER | WS_GROUP | WS_TABSTOP | ES_WANTRETURN;
+		if (Multiline) this->feature |= ES_MULTILINE;
+		push();
 	}
-	int create() {
+	size_t create() {
 		control::create();
 		preProc = SetWindowLong(hWnd, GWL_WNDPROC, (long)proc);
 		return id;
@@ -466,10 +500,6 @@ public:
 		}
 	};
 	void(*Event_Text_Change)(Textbox*) = NULL;
-
-	int operator()() {
-		return create();
-	}
 };
 
 class ProgressBar :public control {
@@ -486,13 +516,14 @@ public:
 		this->parent = parent;
 		this->name = Name;				//x
 		this->classname = "msctls_progress32";
-		this->feature = this->feature | PBS_SMOOTH;
+		this->feature |= PBS_SMOOTH;
+		push();
 	}
 	void stepIn() {
 		SendMessage(hWnd, PBM_STEPIT, 0, 0);
 	}
 	int setStep(int newStep = 0) {
-		if (newStep) { 
+		if (newStep) {
 			SendMessage(hWnd, PBM_SETSTEP, (WPARAM)newStep, 0);
 			step = newStep;
 		}
@@ -516,22 +547,22 @@ public:
 	}
 	void setColor(ULONG color = CLR_DEFAULT) {
 		//back to default if void
-		SendMessage(hWnd, PBM_SETBARCOLOR,0,color);
+		SendMessage(hWnd, PBM_SETBARCOLOR, 0, color);
 	}
 };
 
 class radio :public control {
 private:
 	bool getCheck() {
-		return (int)SendMessage(hWnd, BM_GETCHECK,0,0);
+		return (int)SendMessage(hWnd, BM_GETCHECK, 0, 0);
 	}
 	void setCheck(bool value) {
-		SendMessage(hWnd,BM_SETCHECK,(int)value,0);
+		SendMessage(hWnd, BM_SETCHECK, (int)value, 0);
 	}
 public:
 	//属性
 	bool head = false;
-	Property<radio, bool, readWrite,false> Value;
+	Property<radio, bool, readWrite, false> Value;
 	//方法
 	radio() noexcept {}
 	radio(form* parent, int x, int y, int w, int h, const char* Name, bool head = false) {
@@ -544,12 +575,13 @@ public:
 		this->parent = parent;
 		this->name = Name;				//x
 		this->classname = "BUTTON";
-		this->feature = this->feature | BS_AUTORADIOBUTTON;
-		if (head) this->feature = this->feature | WS_GROUP;
+		this->feature |= BS_AUTORADIOBUTTON;
+		if (head) this->feature |= WS_GROUP;
 
 		Value.setContainer(this);
 		Value.setter(&radio::setCheck);
 		Value.getter(&radio::getCheck);
+		push();
 	}
 	//事件
 	void(*Event_On_Check)(radio*) = NULL;
@@ -564,7 +596,7 @@ private:
 		SendMessage(hWnd, BM_SETCHECK, (int)value, 0);
 	}
 public:
-	Property<Checkbox, bool, readWrite,false> Value;
+	Property<Checkbox, bool, readWrite, false> Value;
 	Checkbox() noexcept {}
 	Checkbox(form* parent, int x, int y, int w, int h, const char* Name) {
 		this->x = x;
@@ -575,25 +607,26 @@ public:
 		this->parent = parent;
 		this->name = Name;				//x
 		this->classname = "BUTTON";
-		this->feature = this->feature | BS_AUTOCHECKBOX;
+		this->feature |= BS_AUTOCHECKBOX;
 		Value.setContainer(this);
 		Value.setter(&Checkbox::setCheck);
 		Value.getter(&Checkbox::getCheck);
+		push();
 	}
 	void(*Event_On_Check)(Checkbox*) = NULL;
 };
 
-class timer: public control{
+class timer : public control {
 private:
 	bool value = false;
 	void setTimer(bool value) {
-		if(value ^ this->value) this->value = value;
+		if (value ^ this->value) this->value = value;
 		else return;
 		if (value) {
 			if (Event_Timer) {
 				assert(Event_Timer);
 				void* t = parent;
-				if (!SetTimer(((form*)t)->hWnd, id + 1, Interval, NULL)) {
+				if (!SetTimer(((form*)t)->hWnd, id, Interval, NULL)) {
 					std::string des = "Fail to set timer";
 					MessageBox(NULL, des.c_str(), (LPCSTR)(ULONG_PTR)GetLastError(), MB_OK);
 					this->value = false;
@@ -602,7 +635,7 @@ private:
 		}
 		else {
 			void* t = parent;
-			KillTimer(((form*)t)->hWnd,id + 1);
+			KillTimer(((form*)t)->hWnd, id);
 		}
 	}
 	bool getTimer() {
@@ -621,58 +654,67 @@ private:
 	}
 public:
 	unsigned int Interval = 0;
-	void (*Event_Timer)(form*) = NULL;
+	void(*Event_Timer)(form*) = NULL;
 
-	timer(form* parent,UINT interval, void(*Event)(form*),bool enabled = false) {
-		void* t = parent;
+	timer(form* parent, UINT interval, void(*Event)(form*), bool enabled = false) {
 		this->Event_Timer = Event;
 		this->Interval = interval;
 		this->parent = parent;
-		this->id = (int)((form*)t)->tab.size();
-		((form*)t)->tab.push_back(this);
 		this->enabled.setContainer(this);
 		this->interval.setContainer(this);
 		this->enabled.setter(&timer::setTimer);
 		this->enabled.getter(&timer::getTimer);
 		this->interval.setter(&timer::setInterval);
 		this->interval.getter(&timer::getInterval);
-		if(enabled) this->enabled = true;
-		
+		if (enabled) this->enabled = true;
+
+		push();
 	}
 	~timer() {
 		this->enabled = false;
 	}
-	int create() {
+	size_t create() {
 		return id;
+	}
+	void show() {
+		return;
 	}
 	Property<timer, bool, readWrite, false> enabled;
 	Property<timer, UINT, readWrite, false> interval;
 };
 
+static auto getForm = [](HWND hWnd) -> void* {
+	std::vector<void*>::iterator r = find_if(formSet.begin(), formSet.end(), [hWnd](const void* x) -> bool {
+		return ((form*)x)->hWnd == hWnd;
+	});
+	return r == formSet.end() ? nullptr : *r;
+};
+
 static LRESULT CALLBACK WinProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	form* t = (form*)getForm(hwnd);
-	if( message == WM_CREATE || t)
+	if (!t) return DefWindowProc(hwnd, message, wParam, lParam);
 	switch (message)
 	{
 	case WM_CREATE:
 		//创建事件的思路还没有头绪。。暂时丢到CreateWindow后面去
 		break;
 	case WM_PAINT:
-	{
-		HBITMAP hbm;
-		BITMAP bminfo;
-		hbm = LoadBitmap(GetModuleHandle(NULL), t->bitmapName);
-		GetObject(hbm, sizeof(bminfo), &bminfo);
-		PAINTSTRUCT ps;
-		HDC dc = BeginPaint(hwnd, &ps);
-		HDC memdc = CreateCompatibleDC(dc);
-		SelectObject(memdc, hbm);
-		BitBlt(dc, 0, 0, bminfo.bmWidth, bminfo.bmHeight, memdc, 0, 0, SRCCOPY);
-		DeleteDC(memdc);
-		EndPaint(hwnd, &ps);
+		if (t->bitmapName) {
+			HBITMAP hbm;
+			BITMAP bminfo;
+			hbm = LoadBitmap(GetModuleHandle(NULL), t->bitmapName);
+			GetObject(hbm, sizeof(bminfo), &bminfo);
+			PAINTSTRUCT ps;
+			t->hdc = BeginPaint(hwnd, &ps);
+			HDC memdc = CreateCompatibleDC(t->hdc);
+			SelectObject(memdc, hbm);
+			BitBlt(t->hdc, 0, 0, bminfo.bmWidth, bminfo.bmHeight, memdc, 0, 0, SRCCOPY);
+			DeleteDC(memdc);
+			EndPaint(hwnd, &ps);
+		}
+		if (t->Event_On_Paint) t->Event_On_Paint(t);
 		break;
-	}
 	case WM_CONTEXTMENU:
 	{
 		RECT rect;
@@ -684,19 +726,19 @@ static LRESULT CALLBACK WinProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
 		ScreenToClient((HWND)wParam, &pt);
 		if (PtInRect(&rect, pt))
 			if (!TrackPopupMenu(t->RButtonMenu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_LEFTBUTTON, LOWORD(lParam), HIWORD(lParam), 0, (HWND)wParam, NULL)) {
-				if(t->RButtonMenu) MessageBoxA(NULL,TEXT("弹出菜单失败"),NULL,MB_OK);
+				if (t->RButtonMenu) MessageBoxA(NULL, TEXT("弹出菜单失败"), NULL, MB_OK);
 			}
-		else return DefWindowProc(hwnd, message, wParam, lParam);
+			else return DefWindowProc(hwnd, message, wParam, lParam);
 		break;
 	}
 	case WM_TIMER:
-		((timer*)t->tab[wParam-1])->Event_Timer(t);
+		((timer*)t->tab[wParam - 1])->Event_Timer(t);
 		break;
 	case WM_SIZE:
 	{
 		t->w = LOWORD(lParam);
-		t->h = HIWORD(lParam); 
-		if(t->MessageCreated) if(t->Event_Window_Resize) t->Event_Window_Resize(t);
+		t->h = HIWORD(lParam);
+		if (t->MessageCreated) if (t->Event_Window_Resize) t->Event_Window_Resize(t);
 		break;
 	}
 	case WM_MOVE:
@@ -732,7 +774,7 @@ static LRESULT CALLBACK WinProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
 		break;
 	case WM_CTLCOLORSTATIC://拦截WM_CTLCOLORSTATIC消息
 		SetBkMode((HDC)wParam, TRANSPARENT);//设置背景透明
-		if(t) return (INT_PTR)GetStockObject(t->brush);//返回父窗画刷
+		if (t) return (INT_PTR)GetStockObject(t->brush);//返回父窗画刷
 		break;
 	case WM_CLOSE:
 		if (t->Event_On_Unload) t->Event_On_Unload(t);
@@ -744,18 +786,30 @@ static LRESULT CALLBACK WinProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
 	default:
 		return DefWindowProc(hwnd, message, wParam, lParam);
 	}
-	else return DefWindowProc(hwnd, message, wParam, lParam);
-	return 0;
-}
-
-static void* getForm(HWND hWnd) {
-	std::vector<void*>::iterator r = find_if(formSet.begin(), formSet.end(), [hWnd](const void* x) -> bool {return ((form*)x)->hWnd == hWnd; });
-	if (r == formSet.end()) return NULL;
-	else return *r;
+	return DefWindowProc(hwnd, message, wParam, lParam);
 }
 
 inline void* form::getControl(HWND controlHwnd) {
 	std::vector<void*>::iterator r = find_if(tab.begin(), tab.end(), [controlHwnd](const void* x) -> bool { return ((control*)x)->hWnd == controlHwnd; });
-	if (r == tab.end()) return NULL;
-	else return *r;
+	return r == tab.end() ? nullptr : *r;
+}
+
+inline unsigned long long form::run() {				//在此处主程序挂起
+	for (void* p : tab) {
+		((control*)p)->create();
+		((control*)p)->show();
+	}
+	MSG msg;
+	ShowWindow(hWnd, SW_SHOW);
+	UpdateWindow(hWnd);
+	ZeroMemory(&msg, sizeof(msg));
+	this->createOver = true;						//消息队列建立		//我想了两天终于下决心把这个SB东西和下边那句话调了过来		//上帝保佑我别再出bug了		//再写bug我学分就都没了
+	if (this->Event_Load_Complete) this->Event_Load_Complete(this);
+	while (GetMessage(&msg, NULL, 0, 0))
+	{
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+	UnregisterClassA(classname, hi);
+	return msg.wParam;
 }
