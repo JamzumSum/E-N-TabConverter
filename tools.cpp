@@ -1,10 +1,9 @@
 ﻿/*
 	与图像处理无关的过程
 */
-#include <Windows.h>
-#include <vector>
 #include <algorithm>
-#include <string>
+#include <Windows.h>
+#include "tools.h"
 #include <io.h>
 #include "type.h"
 

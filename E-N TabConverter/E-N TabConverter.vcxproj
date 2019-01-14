@@ -145,6 +145,7 @@
     <ClCompile Include="..\swan.cpp" />
     <ClInclude Include="..\swan.h" />
     <ClInclude Include="..\tinyxml2\tinyxml2.h" />
+    <ClInclude Include="..\tools.h" />
     <ClInclude Include="..\type.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>

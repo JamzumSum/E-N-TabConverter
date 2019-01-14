@@ -4,8 +4,10 @@
 #include "Cuckoo.h"
 #include "opencv.hpp"
 #include "swan.h"
+#include "tools.h"
 
 using namespace std;
+
 GlobalPool *global = NULL;
 
 #if workMode

@@ -1,8 +1,8 @@
 #include "ml.hpp"
+#include "tools.h"
 #include "opencv.hpp"
 #include "type.h"
 #include <fstream>
-#include <iterator> 
 #include <string>
 
 #define IDR_ML_CSV1 103
@@ -17,10 +17,6 @@ using namespace cv::ml;
 using namespace std;
 
 static cv::Ptr<cv::ml::KNearest> &load(string csv, Ptr<KNearest> &knn);
-
-extern void ls(const char* lpPath, vector<string> &fileList);
-extern bool FreeResFile(DWORD dwResName, LPCSTR lpResType, LPCSTR lpFilePathName);
-extern bool isExist(string filepath);
 
 int rec(Mat character,vector<int> &possible) {
 	Mat res,tmp,neighbour;

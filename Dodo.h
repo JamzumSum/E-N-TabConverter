@@ -2,15 +2,6 @@
 #include "type.h"
 #include "cv.h"
 
-#define workMode 0
-/*
-	* workMode
-	|value	|function		|
-	|:-----:|:-------------:|
-	|0		|main program	|
-	|1		|trian			|
-*/
-
 #define SUCCEED(x) (x>=0)
 #define cfgPath "C:\\Users\\Administrator\\Desktop\\E-N TabConverter\\global.cfg"
 
@@ -33,9 +24,3 @@ extern void train(std::string save = "C:\\Users\\Administrator\\Desktop\\E-N Tab
 extern void extractNum(std::vector<cv::Vec4i> &pos, std::vector<cv::Mat> &nums, std::vector<cv::Mat> section, std::vector<cv::Vec4i> rows,int &bottom,int range);
 extern cv::Mat Denoise(cv::Mat img, std::vector<cv::Vec4i> lines, double radius);
 int cut(cv::Mat img, std::vector<cv::Vec4i> divideBy, int direction, std::vector<cv::Mat> &container, bool includeAll);
-//maincpp.cpp
-void fname(const char* path,char* name);
-//tools.cpp
-extern std::string getPath();
-extern void fname(const char* path, char* name);
-extern void makedir(std::string folder);

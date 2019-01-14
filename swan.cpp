@@ -1,5 +1,6 @@
 ﻿#include "swan.h"
 #include "type.h"
+#include "tools.h"
 
 using namespace tinyxml2;
 using namespace std;
@@ -8,8 +9,6 @@ using namespace std;
 #define txtx(x) XMLText* x##Text = doc.NewText(x)
 #define txts(x,s) XMLText* x##Text = doc.NewText(#s)
 #define txt(x) txts(x,x)
-
-extern string GBKToUTF8(const char* strGBK);
 
 static char* pitch(int string,int fret,const char* tuning,char* r,bool & up) {
 	char law[13] = "CCDDEFFGGAAB";

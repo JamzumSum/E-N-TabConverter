@@ -68,6 +68,9 @@
     <ClInclude Include="..\Dodo.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="..\tools.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="E-N TabConverter.rc">
