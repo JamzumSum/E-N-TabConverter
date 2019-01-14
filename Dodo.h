@@ -5,22 +5,25 @@
 #define SUCCEED(x) (x>=0)
 #define cfgPath "C:\\Users\\Administrator\\Desktop\\E-N TabConverter\\global.cfg"
 
+using namespace cv;
+using namespace std;
+
 //Dodo.cpp
-extern cv::Mat threshold(std::string);
-extern cv::Mat perspect(cv::Mat img, int width, int height);
-extern bool isEmptyLine(cv::Mat img, int y, double rate);
-extern bool isEmptyLine(cv::Mat img, int y, int from, int to, double rate);
-extern cv::Mat trim(cv::Mat img, double threshold = 0.01);
-extern void findRow(cv::Mat img, cv::Mat &Outputimg, double rangeTheta, std::vector<cv::Vec4i> &lines, std::vector<int> &thickness);
-extern void findCol(cv::Mat img, double rangeTheta, int upper,int lower, std::vector<int> thick , std::vector<cv::Vec4i> &lines);
-extern int whichLine(cv::Vec4i character, std::vector<cv::Vec4i> rows);
-extern void saveNums(std::string folder, std::vector<cv::Mat> nums);
-extern cv::Mat Morphology(cv::Mat img, int len, bool horizontal, bool open);
-extern void savePic(std::string folder, cv::Mat pic);
+extern Mat threshold(string);
+extern Mat perspect(Mat img, int width, int height);
+extern bool isEmptyLine(Mat img, int y, double rate);
+extern bool isEmptyLine(Mat img, int y, int from, int to, double rate);
+extern Mat trim(Mat img, double threshold = 0.01);
+extern void findRow(Mat img, Mat &Outputimg, double rangeTheta, vector<Vec4i> &lines, vector<int> &thickness);
+extern void findCol(Mat img, double rangeTheta, int upper,int lower, vector<int> thick , vector<Vec4i> &lines);
+extern int whichLine(Vec4i character, vector<Vec4i> rows);
+extern void saveNums(string folder, vector<Mat> nums);
+extern Mat Morphology(Mat img, int len, bool horizontal, bool open);
+extern void savePic(string folder, Mat pic);
 //eagle.cpp
-extern int rec(cv::Mat character, std::vector<int> &possible);
-extern void train(std::string save = "C:\\Users\\Administrator\\Desktop\\E-N TabConverter\\tData.csv");
+extern int rec(Mat character, vector<int> &possible);
+extern void train(string save = "C:\\Users\\Administrator\\Desktop\\E-N TabConverter\\tData.csv");
 //framework.cpp
-extern void extractNum(std::vector<cv::Vec4i> &pos, std::vector<cv::Mat> &nums, std::vector<cv::Mat> section, std::vector<cv::Vec4i> rows,int &bottom,int range);
-extern cv::Mat Denoise(cv::Mat img, std::vector<cv::Vec4i> lines, double radius);
-int cut(cv::Mat img, std::vector<cv::Vec4i> divideBy, int direction, std::vector<cv::Mat> &container, bool includeAll);
+extern void extractNum(vector<Vec4i> &pos, vector<Mat> &nums, vector<Mat> section, vector<Vec4i> rows,int &bottom,int range);
+extern Mat Denoise(Mat img, vector<Vec4i> lines, double radius);
+int cut(Mat img, vector<Vec4i> divideBy, int direction, vector<Mat> &container, bool includeAll);
