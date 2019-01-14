@@ -5,6 +5,7 @@
 #include <vector>
 #include <algorithm>
 #include <string>
+#include <io.h>
 #include "type.h"
 
 using namespace std;
@@ -156,46 +157,12 @@ bool always(vector<va> pool, bool(*p)(va x)) {
 	return pool.end() == find_if(pool.begin(), pool.end(), !(p));
 }
 
-void interCheck(vector<space> &collection, vector<int> &f) {
-	size_t n = collection.size();
+void makedir(string folder) {
+	if (_access(folder.c_str(), 0) == -1) {
+		system(("md " + folder).c_str());
+	}
+}
 
-	if (n <= 1) return;
-	f.clear();
-	int **pool = new int*[n];
-	//初始化截止
-	for (int i = 0; i < n; i++) pool[i] = new int[n]();
-	for (int i = 0; i < n; i++) {
-		for (int j = 0; j < n; j++) {
-			if (i == j) continue;
-			pool[i][j] = abs(collection[i].length - collection[j].length);
-		}
-	}
-	//初值设置完毕
-	//校验开始
-	for (int i = 0; i < n; i++) {
-		int min = _CRT_INT_MAX, max = 0;
-		for (int j = 0; j < n; j++) {
-			if (j == i) continue;
-			if (min > pool[i][j]) {
-				min = pool[i][j];
-			}
-			for (int q = 0; q < n; q++) {
-				if (q == i) continue;
-				if (max < pool[q][j]) {
-					max = pool[q][j];
-				}
-			}
-		}
-		if (max < min) {
-			collection.erase(collection.begin() + i);
-			for (int k = 0; k < n; k++) delete[] pool[k];
-			delete[] pool;
-			f.push_back(i);
-			interCheck(collection, f);
-			return;
-		}
-	}
-	for (int k = 0; k < n; k++) delete[] pool[k];
-	delete[] pool;
-	return;
+bool isExist(string filepath) {
+	return _access(filepath.c_str(), 0) >= 0;
 }

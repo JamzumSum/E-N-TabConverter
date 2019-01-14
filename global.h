@@ -2,6 +2,7 @@
 	global.h 仿佛整个算法的神经系统，它使得各个measure的识别不再相互独立，后面的可以借鉴前面的“经验”
 	实际上是一种显式的信息传递。
 */
+#pragma once
 #include "type.h"
 #include <fstream>
 

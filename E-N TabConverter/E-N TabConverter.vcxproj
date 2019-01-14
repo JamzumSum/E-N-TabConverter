@@ -128,11 +128,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\Cuckoo.cpp" />
     <ClCompile Include="..\Dodo.cpp" />
     <ClCompile Include="..\eagle.cpp" />
     <ClCompile Include="..\framework.cpp" />
     <ClCompile Include="..\frmain.cpp" />
-    <ClCompile Include="..\maincpp.cpp" />
+    <ClCompile Include="..\func.cpp" />
     <ClCompile Include="..\tinyxml2\tinyxml2.cpp" />
     <ClCompile Include="..\tools.cpp" />
   </ItemGroup>
@@ -140,7 +141,8 @@
     <ClInclude Include="..\Cuckoo.h" />
     <ClInclude Include="..\global.h" />
     <ClInclude Include="..\GUI.h" />
-    <ClInclude Include="..\myheader.h" />
+    <ClInclude Include="..\Dodo.h" />
+    <ClCompile Include="..\swan.cpp" />
     <ClInclude Include="..\swan.h" />
     <ClInclude Include="..\tinyxml2\tinyxml2.h" />
     <ClInclude Include="..\type.h" />

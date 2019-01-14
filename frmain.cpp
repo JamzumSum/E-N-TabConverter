@@ -1,15 +1,19 @@
-#include"myheader.h"
-#if workMode == 0
+#include <string>
+#include "type.h"
+#include "GUI.h"
+
+using namespace std;
+
 /*
 	frmain.cpp ¿ØÖÆ³ÌÐòµÄGUI
 */
-#include"GUI.h"
+
 #define IDI_ICON1 101
 #define IDI_WINDOW1 102
 #define IDB_BITMAP1 106
 
 int pix = 80;
-std::string noti;
+string noti;
 char f[MAX_PATH];
 char prog[4];
 bool isCut = false;
@@ -17,8 +21,8 @@ bool isCut = false;
 form main("form", "E-Land Chord Converter", 240, 240, 840, 528);
 button scan(&main, 5 * pix, 200, 112, 56, "Go!");
 Label info(&main, 4, 464, 560, 24, "Press \"Go\" to begin.");
-extern int go(std::string f,bool);
-std::string conc(std::string n, char p[4]);
+extern int go(string f,bool);
+string conc(string n, char p[4]);
 
 
 notify<int>progress([](int p) {
@@ -28,7 +32,7 @@ notify<int>progress([](int p) {
 	info.name = conc(noti, prog).c_str();
 });
 
-notify<std::string>notification([](std::string n) {
+notify<string>notification([](string n) {
 	noti = n;
 	info.name = conc(noti,prog).c_str();
 });
@@ -62,7 +66,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 		{
 			info.name = f;
 			try {
-				go(std::string(f), isCut);
+				go(string(f), isCut);
 			}
 			catch (err ex) {
 				switch (ex.id)
@@ -110,11 +114,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 	main();
 }
 
-std::string conc(std::string n,char p[4]) {
+string conc(string n,char p[4]) {
 	return n + "------" + p + "%";
 }
-
-
-
-
-#endif

@@ -3,6 +3,7 @@
 #pragma  warning(disable : 4311)
 #pragma  warning(disable : 4312)
 #include <windows.h>
+#include <assert.h>
 #include <vector>
 #include <algorithm>
 

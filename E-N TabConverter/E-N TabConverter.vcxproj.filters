@@ -27,13 +27,16 @@
     <ClCompile Include="..\frmain.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="..\maincpp.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="..\tinyxml2\tinyxml2.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="..\tools.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Cuckoo.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\func.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -47,12 +50,6 @@
     <ClInclude Include="..\GUI.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\myheader.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="..\swan.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="..\type.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -60,6 +57,15 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\swan.cpp">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\swan.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dodo.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

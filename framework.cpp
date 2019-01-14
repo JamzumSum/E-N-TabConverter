@@ -1,4 +1,6 @@
-#include "myheader.h"
+#include "cv.h"
+#include "imgproc.hpp"
+#include "opencv.hpp"
 
 using namespace std;
 using namespace cv;
@@ -51,72 +53,6 @@ int cut(Mat img, vector<Vec4i> divideBy, int direction, vector<Mat> &container, 
 		}
 	}
 	return (int)container.size() - from;
-}
-
-int split(Mat img, vector<space> &coll) {
-	int r = 1;
-	bool flag = false;
-	for (int st = img.rows, i = 0; i < img.rows; i++) {
-		//初步设为0.04 以后再说
-		if (isEmptyLine(img, i, 0.004)) {
-			if (!flag) {
-				st = i;
-				flag = true;
-			}
-		}
-		else {
-			if (flag) {
-				if (i - 1 - st > 0) {
-					coll.push_back({ st,i - 1 - st });
-				}
-				flag = false;
-			}
-		}
-	}
-	if (coll.size() < 2) {
-		coll.clear();
-		r = 2;
-		cout << "裁剪失败，等待二次裁剪" << endl;
-		//二次裁剪为缩减判断空行的范围，从之前的从像素x=0 至x=col到检测到的横线的x1至x2
-		vector<cv::Vec4i> rows;
-		vector<int> thick;
-		cv::Mat toOCR;
-		findRow(img, toOCR, CV_PI / 18, rows, thick);
-		if (rows.size() > 5) {
-			cout << "二次裁剪开始." << endl;
-			flag = false;
-			for (int st = img.rows, i = min(rows[0][1], rows[0][3]); i < img.rows; i++) {
-				if (isEmptyLine(img, i, max(min(rows[0][0], rows[0][2]), min(rows[5][0], rows[5][2])),
-					min(max(rows[0][0], rows[0][2]), max(rows[5][0], rows[5][2])), 0.01)) {
-					if (!flag) {
-						st = i;
-						flag = true;
-					}
-				}
-				else {
-					if (flag) {
-						if (i - 1 - st > 0) coll.push_back({ st,i - 1 - st });
-						flag = false;
-					}
-				}
-			}
-
-		}
-		if (coll.size() < 2) {
-			err ex = { 4,__LINE__,"二次裁剪失败，请手动处理" };
-			
-			return 3;
-		}
-		/*cv::Mat ccolor;
-		for (int i = 0; i < coll.size(); i++) {
-			cvtColor(img, ccolor, CV_GRAY2BGR);
-			line(ccolor, CvPoint(0, coll[i].start), CvPoint(img.cols, coll[i].start), CvScalar(0, 0, 255));
-			line(ccolor, CvPoint(0, coll[i].start + coll[i].length), CvPoint(img.cols, coll[i].start + coll[i].length), CvScalar(255, 0, 0));
-		}
-		imshow("2", ccolor); cvWaitKey();*/
-	}
-		return r;
-	
 }
 
 inline void extractNum(vector<Vec4i> &pos, vector<Mat> &nums, vector<Mat> section, vector<Vec4i> rows,int &bottom,int range) {
@@ -174,7 +110,7 @@ Mat Denoise(Mat img,vector<Vec4i> lines, double radius) {
 	inpaint(img, mask, img, radius, INPAINT_TELEA);
 	threshold(img, img, 217, 255, THRESH_BINARY);
 #if ShowDenoise
-	imshow("2", img); cvWaitKey();
+	imdebug("2", img);
 #endif
 	return img;
 }
