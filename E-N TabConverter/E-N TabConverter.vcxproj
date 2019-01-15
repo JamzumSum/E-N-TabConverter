@@ -128,26 +128,26 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\Cuckoo.cpp" />
-    <ClCompile Include="..\Dodo.cpp" />
-    <ClCompile Include="..\eagle.cpp" />
-    <ClCompile Include="..\framework.cpp" />
-    <ClCompile Include="..\frmain.cpp" />
-    <ClCompile Include="..\func.cpp" />
     <ClCompile Include="..\tinyxml2\tinyxml2.cpp" />
-    <ClCompile Include="..\tools.cpp" />
+    <ClCompile Include="Cuckoo.cpp" />
+    <ClCompile Include="Dodo.cpp" />
+    <ClCompile Include="eagle.cpp" />
+    <ClCompile Include="framework.cpp" />
+    <ClCompile Include="frmain.cpp" />
+    <ClCompile Include="func.cpp" />
+    <ClCompile Include="swan.cpp" />
+    <ClCompile Include="tools.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\Cuckoo.h" />
-    <ClInclude Include="..\global.h" />
-    <ClInclude Include="..\GUI.h" />
-    <ClInclude Include="..\Dodo.h" />
-    <ClCompile Include="..\swan.cpp" />
-    <ClInclude Include="..\swan.h" />
     <ClInclude Include="..\tinyxml2\tinyxml2.h" />
-    <ClInclude Include="..\tools.h" />
-    <ClInclude Include="..\type.h" />
+    <ClInclude Include="Cuckoo.h" />
+    <ClInclude Include="Dodo.h" />
+    <ClInclude Include="global.h" />
+    <ClInclude Include="GUI.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="swan.h" />
+    <ClInclude Include="tools.h" />
+    <ClInclude Include="type.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="E-N TabConverter.rc" />

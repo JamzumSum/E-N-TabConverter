@@ -63,13 +63,12 @@ public:
 	measure(cv::Mat org, cv::Mat img, vector<cv::Vec4i> rows, int id);
 };
 
-typedef struct space {
+typedef struct{
 	int start;
 	int length;
 }space;
 
-class cutter
-{
+class cutter{
 public:
 	cutter(cv::Mat img);
 	void start(vector<cv::Mat>& piece);
@@ -81,3 +80,10 @@ private:
 	void interCheck(vector<int> &f);
 	void KClassify(vector<bool> &classifier);
 };
+
+/*
+class Denoiser {
+private:
+	double radius;
+};
+*/
