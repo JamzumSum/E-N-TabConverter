@@ -59,9 +59,6 @@
     <ClInclude Include="global.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="GUI.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="swan.h">
       <Filter>头文件</Filter>
     </ClInclude>

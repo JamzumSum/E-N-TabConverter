@@ -1,6 +1,6 @@
 #include <string>
 #include "type.h"
-#include "GUI.h"
+#include "..\GUIlib\GUI.h"
 
 using namespace std;
 
