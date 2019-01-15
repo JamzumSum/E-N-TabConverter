@@ -32,8 +32,9 @@ Dsetter(na,ty)
 #define MAXSIZE 1024
 #define ID_MENU 9001
 
-HINSTANCE hi = GetModuleHandle(0);
-LRESULT CALLBACK WinProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
+static HINSTANCE hi = GetModuleHandle(0);
+static LRESULT CALLBACK WinProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
+void popError();
 
 static std::vector<void*> formSet;
 
@@ -118,6 +119,7 @@ public:
 	int h = CW_USEDEFAULT;
 	char type = 0;
 	size_t id = 0;
+
 	window() noexcept {
 		name.setContainer(this);
 		hWnd.setContainer(this);
@@ -166,17 +168,12 @@ public:
 			Menu, hi, NULL
 		);
 		std::vector<void*> &a = getContainer();
-		if (Hwnd) {
-			return id;
+		if (Hwnd) return id = a.size();
+		else {
+			a.pop_back();
+			popError();
+			return 0;
 		}
-		a.pop_back();
-		LPVOID lpMsgBuf;
-		int x = GetLastError();
-		FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-			NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)&lpMsgBuf, 0, NULL);
-		MessageBox(NULL, (LPCTSTR)lpMsgBuf, NULL, MB_OK);
-		LocalFree(lpMsgBuf);
-		return 0;
 	}
 };
 
@@ -196,18 +193,6 @@ private:
 public:
 	//构造
 	form() noexcept {}
-	form(const char* className, const char* title, int x = CW_USEDEFAULT, int y = CW_USEDEFAULT, int w = CW_USEDEFAULT, int h = CW_USEDEFAULT) {
-		this->x = x; this->y = y; this->w = w; this->h = h;
-		this->type = 'f';
-		this->feature = WS_OVERLAPPEDWINDOW;
-		this->name = title;
-		this->classname = className;
-		RButtonMenu.setContainer(this);
-		MessageCreated.setContainer(this);
-		formSet.push_back((void*)this);
-		RButtonMenu.getter(&form::CONTEXTMENU);
-		MessageCreated.getter(&form::isCreated);
-	}
 	form(form* parent, const char* className, const char* title, int x = CW_USEDEFAULT, int y = CW_USEDEFAULT, int w = CW_USEDEFAULT, int h = CW_USEDEFAULT) {
 		this->x = x; this->y = y; this->w = w; this->h = h;
 		this->type = 'f';
@@ -230,8 +215,12 @@ public:
 	//属性
 	Property<form, HMENU, readOnly, false> RButtonMenu;
 	Property<form, bool, readOnly, false> MessageCreated;
-	int brush = 0;
 	std::vector<void*> tab;
+
+	int xbias = 0;
+	int ybias = 0;
+	int brush = 0;
+	
 	HDC hdc = NULL;
 	LPCSTR bitmapName = NULL;
 	//方法
@@ -275,18 +264,13 @@ public:
 		wndclass.hInstance = hi;
 		wndclass.lpszClassName = classname;
 		wndclass.lpszMenuName = NULL;
-		if (!RegisterClassExA(&wndclass)) {
-			int x = GetLastError();
+		if (RegisterClassExA(&wndclass)) return true;
+		else {
+			DWORD x = GetLastError();
 			if (x == 1410) return true;
-			LPVOID lpMsgBuf;
-			FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-				NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)&lpMsgBuf, 0, NULL);
-			MessageBox(NULL, (LPCTSTR)lpMsgBuf, NULL, MB_OK);
-			LocalFree(lpMsgBuf);
+			popError();
 			return false;
 		}
-
-		return true;
 	}
 
 	std::vector<void*>& getContainer() {
@@ -304,7 +288,7 @@ public:
 			h = r.bottom - y;
 		}
 		if (this->Event_On_Create) this->Event_On_Create(this);
-		return id = formSet.size();
+		return id;
 	}
 
 	unsigned long long run();
@@ -812,4 +796,12 @@ inline unsigned long long form::run() {				//在此处主程序挂起
 	}
 	UnregisterClassA(classname, hi);
 	return msg.wParam;
+}
+
+static void popError() {
+	LPVOID lpMsgBuf;
+	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+		NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)&lpMsgBuf, 0, NULL);
+	MessageBox(NULL, (LPCTSTR)lpMsgBuf, NULL, MB_OK);
+	LocalFree(lpMsgBuf);
 }

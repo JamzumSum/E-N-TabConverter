@@ -18,7 +18,7 @@ char f[MAX_PATH];
 char prog[4];
 bool isCut = false;
 
-form main("form", "E-Land Chord Converter", 240, 240, 840, 528);
+form main(NULL, "form", "E-Land Chord Converter", 240, 240, 840, 528);
 button scan(&main, 5 * pix, 200, 112, 56, "Go!");
 Label info(&main, 4, 464, 560, 24, "Press \"Go\" to begin.");
 extern int go(string f,bool);

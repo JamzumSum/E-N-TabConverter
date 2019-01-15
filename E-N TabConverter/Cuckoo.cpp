@@ -419,8 +419,7 @@ void cutter::interCheck(vector<int> &f) {
 	//O(n^2)
 	unsigned *pool = new unsigned[collection.size()];
 	size_t n;
-	for (unsigned i = 0; i < n; i++) {
-		n = collection.size();
+	for (unsigned i = 0; i < (n = collection.size()); i++) {
 		unsigned k = 0;
 		for (unsigned j = 0; j < n; j++) if(i - j) pool[k++] = collection[j].length;
 
@@ -428,7 +427,7 @@ void cutter::interCheck(vector<int> &f) {
 		for (unsigned j = 0; j < k; j++) {
 			min = pool[j] < min ? pool[j] : min;
 			max = pool[j] > max ? pool[j] : max;
-			unsigned tmp = pool[j] < collection[i].length ? collection[i].length - pool[j] : pool[j] - collection[i].length;
+			unsigned tmp = pool[j] < (unsigned)collection[i].length ? collection[i].length - pool[j] : pool[j] - collection[i].length;
 			mindist = tmp < mindist ? tmp : mindist;
 		}
 
