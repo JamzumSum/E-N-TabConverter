@@ -411,7 +411,6 @@ int cutter::split() {
 		imshow("2", ccolor); cvWaitKey();*/
 	}
 	return r;
-
 }
 
 void cutter::interCheck(vector<int> &f) {

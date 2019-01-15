@@ -12,7 +12,7 @@ using namespace std;
 extern Mat threshold(string);
 extern Mat perspect(Mat img, int width, int height);
 extern bool isEmptyLine(Mat img, int y, double rate);
-extern bool isEmptyLine(Mat img, int y, int from, int to, double rate);
+extern bool isEmptyLine(Mat img, int y, size_t from, size_t to, double rate);
 extern Mat trim(Mat img, double threshold = 0.01);
 extern void findRow(Mat img, Mat &Outputimg, double rangeTheta, vector<Vec4i> &lines, vector<int> &thickness);
 extern void findCol(Mat img, double rangeTheta, int upper,int lower, vector<int> thick , vector<Vec4i> &lines);
