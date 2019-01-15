@@ -4,6 +4,8 @@
 #include "imgproc.hpp"
 #include "opencv.hpp"
 
+#define optimize 1
+
 #if _DEBUG
 #define Showrectangle 0
 #define Showline 0
@@ -413,6 +415,31 @@ int cutter::split() {
 }
 
 void cutter::interCheck(vector<int> &f) {
+#if optimize
+	//O(n^2)
+	unsigned *pool = new unsigned[collection.size()];
+	size_t n;
+	for (unsigned i = 0; i < n; i++) {
+		n = collection.size();
+		unsigned k = 0;
+		for (unsigned j = 0; j < n; j++) if(i - j) pool[k++] = collection[j].length;
+
+		unsigned min = INT_MAX, max = 0, mindist = INT_MAX;
+		for (unsigned j = 0; j < k; j++) {
+			min = pool[j] < min ? pool[j] : min;
+			max = pool[j] > max ? pool[j] : max;
+			unsigned tmp = pool[j] < collection[i].length ? collection[i].length - pool[j] : pool[j] - collection[i].length;
+			mindist = tmp < mindist ? tmp : mindist;
+		}
+
+		if (mindist > max - min) {
+			collection.erase(collection.begin() + i);
+			f.push_back(i);
+		}
+	}
+	delete[] pool;
+#else
+	//O(what???)
 	size_t n = collection.size();
 
 	if (n <= 1) return;
@@ -420,13 +447,11 @@ void cutter::interCheck(vector<int> &f) {
 	int **pool = new int*[n];
 	//初始化截止
 	for (int i = 0; i < n; i++) pool[i] = new int[n]();
-	for (int i = 0; i < n; i++) {
-		for (int j = 0; j < n; j++) {
-			if (i == j) continue;
+	for (int i = 0; i < n; i++) 
+		for (int j = 0; j < n; j++) 
 			pool[i][j] = abs(collection[i].length - collection[j].length);
-		}
-	}
 	//初值设置完毕
+
 	//校验开始
 	for (int i = 0; i < n; i++) {
 		int min = _CRT_INT_MAX, max = 0;
@@ -454,6 +479,7 @@ void cutter::interCheck(vector<int> &f) {
 	for (int k = 0; k < n; k++) delete[] pool[k];
 	delete[] pool;
 	return;
+#endif
 }
 
 cutter::cutter(cv::Mat img) {
