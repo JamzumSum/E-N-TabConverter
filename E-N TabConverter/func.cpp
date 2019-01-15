@@ -33,7 +33,7 @@ int go(string f,bool isCut) {
 	std::vector<cv::Mat> piece;
 	//imshow("2", trimmed); cvWaitKey();
 	
-	cutter piccut(trimmed);
+	splitter piccut(trimmed);
 	piccut.start(piece);
 	
 	progress = 1;

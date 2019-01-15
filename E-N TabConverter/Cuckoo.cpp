@@ -16,6 +16,8 @@
 #define imdebug(img, title)
 #endif
 
+extern notify<string> notification;
+
 static int count(cv::Mat img, cv::Vec4i range, int delta) {
 	bool lock = false;
 	int sum = 0, x = range[delta > 0 ? 2 : 0] + delta;
@@ -307,7 +309,7 @@ measure::measure(cv::Mat org, cv::Mat img, vector<cv::Vec4i> rows, int id) {
 	}
 }
 
-void cutter::KClassify(vector<bool> &classifier) {
+void splitter::KClassify(vector<bool> &classifier) {
 	//函数名：KClassify
 	//功能：分类对象是空白区域 struct _space，分类依据为space.lenth
 	//输出：classifier 算法将各区域分入两类，一类为false，一类为true
@@ -315,7 +317,7 @@ void cutter::KClassify(vector<bool> &classifier) {
 	//k1 15:1800    k2 5:1800  （原始数据 此行无效）
 	assert(collection.size() == classifier.size());
 	int k1 = 18, k2 = 5;
-	int min = collection[0].length, max = min;
+	unsigned min = collection[0].length, max = min;
 	for (int i = 0; i < collection.size(); i++) {
 		if (collection[i].length > max) {
 			max = collection[i].length;
@@ -348,10 +350,12 @@ void cutter::KClassify(vector<bool> &classifier) {
 	}
 }
 
-int cutter::split() {
+int splitter::split() {
 	int r = 1;
 	bool flag = false;
-	for (int st = org.rows, i = 0; i < org.rows; i++) {
+	unsigned row = org.rows;
+
+	for (unsigned st = org.rows, i = 0; i < row; i++) {
 		//初步设为0.04 以后再说
 		if (isEmptyLine(org, i, 0.004)) {
 			if (!flag) {
@@ -361,9 +365,7 @@ int cutter::split() {
 		}
 		else {
 			if (flag) {
-				if (i - 1 - st > 0) {
-					collection.push_back({ st,i - 1 - st });
-				}
+				if (i - 1 - st > 0) collection.push_back({ st,i - 1u - st });
 				flag = false;
 			}
 		}
@@ -371,16 +373,16 @@ int cutter::split() {
 	if (collection.size() < 2) {
 		collection.clear();
 		r = 2;
-		//cout << "裁剪失败，等待二次裁剪" << endl;
+		notification = "裁剪失败，等待二次裁剪";
 		//二次裁剪为缩减判断空行的范围，从之前的从像素x=0 至x=col到检测到的横线的x1至x2
 		vector<cv::Vec4i> rows;
 		vector<int> thick;
 		cv::Mat toOCR;
 		findRow(org, toOCR, CV_PI / 18, rows, thick);
 		if (rows.size() > 5) {
-			//cout << "二次裁剪开始." << endl;
+			notification =  "二次裁剪开始.";
 			flag = false;
-			for (int st = org.rows, i = min(rows[0][1], rows[0][3]); i < org.rows; i++) {
+			for (unsigned st = org.rows, i = min(rows[0][1], rows[0][3]); i < row; i++) {
 				if (isEmptyLine(org, i, max(min(rows[0][0], rows[0][2]), min(rows[5][0], rows[5][2])),
 					min(max(rows[0][0], rows[0][2]), max(rows[5][0], rows[5][2])), 0.01)) {
 					if (!flag) {
@@ -390,7 +392,7 @@ int cutter::split() {
 				}
 				else {
 					if (flag) {
-						if (i - 1 - st > 0) collection.push_back({ st,i - 1 - st });
+						if (i - 1 - st > 0) collection.push_back({ st,i - 1u - st });
 						flag = false;
 					}
 				}
@@ -398,9 +400,9 @@ int cutter::split() {
 
 		}
 		if (collection.size() < 2) {
+			r = 3;
 			err ex = { 4,__LINE__,"二次裁剪失败，请手动处理" };
-
-			return 3;
+			throw ex;
 		}
 		/*cv::Mat ccolor;
 		for (int i = 0; i < coll.size(); i++) {
@@ -413,7 +415,7 @@ int cutter::split() {
 	return r;
 }
 
-void cutter::interCheck(vector<int> &f) {
+void splitter::interCheck(vector<int> &f) {
 #if optimize
 	//O(n^2)
 	unsigned *pool = new unsigned[collection.size()];
@@ -426,7 +428,7 @@ void cutter::interCheck(vector<int> &f) {
 		for (unsigned j = 0; j < k; j++) {
 			min = pool[j] < min ? pool[j] : min;
 			max = pool[j] > max ? pool[j] : max;
-			unsigned tmp = pool[j] < (unsigned)collection[i].length ? collection[i].length - pool[j] : pool[j] - collection[i].length;
+			unsigned tmp = pool[j] < collection[i].length ? collection[i].length - pool[j] : pool[j] - collection[i].length;
 			mindist = tmp < mindist ? tmp : mindist;
 		}
 
@@ -480,11 +482,11 @@ void cutter::interCheck(vector<int> &f) {
 #endif
 }
 
-cutter::cutter(cv::Mat img) {
+splitter::splitter(cv::Mat img) {
 	this->org = img;
 }
 
-void cutter::start(vector<cv::Mat>& piece) {
+void splitter::start(vector<cv::Mat>& piece) {
 	try { split(); }
 	catch (err ex) {
 		switch (ex.id)

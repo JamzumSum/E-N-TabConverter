@@ -64,13 +64,13 @@ public:
 };
 
 typedef struct{
-	int start;
-	int length;
+	unsigned start;
+	unsigned length;
 }space;
 
-class cutter{
+class splitter{
 public:
-	cutter(cv::Mat img);
+	splitter(cv::Mat img);
 	void start(vector<cv::Mat>& piece);
 
 private:

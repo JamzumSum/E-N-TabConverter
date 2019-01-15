@@ -13,7 +13,7 @@ using namespace std;
 #define IDB_BITMAP1 106
 
 int pix = 80;
-string noti;
+static string noti;
 char f[MAX_PATH];
 char prog[4];
 bool isCut = false;
@@ -21,8 +21,9 @@ bool isCut = false;
 form main(NULL, "form", "E-Land Chord Converter", 240, 240, 840, 528);
 button scan(&main, 5 * pix, 200, 112, 56, "Go!");
 Label info(&main, 4, 464, 560, 24, "Press \"Go\" to begin.");
+
 extern int go(string f,bool);
-string conc(string n, char p[4]);
+static string conc(string n, char p[4]);
 
 
 notify<int>progress([](int p) {
