@@ -1,27 +1,27 @@
 #pragma once
 #include "stdafx.h"
 
-button::button(form* parent, int x, int y, int w, int h, TCHAR* Name) {
+button::button(form* parent, int x, int y, int w, int h, const TCHAR* Name) {
 	this->x = x;
 	this->y = y;
 	this->w = w;
 	this->h = h;
 	this->type = 'b';
 	this->parent = parent;
-	this->name = Name;
+	this->name = (LPTSTR) Name;
 	this->classname = (TCHAR*)_T("BUTTON");
 	this->feature |= BS_DEFPUSHBUTTON;
 	push();
 }
 
-Label::Label(form* parent, int x, int y, int w, int h, LPTSTR Name) {
+Label::Label(form* parent, int x, int y, int w, int h, const TCHAR* Name) {
 	this->x = x;
 	this->y = y;
 	this->w = w;
 	this->h = h;
 	this->type = 'l';
 	this->parent = parent;
-	this->name = Name;
+	this->name = (LPTSTR) Name;
 	this->classname = (TCHAR*)_T("STATIC");
 	this->feature |= SS_NOTIFY | BS_FLAT;
 	push();
@@ -35,34 +35,34 @@ void Label::setFont(LPTSTR fontName, int size) {
 	SendMessage(this->hWnd, WM_SETFONT, (WPARAM)hFont, TRUE);//发送设置字体消息
 }
 
-Picture::Picture(form* parent, int x, int y, int w, int h, TCHAR* Name, TCHAR* picPath) {
+Picture::Picture(form* parent, int x, int y, int w, int h, const LPTSTR Name, const LPTSTR picPath) {
 	this->x = x;
 	this->y = y;
 	this->w = w;
 	this->h = h;
 	this->type = 'p';
 	this->parent = parent;
-	this->name = Name;				//x
-	this->path = picPath;
+	this->name = (LPTSTR)Name;				//x
+	this->path = (LPTSTR)picPath;
 	this->classname = (TCHAR*)_T("STATIC");
 	this->feature |= SS_NOTIFY | SS_BITMAP;
 	push();
 }
 
-ProgressBar::ProgressBar(form* parent, int x, int y, int w, int h, TCHAR* Name) {
+ProgressBar::ProgressBar(form* parent, int x, int y, int w, int h, const LPTSTR Name) {
 	this->x = x;
 	this->y = y;
 	this->w = w;
 	this->h = h;
 	this->type = 'P';
 	this->parent = parent;
-	this->name = Name;				//x
+	this->name = (LPTSTR)Name;				//x
 	this->classname = (TCHAR*)_T("msctls_progress32");
 	this->feature |= PBS_SMOOTH;
 	push();
 }
 
-radio::radio(form* parent, int x, int y, int w, int h, TCHAR* Name, bool head) {
+radio::radio(form* parent, int x, int y, int w, int h, const LPTSTR Name, bool head) {
 	this->x = x;
 	this->y = y;
 	this->w = w;
@@ -81,14 +81,14 @@ radio::radio(form* parent, int x, int y, int w, int h, TCHAR* Name, bool head) {
 	push();
 }
 
-Checkbox::Checkbox(form* parent, int x, int y, int w, int h, TCHAR* Name) {
+Checkbox::Checkbox(form* parent, int x, int y, int w, int h, const TCHAR* Name) {
 	this->x = x;
 	this->y = y;
 	this->w = w;
 	this->h = h;
 	this->type = 'c';
 	this->parent = parent;
-	this->name = Name;				//x
+	this->name = (LPTSTR) Name;				//x
 	this->classname = (TCHAR*)_T("BUTTON");
 	this->feature |= BS_AUTOCHECKBOX;
 	Value.setContainer(this);
@@ -137,5 +137,20 @@ timer::timer(form* parent, UINT interval, void(*Event)(form*), bool enabled = fa
 	this->interval.getter(&timer::getInterval);
 	if (enabled) this->enabled = true;
 
+	push();
+}
+
+Textbox::Textbox(form* parent, int x, int y, int w, int h, const LPTSTR Name, bool Multiline) {
+	this->x = x;
+	this->y = y;
+	this->w = w;
+	this->h = h;
+	this->type = 't';
+	this->parent = parent;
+	this->name = Name;
+	this->multiline = Multiline;
+	this->classname = (TCHAR*)_T("Edit");
+	this->feature |= WS_BORDER | WS_GROUP | WS_TABSTOP | ES_WANTRETURN;
+	if (Multiline) this->feature |= ES_MULTILINE;
 	push();
 }

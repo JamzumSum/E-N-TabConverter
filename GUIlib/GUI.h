@@ -93,12 +93,12 @@ public:
 
 class window {
 private:
-	LPTSTR Name = NULL;
+	TCHAR Name[MAXSIZE] = {};
 	HMENU Menu = NULL;
 	HWND Hwnd = NULL;
 	void setName(LPTSTR newName) {
 		if (hWnd) SetWindowText(Hwnd, newName);
-		Name = newName;
+		_tcscpy_s(Name, newName);
 	}
 	LPTSTR getName() {
 		GetWindowText(Hwnd, Name, MAXSIZE);
@@ -166,7 +166,7 @@ private:
 public:
 	//构造
 	form() noexcept {}
-	form(form* parent, TCHAR* className, TCHAR* title, 
+	form(form* parent, const TCHAR* className, const TCHAR* title, 
 		int x = CW_USEDEFAULT, int y = CW_USEDEFAULT, int w = CW_USEDEFAULT, int h = CW_USEDEFAULT);
 	~form();
 	//属性
@@ -257,7 +257,7 @@ public:
 class button :public control {
 public:
 	button() noexcept {}
-	button(form* parent, int x, int y, int w, int h, TCHAR* Name);
+	button(form* parent, int x, int y, int w, int h, const TCHAR* Name);
 	void(*Event_On_Click)(button*) = NULL;
 };
 
@@ -267,7 +267,7 @@ class Label :public control {
 public:
 
 	Label() noexcept {}
-	Label(form* parent, int x, int y, int w, int h, LPTSTR Name);
+	Label(form* parent, int x, int y, int w, int h, const TCHAR* Name);
 	size_t create() {
 		control::create();
 		setFont((TCHAR*)_T("宋体"), 14);
@@ -285,7 +285,7 @@ class Picture :public control {
 public:
 	LPTSTR path = NULL;
 	Picture() noexcept {}
-	Picture(form* parent, int x, int y, int w, int h, TCHAR* Name, TCHAR* picPath);
+	Picture(form* parent, int x, int y, int w, int h, const LPTSTR Name, const LPTSTR picPath);
 	void(*Event_On_Click)(Picture*) = NULL;
 };
 
@@ -295,7 +295,7 @@ private:
 	bool multiline = true;
 public:
 	Textbox() noexcept {}
-	Textbox(form* parent, int x, int y, int w, int h, TCHAR* Name, bool Multiline = true);
+	Textbox(form* parent, int x, int y, int w, int h, const LPTSTR Name, bool Multiline = true);
 	size_t create() {
 		control::create();
 		preProc = SetWindowLong(hWnd, GWL_WNDPROC, (long)proc);
@@ -332,7 +332,7 @@ public:
 	int step = 10;
 	int range = 100;
 	ProgressBar() noexcept {}
-	ProgressBar(form* parent, int x, int y, int w, int h, TCHAR* Name);
+	ProgressBar(form* parent, int x, int y, int w, int h, const LPTSTR Name);
 	void stepIn() {
 		SendMessage(hWnd, PBM_STEPIT, 0, 0);
 	}
@@ -379,7 +379,7 @@ public:
 	Property<radio, bool, readWrite, false> Value;
 	//方法
 	radio() noexcept {}
-	radio(form* parent, int x, int y, int w, int h, TCHAR* Name, bool head = false);
+	radio(form* parent, int x, int y, int w, int h, const LPTSTR Name, bool head = false);
 	//事件
 	void(*Event_On_Check)(radio*) = NULL;
 };
@@ -395,7 +395,7 @@ private:
 public:
 	Property<Checkbox, bool, readWrite, false> Value;
 	Checkbox() noexcept {}
-	Checkbox(form* parent, int x, int y, int w, int h, TCHAR* Name);
+	Checkbox(form* parent, int x, int y, int w, int h, const TCHAR* Name);
 	void(*Event_On_Check)(Checkbox*) = NULL;
 };
 

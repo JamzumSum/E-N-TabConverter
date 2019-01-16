@@ -165,12 +165,12 @@ form::~form() {
 	}));
 }
 
-form::form(form* parent, TCHAR* className, TCHAR* title, int x, int y, int w, int h) {
+form::form(form* parent, const TCHAR* className, const TCHAR* title, int x, int y, int w, int h) {
 	this->x = x; this->y = y; this->w = w; this->h = h;
 	this->type = 'f';
 	this->feature = WS_OVERLAPPEDWINDOW;
-	this->name = title;
-	this->classname = className;
+	this->name = (TCHAR*) title;
+	this->classname = (TCHAR*) className;
 	RButtonMenu.setContainer(this);
 	MessageCreated.setContainer(this);
 	formSet.push_back((void*)this);
@@ -243,19 +243,4 @@ void form::paintLine(int x1, int y1, int x2, int y2, RECT* rect) {
 		hdc = NULL;
 		UpdateWindow(hWnd);
 	}
-}
-
-Textbox::Textbox(form* parent, int x, int y, int w, int h, TCHAR* Name, bool Multiline) {
-	this->x = x;
-	this->y = y;
-	this->w = w;
-	this->h = h;
-	this->type = 't';
-	this->parent = parent;
-	this->name = Name;
-	this->multiline = Multiline;
-	this->classname = (TCHAR*)_T("Edit");
-	this->feature |= WS_BORDER | WS_GROUP | WS_TABSTOP | ES_WANTRETURN;
-	if (Multiline) this->feature |= ES_MULTILINE;
-	push();
 }

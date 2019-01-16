@@ -30,12 +30,12 @@ notify<int>progress([](int p) {
 	char num[4];
 	_itoa_s(p, num, 10);
 	strncpy_s(prog, num, 4);
-	info.name = conc(noti, prog).c_str();
+	info.name = (TCHAR*) conc(noti, prog).c_str();
 });
 
 notify<string>notification([](string n) {
 	noti = n;
-	info.name = conc(noti,prog).c_str();
+	info.name = (TCHAR*) conc(noti,prog).c_str();
 });
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine, int iCmdShow) {
@@ -61,7 +61,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 		ofn.lpstrTitle = "选择乐谱：";
 		ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
 
-		info.name = "Then choose a tab.";
+		info.name = (TCHAR*) "Then choose a tab.";
 
 		if (GetOpenFileName(&ofn))
 		{
@@ -74,10 +74,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 				{
 				case 3:
 					//不支持的格式
-					info.name = ex.description.insert(0,"Failure: ").c_str();
+					info.name = (TCHAR*) ex.description.insert(0,"Failure: ").c_str();
 					return;
 				default:
-					info.name = ex.description.insert(0, "Error: ").c_str();
+					info.name = (TCHAR*) ex.description.insert(0, "Error: ").c_str();
 					break;
 				}
 			}
@@ -105,7 +105,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 		isCut = me->Value;
 	};
 
-	main();
+	main.run();
 }
 
 string conc(string n,char p[4]) {
