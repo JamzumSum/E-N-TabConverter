@@ -1,24 +1,29 @@
 #pragma once
 #include "stdafx.h"
 
-WPARAM form::run() {				//在此处主程序挂起
-	for (void* p : tab) {
-		((control*)p)->create();
-		((control*)p)->show();
-	}
+std::vector<void*> window::formSet;
+
+void form::run() {				//在此处主程序挂起
+	for (void* p : tab) ((control*)p)->create();
+
 	MSG msg;
 	ShowWindow(hWnd, SW_SHOW);
 	UpdateWindow(hWnd);
 	ZeroMemory(&msg, sizeof(msg));
 	this->createOver = true;						//消息队列建立		//我想了两天终于下决心把这个SB东西和下边那句话调了过来		//上帝保佑我别再出bug了		//再写bug我学分就都没了
 	if (this->Event_Load_Complete) this->Event_Load_Complete(this);
-	while (GetMessage(&msg, NULL, 0, 0))
+
+	int loopret = 0;
+	while ((loopret = GetMessage(&msg, this->hWnd, 0, 0)) > 0)
 	{
+		if (loopret == -1) {
+			popError();
+			exit(1);
+		}
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 	}
 	UnregisterClass(classname, hi);
-	return msg.wParam;
 }
 
 void* form::getControl(HWND controlHwnd) {
@@ -68,7 +73,7 @@ static LRESULT CALLBACK WinProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
 		break;
 	}
 	case WM_TIMER:
-		((timer*)t->tab[wParam - 1])->Event_Timer(t);
+		((Timer*)t->tab[wParam - 1])->Event_Timer(t);
 		break;
 	case WM_SIZE:
 	{
@@ -88,7 +93,7 @@ static LRESULT CALLBACK WinProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
 			void* p = t->getControl((HWND)lParam);
 			if (p) switch (((control*)p)->type) {
 			case 'b':
-				if (((button*)p)->Event_On_Click) ((button*)p)->Event_On_Click((button*)p);
+				if (((Button*)p)->Event_On_Click) ((Button*)p)->Event_On_Click((Button*)p);
 				break;
 			case 'l':
 				if (((Label*)p)->Event_On_Click) ((Label*)p)->Event_On_Click((Label*)p);
@@ -97,7 +102,7 @@ static LRESULT CALLBACK WinProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
 				if (((Picture*)p)->Event_On_Click) ((Picture*)p)->Event_On_Click((Picture*)p);
 				break;
 			case 'r':
-				if (((radio*)p)->Event_On_Check) ((radio*)p)->Event_On_Check((radio*)p);
+				if (((Radio*)p)->Event_On_Check) ((Radio*)p)->Event_On_Check((Radio*)p);
 				break;
 			case 'c':
 				if (((Checkbox*)p)->Event_On_Check) ((Checkbox*)p)->Event_On_Check((Checkbox*)p);
@@ -133,16 +138,19 @@ size_t window::create() {
 		Parent ? ((window*)Parent)->Hwnd : NULL,
 		Menu, hi, NULL
 	);
-	std::vector<void*> &a = getContainer();
-	if (Hwnd) return id = a.size();
+	if (Hwnd) return id;
 	else {
-		a.pop_back();
 		popError();
-		return 0;
+		exit(1);
 	}
 }
 
-window::window() noexcept {
+window::window(void* p, int x, int y, int w, int h) noexcept {
+	Parent = p;
+	this->x = x;
+	this->y = y;
+	this->w = w;
+	this->h = h;
 	name.setContainer(this);
 	hWnd.setContainer(this);
 	classname.setContainer(this);
@@ -160,23 +168,24 @@ window::window() noexcept {
 
 form::~form() {
 	if (parent) ((form*)(void*)parent)->top();
-	formSet.erase(find_if(formSet.begin(), formSet.end(), [this](void* x) {
+	auto todelete = find_if(formSet.begin(), formSet.end(), [this](void* x) {
 		return (void*)this == x;
-	}));
+	});
+	if(formSet.end() != todelete) formSet.erase(todelete);
 }
 
-form::form(form* parent, const TCHAR* className, const TCHAR* title, int x, int y, int w, int h) {
-	this->x = x; this->y = y; this->w = w; this->h = h;
+form::form(form* parent, const TCHAR* className, const TCHAR* title, int x, int y, int w, int h) : window(parent, x, y, w, h){
+	//this->x = x; this->y = y; this->w = w; this->h = h;
 	this->type = 'f';
 	this->feature = WS_OVERLAPPEDWINDOW;
 	this->name = (TCHAR*) title;
 	this->classname = (TCHAR*) className;
 	RButtonMenu.setContainer(this);
 	MessageCreated.setContainer(this);
-	formSet.push_back((void*)this);
 	RButtonMenu.getter(&form::CONTEXTMENU);
 	MessageCreated.getter(&form::isCreated);
-	this->parent = parent;
+	//this->parent = parent;
+	push();
 }
 
 bool form::regist() {

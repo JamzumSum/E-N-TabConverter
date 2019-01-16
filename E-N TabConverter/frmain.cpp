@@ -19,11 +19,11 @@ char prog[4];
 bool isCut = false;
 
 static form main(NULL, "form", "E-Land Chord Converter", 240, 240, 840, 528);
-static button scan(&main, 5 * pix, 200, 112, 56, "Go!");
-static button home(&main, 8, 0, 112, 56, "Home");
-static button history(&main, 8, 64, 112, 56, "History");
-static button setting(&main, 8, 128, 112, 56, "Settings");
-static button Exit(&main, 8, 400, 112, 56, "Exit");
+static Button scan(&main, 5 * pix, 200, 112, 56, "Go!");
+static Button home(&main, 8, 0, 112, 56, "Home");
+static Button history(&main, 8, 64, 112, 56, "History");
+static Button setting(&main, 8, 128, 112, 56, "Settings");
+static Button Exit(&main, 8, 400, 112, 56, "Exit");
 static Label info(&main, 4, 464, 560, 24, "Press \"Go\" to begin.");
 static Checkbox cut(&main, 760, 450, 56, 32, "Cut");
 
@@ -51,7 +51,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 		pix = me->w / 12;
 	};
 	
-	scan.Event_On_Click = [](button* me) {
+	scan.Event_On_Click = [](Button* me) {
 		OPENFILENAME ofn;
 		ZeroMemory(&ofn, sizeof(ofn));
 		ofn.lStructSize = sizeof(ofn);
@@ -95,16 +95,24 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 	};
 	
 
-	home.Event_On_Click = [](button* me) {
+	home.Event_On_Click = [](Button* me) {
 		scan.show();
 	};
-	Exit.Event_On_Click = [](button* me) {
+	Exit.Event_On_Click = [](Button* me) {
 		void* p = me->parent;
 		((form*)p)->close();
 	};
 	cut.Event_On_Check = [](Checkbox* me) {
 		isCut = me->Value;
 	};
+
+	/*scan();
+	home();
+	history();
+	setting();
+	Exit();
+	info();
+	cut();*/
 
 	main.run();
 }

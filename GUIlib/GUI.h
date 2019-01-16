@@ -38,8 +38,6 @@ static HINSTANCE hi = GetModuleHandle(0);
 static LRESULT CALLBACK WinProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 void popError();
 
-static std::vector<void*> formSet;
-
 enum permission {
 	readWrite, readOnly, writeOnly
 };
@@ -113,6 +111,8 @@ private:
 	Dgesetter(Parent, void*)
 
 public:
+	static std::vector<void*> formSet;
+
 	int x = CW_USEDEFAULT;
 	int y = CW_USEDEFAULT;
 	int w = CW_USEDEFAULT;
@@ -129,7 +129,7 @@ public:
 	long feature = 0;
 
 	virtual std::vector<void*>& getContainer() = 0;
-	window() noexcept;
+	window(void* parent, int x, int y, int w, int h) noexcept;
 	void hide() {
 		ShowWindow(Hwnd, 0);
 	}
@@ -145,6 +145,11 @@ public:
 		if (x) this->x = x;
 		if (y) this->y = y;
 		MoveWindow(Hwnd, this->x, this->y, this->w, this->h, true);
+	}
+	void push() {
+		std::vector<void*>& a = getContainer();
+		a.push_back(this);
+		id = a.size();
 	}
 	virtual size_t create();
 };
@@ -165,7 +170,6 @@ private:
 	bool regist();
 public:
 	//构造
-	form() noexcept {}
 	form(form* parent, const TCHAR* className, const TCHAR* title, 
 		int x = CW_USEDEFAULT, int y = CW_USEDEFAULT, int w = CW_USEDEFAULT, int h = CW_USEDEFAULT);
 	~form();
@@ -205,14 +209,9 @@ public:
 	void minimum() {
 		ShowWindow(hWnd, SW_SHOWMINNOACTIVE);
 	}
-
 	std::vector<void*>& getContainer() {
 		return formSet;
 	}
-
-	size_t create();
-	WPARAM run();
-
 	void close() {
 		PostMessage(hWnd, WM_CLOSE, 0, 0);
 	}
@@ -222,6 +221,8 @@ public:
 	void cls(RECT* area = NULL) {
 		InvalidateRect(hWnd, area, true);
 	}
+	size_t create();
+	void run();
 	void paintLine(int x1, int y1, int x2, int y2);
 	void paintLine(int x1, int y1, int x2, int y2, RECT* rect);
 	void* getControl(HWND controlHwnd);
@@ -244,29 +245,24 @@ public:
 		void* t = parent;
 		return ((form*)t)->tab;
 	}
-	control() noexcept {
+	control(void* parent, int x, int y, int w, int h) : window(parent, x, y ,w, h) {
 		this->feature = this->feature | WS_CHILD | WS_VISIBLE;
+		push();
 	}
-	void push() {
-		std::vector<void*>& a = getContainer();
-		a.push_back(this);
-		id = a.size();
+	size_t operator()() {
+		return this->create();
 	}
 };
 
-class button :public control {
+class Button :public control {
 public:
-	button() noexcept {}
-	button(form* parent, int x, int y, int w, int h, const TCHAR* Name);
-	void(*Event_On_Click)(button*) = NULL;
+	Button(form* parent, int x, int y, int w, int h, const TCHAR* Name);
+	void(*Event_On_Click)(Button*) = NULL;
 };
-
-
 
 class Label :public control {
 public:
 
-	Label() noexcept {}
 	Label(form* parent, int x, int y, int w, int h, const TCHAR* Name);
 	size_t create() {
 		control::create();
@@ -278,13 +274,10 @@ public:
 	void setFont(LPTSTR fontName, int size);
 };
 
-
-
 class Picture :public control {
 	//.bmp only
 public:
 	LPTSTR path = NULL;
-	Picture() noexcept {}
 	Picture(form* parent, int x, int y, int w, int h, const LPTSTR Name, const LPTSTR picPath);
 	void(*Event_On_Click)(Picture*) = NULL;
 };
@@ -294,7 +287,6 @@ private:
 	long preProc = NULL;
 	bool multiline = true;
 public:
-	Textbox() noexcept {}
 	Textbox(form* parent, int x, int y, int w, int h, const LPTSTR Name, bool Multiline = true);
 	size_t create() {
 		control::create();
@@ -331,7 +323,6 @@ class ProgressBar :public control {
 public:
 	int step = 10;
 	int range = 100;
-	ProgressBar() noexcept {}
 	ProgressBar(form* parent, int x, int y, int w, int h, const LPTSTR Name);
 	void stepIn() {
 		SendMessage(hWnd, PBM_STEPIT, 0, 0);
@@ -365,7 +356,7 @@ public:
 	}
 };
 
-class radio :public control {
+class Radio :public control {
 private:
 	bool getCheck() {
 		return (int)SendMessage(hWnd, BM_GETCHECK, 0, 0);
@@ -376,12 +367,11 @@ private:
 public:
 	//属性
 	bool head = false;
-	Property<radio, bool, readWrite, false> Value;
+	Property<Radio, bool, readWrite, false> Value;
 	//方法
-	radio() noexcept {}
-	radio(form* parent, int x, int y, int w, int h, const LPTSTR Name, bool head = false);
+	Radio(form* parent, int x, int y, int w, int h, const LPTSTR Name, bool head = false);
 	//事件
-	void(*Event_On_Check)(radio*) = NULL;
+	void(*Event_On_Check)(Radio*) = NULL;
 };
 
 class Checkbox :public control {
@@ -394,12 +384,11 @@ private:
 	}
 public:
 	Property<Checkbox, bool, readWrite, false> Value;
-	Checkbox() noexcept {}
 	Checkbox(form* parent, int x, int y, int w, int h, const TCHAR* Name);
 	void(*Event_On_Check)(Checkbox*) = NULL;
 };
 
-class timer : public control {
+class Timer : public control {
 private:
 	bool value = false;
 	void setTimer(bool value);
@@ -414,8 +403,8 @@ public:
 	unsigned int Interval = 0;
 	void(*Event_Timer)(form*) = NULL;
 
-	timer(form* parent, UINT interval, void(*Event)(form*), bool enabled);
-	~timer() {
+	Timer(form* parent, UINT interval, void(*Event)(form*), bool enabled);
+	~Timer() {
 		this->enabled = false;
 	}
 	size_t create() {
@@ -424,15 +413,15 @@ public:
 	void show() {
 		return;
 	}
-	Property<timer, bool, readWrite, false> enabled;
-	Property<timer, UINT, readWrite, false> interval;
+	Property<Timer, bool, readWrite, false> enabled;
+	Property<Timer, UINT, readWrite, false> interval;
 };
 
 static auto getForm = [](HWND hWnd) -> void* {
-	std::vector<void*>::iterator r = find_if(formSet.begin(), formSet.end(), [hWnd](const void* x) -> bool {
+	std::vector<void*>::iterator r = find_if(window::formSet.begin(), window::formSet.end(), [hWnd](const void* x) -> bool {
 		return ((form*)x)->hWnd == hWnd;
 	});
-	return r == formSet.end() ? nullptr : *r;
+	return r == window::formSet.end() ? nullptr : *r;
 };
 
 static void popError() {

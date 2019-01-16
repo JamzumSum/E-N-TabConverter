@@ -1,7 +1,7 @@
 #pragma once
 #include "stdafx.h"
 
-button::button(form* parent, int x, int y, int w, int h, const TCHAR* Name) {
+Button::Button(form* parent, int x, int y, int w, int h, const TCHAR* Name) : control(parent, x, y, w, h) {
 	this->x = x;
 	this->y = y;
 	this->w = w;
@@ -11,10 +11,9 @@ button::button(form* parent, int x, int y, int w, int h, const TCHAR* Name) {
 	this->name = (LPTSTR) Name;
 	this->classname = (TCHAR*)_T("BUTTON");
 	this->feature |= BS_DEFPUSHBUTTON;
-	push();
 }
 
-Label::Label(form* parent, int x, int y, int w, int h, const TCHAR* Name) {
+Label::Label(form* parent, int x, int y, int w, int h, const TCHAR* Name) : control(parent, x, y, w, h) {
 	this->x = x;
 	this->y = y;
 	this->w = w;
@@ -24,7 +23,6 @@ Label::Label(form* parent, int x, int y, int w, int h, const TCHAR* Name) {
 	this->name = (LPTSTR) Name;
 	this->classname = (TCHAR*)_T("STATIC");
 	this->feature |= SS_NOTIFY | BS_FLAT;
-	push();
 }
 
 void Label::setFont(LPTSTR fontName, int size) {
@@ -35,7 +33,7 @@ void Label::setFont(LPTSTR fontName, int size) {
 	SendMessage(this->hWnd, WM_SETFONT, (WPARAM)hFont, TRUE);//发送设置字体消息
 }
 
-Picture::Picture(form* parent, int x, int y, int w, int h, const LPTSTR Name, const LPTSTR picPath) {
+Picture::Picture(form* parent, int x, int y, int w, int h, const LPTSTR Name, const LPTSTR picPath) : control(parent, x, y, w, h) {
 	this->x = x;
 	this->y = y;
 	this->w = w;
@@ -46,10 +44,9 @@ Picture::Picture(form* parent, int x, int y, int w, int h, const LPTSTR Name, co
 	this->path = (LPTSTR)picPath;
 	this->classname = (TCHAR*)_T("STATIC");
 	this->feature |= SS_NOTIFY | SS_BITMAP;
-	push();
 }
 
-ProgressBar::ProgressBar(form* parent, int x, int y, int w, int h, const LPTSTR Name) {
+ProgressBar::ProgressBar(form* parent, int x, int y, int w, int h, const LPTSTR Name) : control(parent, x, y, w, h) {
 	this->x = x;
 	this->y = y;
 	this->w = w;
@@ -59,10 +56,9 @@ ProgressBar::ProgressBar(form* parent, int x, int y, int w, int h, const LPTSTR 
 	this->name = (LPTSTR)Name;				//x
 	this->classname = (TCHAR*)_T("msctls_progress32");
 	this->feature |= PBS_SMOOTH;
-	push();
 }
 
-radio::radio(form* parent, int x, int y, int w, int h, const LPTSTR Name, bool head) {
+Radio::Radio(form* parent, int x, int y, int w, int h, const LPTSTR Name, bool head) : control(parent, x, y, w, h) {
 	this->x = x;
 	this->y = y;
 	this->w = w;
@@ -76,12 +72,11 @@ radio::radio(form* parent, int x, int y, int w, int h, const LPTSTR Name, bool h
 	if (head) this->feature |= WS_GROUP;
 
 	Value.setContainer(this);
-	Value.setter(&radio::setCheck);
-	Value.getter(&radio::getCheck);
-	push();
+	Value.setter(&Radio::setCheck);
+	Value.getter(&Radio::getCheck);
 }
 
-Checkbox::Checkbox(form* parent, int x, int y, int w, int h, const TCHAR* Name) {
+Checkbox::Checkbox(form* parent, int x, int y, int w, int h, const TCHAR* Name) : control(parent, x, y, w, h) {
 	this->x = x;
 	this->y = y;
 	this->w = w;
@@ -94,10 +89,9 @@ Checkbox::Checkbox(form* parent, int x, int y, int w, int h, const TCHAR* Name) 
 	Value.setContainer(this);
 	Value.setter(&Checkbox::setCheck);
 	Value.getter(&Checkbox::getCheck);
-	push();
 }
 
-void timer::setTimer(bool value) {
+void Timer::setTimer(bool value) {
 	if (value ^ this->value) this->value = value;
 	else return;
 	if (value) {
@@ -116,7 +110,7 @@ void timer::setTimer(bool value) {
 	}
 }
 
-void timer::setInterval(UINT value) {
+void Timer::setInterval(UINT value) {
 	if (value != Interval) {
 		bool r = enabled;
 		enabled = false;
@@ -125,22 +119,20 @@ void timer::setInterval(UINT value) {
 	}
 }
 
-timer::timer(form* parent, UINT interval, void(*Event)(form*), bool enabled = false) {
+Timer::Timer(form* parent, UINT interval, void(*Event)(form*), bool enabled = false) : control(parent, 0, 0, 0, 0) {
 	this->Event_Timer = Event;
 	this->Interval = interval;
 	this->parent = parent;
 	this->enabled.setContainer(this);
 	this->interval.setContainer(this);
-	this->enabled.setter(&timer::setTimer);
-	this->enabled.getter(&timer::getTimer);
-	this->interval.setter(&timer::setInterval);
-	this->interval.getter(&timer::getInterval);
+	this->enabled.setter(&Timer::setTimer);
+	this->enabled.getter(&Timer::getTimer);
+	this->interval.setter(&Timer::setInterval);
+	this->interval.getter(&Timer::getInterval);
 	if (enabled) this->enabled = true;
-
-	push();
 }
 
-Textbox::Textbox(form* parent, int x, int y, int w, int h, const LPTSTR Name, bool Multiline) {
+Textbox::Textbox(form* parent, int x, int y, int w, int h, const LPTSTR Name, bool Multiline) : control(parent, x, y, w, h) {
 	this->x = x;
 	this->y = y;
 	this->w = w;
@@ -152,5 +144,4 @@ Textbox::Textbox(form* parent, int x, int y, int w, int h, const LPTSTR Name, bo
 	this->classname = (TCHAR*)_T("Edit");
 	this->feature |= WS_BORDER | WS_GROUP | WS_TABSTOP | ES_WANTRETURN;
 	if (Multiline) this->feature |= ES_MULTILINE;
-	push();
 }
