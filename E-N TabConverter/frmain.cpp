@@ -18,22 +18,27 @@ char f[MAX_PATH];
 char prog[4];
 bool isCut = false;
 
-form main(NULL, "form", "E-Land Chord Converter", 240, 240, 840, 528);
-button scan(&main, 5 * pix, 200, 112, 56, "Go!");
-Label info(&main, 4, 464, 560, 24, "Press \"Go\" to begin.");
+static form main(NULL, "form", "E-Land Chord Converter", 240, 240, 840, 528);
+static button scan(&main, 5 * pix, 200, 112, 56, "Go!");
+static button home(&main, 8, 0, 112, 56, "Home");
+static button history(&main, 8, 64, 112, 56, "History");
+static button setting(&main, 8, 128, 112, 56, "Settings");
+static button Exit(&main, 8, 400, 112, 56, "Exit");
+static Label info(&main, 4, 464, 560, 24, "Press \"Go\" to begin.");
+static Checkbox cut(&main, 760, 450, 56, 32, "Cut");
 
 extern int go(string f,bool);
 static string conc(string n, char p[4]);
 
 
-notify<int>progress([](int p) {
+notify<int> progress([](int p) {
 	char num[4];
 	_itoa_s(p, num, 10);
 	strncpy_s(prog, num, 4);
 	info.name = (TCHAR*) conc(noti, prog).c_str();
 });
 
-notify<string>notification([](string n) {
+notify<string> notification([](string n) {
 	noti = n;
 	info.name = (TCHAR*) conc(noti,prog).c_str();
 });
@@ -88,16 +93,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 	main.Event_Load_Complete = [](form* me) {
 		pix = me->w / 12;
 	};
-	button home(&main, 8, 0, 112, 56, "Home");
-	button history(&main, 8, 64, 112, 56, "History");
-	button setting(&main, 8, 128, 112, 56, "Settings");
-	button exit(&main, 8, 400, 112, 56, "Exit");
-	Checkbox cut(&main,760,450,56,32,"Cut");
+	
 
 	home.Event_On_Click = [](button* me) {
 		scan.show();
 	};
-	exit.Event_On_Click = [](button* me) {
+	Exit.Event_On_Click = [](button* me) {
 		void* p = me->parent;
 		((form*)p)->close();
 	};
