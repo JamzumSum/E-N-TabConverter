@@ -106,13 +106,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 		isCut = me->Value;
 	};
 
-	/*scan();
-	home();
-	history();
-	setting();
-	Exit();
-	info();
-	cut();*/
 
 	main.run();
 }

@@ -37,48 +37,45 @@ Dsetter(na,ty)
 static HINSTANCE hi = GetModuleHandle(0);
 static LRESULT CALLBACK WinProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 void popError();
+class control;
+class form;
 
 enum permission {
 	readWrite, readOnly, writeOnly
 };
 
-template <typename Container, typename Value, enum permission prop, bool permissive>
+template <typename Container, typename Value, enum permission prop>
 class Property {
 private:
 	Container * me = NULL;
 	void (Container::*Set)(Value value) = NULL;
 	Value(Container::*Get)() = NULL;
-	bool flag = true;
+	bool init = true;
 public:
 	Property() noexcept {}
-	void setContainer(Container* x)
-	{
+	Property(bool initialed) noexcept {
+		init = initialed;
+	}
+	void setContainer(Container* x) {
 		me = x;
 	}
-	void setter(void (Container::*pSet)(Value value))
-	{
-		if (permissive) {
-			Set = pSet;
-			return;
-		}
-		if ((prop == writeOnly) || (prop == readWrite)) Set = pSet;
-
+	void setter(void (Container::*pSet)(Value value)) {
+		Set = pSet;
 	}
-	void getter(Value(Container::*pGet)())
-	{
+	void getter(Value(Container::*pGet)()) {
 		if ((prop == readWrite) || (prop == readOnly)) Get = pGet;
 	}
-	Value operator =(const Value& value)
+	Value operator= (const Value& value)
 	{
 		assert(me);
 		assert(Set);
+		init = true;
 		if (prop == writeOnly || prop == readWrite) {
 			(me->*Set)(value);
 			return value;
 		}
-		if (prop == readOnly && flag) {
+		else if (prop == readOnly && !init) {
 			(me->*Set)(value);
-			if (value) flag = false;
 		}
 		return value;
 	}
@@ -94,6 +91,7 @@ private:
 	TCHAR Name[MAXSIZE] = {};
 	HMENU Menu = NULL;
 	HWND Hwnd = NULL;
+	LPTSTR Classname = NULL;
 	void setName(LPTSTR newName) {
 		if (hWnd) SetWindowText(Hwnd, newName);
 		_tcscpy_s(Name, newName);
@@ -107,29 +105,29 @@ private:
 	}
 	Dgetter(Menu, HMENU)
 	Dgetter(Hwnd, HWND)
-	Dgesetter(Classname, LPTSTR)
 	Dgesetter(Parent, void*)
 
 public:
-	static std::vector<void*> formSet;
+	static std::vector<window*> formSet;
 
 	int x = CW_USEDEFAULT;
 	int y = CW_USEDEFAULT;
 	int w = CW_USEDEFAULT;
 	int h = CW_USEDEFAULT;
-	char type = 0;
-	size_t id = 0;
 
-	Property<window, LPTSTR, readOnly, true> classname;
-	Property<window, LPTSTR, readWrite, false> name;
-	Property<window, HWND, readOnly, false> hWnd;
-	Property<window, void*, readOnly, true> parent;
-	Property<window, int, writeOnly, false> menu;
+	char type = 0;
+	size_t id = 0;				//生效的id > 0
+
+	Property<window, LPTSTR, readWrite> name;
+	Property<window, HWND, readOnly> hWnd;
+	Property<window, void*, readOnly> parent;
+	Property<window, int, writeOnly> menu;
 
 	long feature = 0;
 
-	virtual std::vector<void*>& getContainer() = 0;
-	window(void* parent, int x, int y, int w, int h) noexcept;
+	virtual std::vector<window*>& getContainer() = 0;
+
+	window(LPTSTR classname, window* parent, int x = 0, int y = 0, int w = 0, int h = 0);
 	void hide() {
 		ShowWindow(Hwnd, 0);
 	}
@@ -147,9 +145,12 @@ public:
 		MoveWindow(Hwnd, this->x, this->y, this->w, this->h, true);
 	}
 	void push() {
-		std::vector<void*>& a = getContainer();
+		std::vector<window*>& a = getContainer();
 		a.push_back(this);
 		id = a.size();
+	}
+	const LPTSTR classname() {
+		return Classname;
 	}
 	virtual size_t create();
 };
@@ -168,15 +169,18 @@ private:
 	HMENU CONTEXTMENU() { return this->RBmenu; }
 	bool isCreated() { return this->createOver; };
 	bool regist();
+	//===================================================================================================
+	//===================================================================================================
+	//===================================================================================================
 public:
 	//构造
 	form(form* parent, const TCHAR* className, const TCHAR* title, 
 		int x = CW_USEDEFAULT, int y = CW_USEDEFAULT, int w = CW_USEDEFAULT, int h = CW_USEDEFAULT);
 	~form();
 	//属性
-	Property<form, HMENU, readOnly, false> RButtonMenu;
-	Property<form, bool, readOnly, false> MessageCreated;
-	std::vector<void*> tab;
+	Property<form, HMENU, readOnly> RButtonMenu;
+	Property<form, bool, readOnly> MessageCreated;
+	std::vector<window*> tab;
 
 	int xbias = 0;
 	int ybias = 0;
@@ -209,7 +213,7 @@ public:
 	void minimum() {
 		ShowWindow(hWnd, SW_SHOWMINNOACTIVE);
 	}
-	std::vector<void*>& getContainer() {
+	std::vector<window*>& getContainer() {
 		return formSet;
 	}
 	void close() {
@@ -221,11 +225,13 @@ public:
 	void cls(RECT* area = NULL) {
 		InvalidateRect(hWnd, area, true);
 	}
+
 	size_t create();
+	static form* getForm(HWND hWnd);
 	void run();
 	void paintLine(int x1, int y1, int x2, int y2);
 	void paintLine(int x1, int y1, int x2, int y2, RECT* rect);
-	void* getControl(HWND controlHwnd);
+	control* getControl(HWND controlHwnd);
 	//事件
 	void(*Event_On_Create)(form*) = NULL;
 	void(*Event_On_Unload)(form*) = NULL;
@@ -241,14 +247,11 @@ public:
 	//属性
 	std::string tag;
 	//方法
-	std::vector<void*>& getContainer() {
+	std::vector<window*>& getContainer() {
 		void* t = parent;
 		return ((form*)t)->tab;
 	}
-	control(void* parent, int x, int y, int w, int h) : window(parent, x, y ,w, h) {
-		this->feature = this->feature | WS_CHILD | WS_VISIBLE;
-		push();
-	}
+	control(LPTSTR clsname, window* parent, int x = 0, int y = 0, int w = 0, int h = 0);
 	size_t operator()() {
 		return this->create();
 	}
@@ -296,8 +299,8 @@ public:
 	WNDPROC proc = [](HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) -> LRESULT {
 		Textbox * p = NULL;
 		for (unsigned int i = 0; i < formSet.size(); i++) {
-			auto a = find_if(((form*)formSet[i])->tab.begin(), ((form*)formSet[i])->tab.end(), [hwnd](const void* x) -> bool {return ((control*)x)->type == 't' && ((control*)x)->hWnd == hwnd; });
-			if (a != ((form*)formSet[i])->tab.end()) {
+			auto a = find_if(formSet[i]->getContainer().begin(), formSet[i]->getContainer().end(), [hwnd](const void* x) -> bool {return ((control*)x)->type == 't' && ((control*)x)->hWnd == hwnd; });
+			if (a != formSet[i]->getContainer().end()) {
 				p = (Textbox*)*a;
 				break;
 			}
@@ -367,7 +370,7 @@ private:
 public:
 	//属性
 	bool head = false;
-	Property<Radio, bool, readWrite, false> Value;
+	Property<Radio, bool, readWrite> Value;
 	//方法
 	Radio(form* parent, int x, int y, int w, int h, const LPTSTR Name, bool head = false);
 	//事件
@@ -383,7 +386,7 @@ private:
 		SendMessage(hWnd, BM_SETCHECK, (int)value, 0);
 	}
 public:
-	Property<Checkbox, bool, readWrite, false> Value;
+	Property<Checkbox, bool, readWrite> Value;
 	Checkbox(form* parent, int x, int y, int w, int h, const TCHAR* Name);
 	void(*Event_On_Check)(Checkbox*) = NULL;
 };
@@ -413,15 +416,8 @@ public:
 	void show() {
 		return;
 	}
-	Property<Timer, bool, readWrite, false> enabled;
-	Property<Timer, UINT, readWrite, false> interval;
-};
-
-static auto getForm = [](HWND hWnd) -> void* {
-	std::vector<void*>::iterator r = find_if(window::formSet.begin(), window::formSet.end(), [hWnd](const void* x) -> bool {
-		return ((form*)x)->hWnd == hWnd;
-	});
-	return r == window::formSet.end() ? nullptr : *r;
+	Property<Timer, bool, readWrite> enabled;
+	Property<Timer, UINT, readWrite> interval;
 };
 
 static void popError() {

@@ -1,9 +1,10 @@
 #pragma once
 #include "stdafx.h"
 
-std::vector<void*> window::formSet;
+std::vector<window*> window::formSet;
 
-void form::run() {				//在此处主程序挂起
+void form::run() {
+	//在此处挂起
 	for (void* p : tab) ((control*)p)->create();
 
 	MSG msg;
@@ -23,17 +24,27 @@ void form::run() {				//在此处主程序挂起
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 	}
-	UnregisterClass(classname, hi);
+	std::vector<window*>::iterator r = find_if(formSet.begin(), formSet.end(), [this](const window* x) -> bool {
+		return x != (void*)this && (_tcscmp(x->classname, this->classname) == 0);
+	});
+	if(r != formSet.end()) UnregisterClass(classname(), hi);
 }
 
-void* form::getControl(HWND controlHwnd) {
-	std::vector<void*>::iterator r = find_if(tab.begin(), tab.end(), [controlHwnd](const void* x) -> bool { return ((control*)x)->hWnd == controlHwnd; });
-	return r == tab.end() ? nullptr : *r;
+control* form::getControl(HWND controlHwnd) {
+	std::vector<window*>::iterator r = find_if(tab.begin(), tab.end(), [controlHwnd](const void* x) -> bool { return ((control*)x)->hWnd == controlHwnd; });
+	return r == tab.end() ? nullptr : (control*)*r;
 }
+
+form* form::getForm(HWND hWnd) {
+	std::vector<window*>::iterator r = find_if(window::formSet.begin(), window::formSet.end(), [hWnd](const void* x) -> bool {
+		return ((form*)x)->hWnd == hWnd;
+	});
+	return r == window::formSet.end() ? nullptr : (form*)*r;
+};
 
 static LRESULT CALLBACK WinProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	form* t = (form*)getForm(hwnd);
+	form* t = form::getForm(hwnd);
 	if (!t) return DefWindowProc(hwnd, message, wParam, lParam);
 	switch (message)
 	{
@@ -145,22 +156,16 @@ size_t window::create() {
 	}
 }
 
-window::window(void* p, int x, int y, int w, int h) noexcept {
-	Parent = p;
-	this->x = x;
-	this->y = y;
-	this->w = w;
-	this->h = h;
+window::window(LPTSTR classname, window* p, int x, int y, int w, int h)
+	: x(x), y(y), w(w), h(h), Parent(p), Classname(classname)
+{
 	name.setContainer(this);
 	hWnd.setContainer(this);
-	classname.setContainer(this);
 	parent.setContainer(this);
 	menu.setContainer(this);
 	name.setter(&window::setName);
 	name.getter(&window::getName);
 	hWnd.getter(&window::getHwnd);
-	classname.setter(&window::setClassname);
-	classname.getter(&window::getClassname);
 	parent.setter(&window::setParent);
 	parent.getter(&window::getParent);
 	menu.setter(&window::setMenu);
@@ -168,23 +173,25 @@ window::window(void* p, int x, int y, int w, int h) noexcept {
 
 form::~form() {
 	if (parent) ((form*)(void*)parent)->top();
-	auto todelete = find_if(formSet.begin(), formSet.end(), [this](void* x) {
-		return (void*)this == x;
-	});
-	if(formSet.end() != todelete) formSet.erase(todelete);
+	auto todelete = find(formSet.begin(), formSet.end(), this);
+	if (formSet.end() != todelete) {
+		size_t pos = todelete - formSet.begin();
+		formSet.erase(todelete);
+		for (; pos < formSet.size(); pos++) {
+			((form*)formSet[pos])->id = pos + 1;
+		}
+	}
 }
 
-form::form(form* parent, const TCHAR* className, const TCHAR* title, int x, int y, int w, int h) : window(parent, x, y, w, h){
-	//this->x = x; this->y = y; this->w = w; this->h = h;
+form::form(form* parent, const TCHAR* clsName, const TCHAR* title, int x, int y, int w, int h) 
+	: window((LPTSTR)clsName, parent, x, y, w, h) {
 	this->type = 'f';
 	this->feature = WS_OVERLAPPEDWINDOW;
 	this->name = (TCHAR*) title;
-	this->classname = (TCHAR*) className;
 	RButtonMenu.setContainer(this);
 	MessageCreated.setContainer(this);
 	RButtonMenu.getter(&form::CONTEXTMENU);
 	MessageCreated.getter(&form::isCreated);
-	//this->parent = parent;
 	push();
 }
 
@@ -201,7 +208,7 @@ bool form::regist() {
 	wndclass.hIcon = LoadIcon(hi, this->icon);
 	wndclass.hIconSm = LoadIcon(hi, this->smallIcon);
 	wndclass.hInstance = hi;
-	wndclass.lpszClassName = classname;
+	wndclass.lpszClassName = classname();
 	wndclass.lpszMenuName = NULL;
 	if (RegisterClassEx(&wndclass)) return true;
 	else {
