@@ -92,8 +92,10 @@ private:
 	HMENU Menu = NULL;
 	HWND Hwnd = NULL;
 	LPTSTR Classname = NULL;
+	window* Parent = NULL;
+
 	void setName(LPTSTR newName) {
-		if (hWnd) SetWindowText(Hwnd, newName);
+		if (Hwnd) SetWindowText(Hwnd, newName);
 		_tcscpy_s(Name, newName);
 	}
 	LPTSTR getName() {
@@ -104,8 +106,6 @@ private:
 		Menu = LoadMenu(hi, MAKEINTRESOURCE(ID));
 	}
 	Dgetter(Menu, HMENU)
-	Dgetter(Hwnd, HWND)
-	Dgesetter(Parent, void*)
 
 public:
 	static std::vector<window*> formSet;
@@ -119,8 +119,6 @@ public:
 	size_t id = 0;				//生效的id > 0
 
 	Property<window, LPTSTR, readWrite> name;
-	Property<window, HWND, readOnly> hWnd;
-	Property<window, void*, readOnly> parent;
 	Property<window, int, writeOnly> menu;
 
 	long feature = 0;
@@ -149,8 +147,14 @@ public:
 		a.push_back(this);
 		id = a.size();
 	}
+	window* parent() {
+		return Parent;
+	}
 	const LPTSTR classname() {
 		return Classname;
+	}
+	const HWND hWnd() {
+		return Hwnd;
 	}
 	virtual size_t create();
 };
@@ -165,9 +169,7 @@ private:
 	LPTSTR icon = IDI_APPLICATION;
 	LPTSTR smallIcon = IDI_APPLICATION;
 
-	bool createOver = false;
 	HMENU CONTEXTMENU() { return this->RBmenu; }
-	bool isCreated() { return this->createOver; };
 	bool regist();
 	//===================================================================================================
 	//===================================================================================================
@@ -179,7 +181,6 @@ public:
 	~form();
 	//属性
 	Property<form, HMENU, readOnly> RButtonMenu;
-	Property<form, bool, readOnly> MessageCreated;
 	std::vector<window*> tab;
 
 	int xbias = 0;
@@ -189,7 +190,6 @@ public:
 	HDC hdc = NULL;
 	LPTSTR bitmapName = NULL;
 	//方法
-
 
 	void setIcon(LPTSTR smallIconName, LPTSTR iconName = NULL) {
 		if (iconName) this->icon = iconName;
@@ -211,19 +211,19 @@ public:
 		for (size_t i = 0; i < menuList.size(); i++) if ((WORD)(ULONG_PTR)menuList[i] == ID) ((void(*)())menuEventList[i])();
 	}
 	void minimum() {
-		ShowWindow(hWnd, SW_SHOWMINNOACTIVE);
+		ShowWindow(hWnd(), SW_SHOWMINNOACTIVE);
 	}
 	std::vector<window*>& getContainer() {
 		return formSet;
 	}
 	void close() {
-		PostMessage(hWnd, WM_CLOSE, 0, 0);
+		PostMessage(hWnd(), WM_CLOSE, 0, 0);
 	}
 	void top() {
-		SwitchToThisWindow(hWnd, true);
+		SwitchToThisWindow(hWnd(), true);
 	}
 	void cls(RECT* area = NULL) {
-		InvalidateRect(hWnd, area, true);
+		InvalidateRect(hWnd(), area, true);
 	}
 
 	size_t create();
@@ -248,8 +248,7 @@ public:
 	std::string tag;
 	//方法
 	std::vector<window*>& getContainer() {
-		void* t = parent;
-		return ((form*)t)->tab;
+		return ((form*) parent())->tab;
 	}
 	control(LPTSTR clsname, window* parent, int x = 0, int y = 0, int w = 0, int h = 0);
 	size_t operator()() {
@@ -293,13 +292,13 @@ public:
 	Textbox(form* parent, int x, int y, int w, int h, const LPTSTR Name, bool Multiline = true);
 	size_t create() {
 		control::create();
-		preProc = SetWindowLong(hWnd, GWL_WNDPROC, (long)proc);
+		preProc = SetWindowLong(hWnd(), GWL_WNDPROC, (long)proc);
 		return id;
 	}
 	WNDPROC proc = [](HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) -> LRESULT {
 		Textbox * p = NULL;
 		for (unsigned int i = 0; i < formSet.size(); i++) {
-			auto a = find_if(formSet[i]->getContainer().begin(), formSet[i]->getContainer().end(), [hwnd](const void* x) -> bool {return ((control*)x)->type == 't' && ((control*)x)->hWnd == hwnd; });
+			auto a = find_if(formSet[i]->getContainer().begin(), formSet[i]->getContainer().end(), [hwnd](const void* x) -> bool {return ((control*)x)->type == 't' && ((control*)x)->hWnd() == hwnd; });
 			if (a != formSet[i]->getContainer().end()) {
 				p = (Textbox*)*a;
 				break;
@@ -328,44 +327,44 @@ public:
 	int range = 100;
 	ProgressBar(form* parent, int x, int y, int w, int h, const LPTSTR Name);
 	void stepIn() {
-		SendMessage(hWnd, PBM_STEPIT, 0, 0);
+		SendMessage(hWnd(), PBM_STEPIT, 0, 0);
 	}
 	int setStep(int newStep = 0) {
 		if (newStep) {
-			SendMessage(hWnd, PBM_SETSTEP, (WPARAM)newStep, 0);
+			SendMessage(hWnd(), PBM_SETSTEP, (WPARAM)newStep, 0);
 			step = newStep;
 		}
 		return step;
 	}
 	int setRange(int newRange = 0) {
 		if (newRange) {
-			SendMessage(hWnd, PBM_SETRANGE, 0, MAKELPARAM(0, newRange));
+			SendMessage(hWnd(), PBM_SETRANGE, 0, MAKELPARAM(0, newRange));
 			range = newRange;
 		}
 		return range;
 	}
 	void setPos(int pos) {
-		SendMessage(hWnd, PBM_SETPOS, pos, 0);
+		SendMessage(hWnd(), PBM_SETPOS, pos, 0);
 	}
 	void empty() {
 		setPos(0);
 	}
 	void full() {
-		setPos((int)SendMessage(hWnd, PBM_GETPOS, 0, 0));
+		setPos((int)SendMessage(hWnd(), PBM_GETPOS, 0, 0));
 	}
 	void setColor(ULONG color = CLR_DEFAULT) {
 		//back to default if void
-		SendMessage(hWnd, PBM_SETBARCOLOR, 0, color);
+		SendMessage(hWnd(), PBM_SETBARCOLOR, 0, color);
 	}
 };
 
 class Radio :public control {
 private:
 	bool getCheck() {
-		return (int)SendMessage(hWnd, BM_GETCHECK, 0, 0);
+		return (int)SendMessage(hWnd(), BM_GETCHECK, 0, 0);
 	}
 	void setCheck(bool value) {
-		SendMessage(hWnd, BM_SETCHECK, (int)value, 0);
+		SendMessage(hWnd(), BM_SETCHECK, (int)value, 0);
 	}
 public:
 	//属性
@@ -380,10 +379,10 @@ public:
 class Checkbox :public control {
 private:
 	bool getCheck() {
-		return (int)SendMessage(hWnd, BM_GETCHECK, 0, 0);
+		return (int)SendMessage(hWnd(), BM_GETCHECK, 0, 0);
 	}
 	void setCheck(bool value) {
-		SendMessage(hWnd, BM_SETCHECK, (int)value, 0);
+		SendMessage(hWnd(), BM_SETCHECK, (int)value, 0);
 	}
 public:
 	Property<Checkbox, bool, readWrite> Value;

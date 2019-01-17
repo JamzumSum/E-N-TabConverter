@@ -8,14 +8,14 @@ void form::run() {
 	for (void* p : tab) ((control*)p)->create();
 
 	MSG msg;
-	ShowWindow(hWnd, SW_SHOW);
-	UpdateWindow(hWnd);
+	ShowWindow(hWnd(), SW_SHOW);
+	UpdateWindow(hWnd());
 	ZeroMemory(&msg, sizeof(msg));
-	this->createOver = true;						//消息队列建立		//我想了两天终于下决心把这个SB东西和下边那句话调了过来		//上帝保佑我别再出bug了		//再写bug我学分就都没了
+	//this->createOver = true;						//消息队列建立		//我想了两天终于下决心把这个SB东西和下边那句话调了过来		//上帝保佑我别再出bug了		//再写bug我学分就都没了
 	if (this->Event_Load_Complete) this->Event_Load_Complete(this);
 
 	int loopret = 0;
-	while ((loopret = GetMessage(&msg, this->hWnd, 0, 0)) > 0)
+	while ((loopret = GetMessage(&msg, this->hWnd(), 0, 0)) > 0)
 	{
 		if (loopret == -1) {
 			popError();
@@ -24,20 +24,20 @@ void form::run() {
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 	}
-	std::vector<window*>::iterator r = find_if(formSet.begin(), formSet.end(), [this](const window* x) -> bool {
-		return x != (void*)this && (_tcscmp(x->classname, this->classname) == 0);
+	std::vector<window*>::iterator r = find_if(formSet.begin(), formSet.end(), [this](window* x) -> bool {
+		return x != (void*)this && (_tcscmp(x->classname(), this->classname()) == 0);
 	});
 	if(r != formSet.end()) UnregisterClass(classname(), hi);
 }
 
 control* form::getControl(HWND controlHwnd) {
-	std::vector<window*>::iterator r = find_if(tab.begin(), tab.end(), [controlHwnd](const void* x) -> bool { return ((control*)x)->hWnd == controlHwnd; });
+	std::vector<window*>::iterator r = find_if(tab.begin(), tab.end(), [controlHwnd](window* x) -> bool { return x->hWnd() == controlHwnd; });
 	return r == tab.end() ? nullptr : (control*)*r;
 }
 
 form* form::getForm(HWND hWnd) {
-	std::vector<window*>::iterator r = find_if(window::formSet.begin(), window::formSet.end(), [hWnd](const void* x) -> bool {
-		return ((form*)x)->hWnd == hWnd;
+	std::vector<window*>::iterator r = find_if(window::formSet.begin(), window::formSet.end(), [hWnd](window* x) -> bool {
+		return x->hWnd() == hWnd;
 	});
 	return r == window::formSet.end() ? nullptr : (form*)*r;
 };
@@ -90,7 +90,7 @@ static LRESULT CALLBACK WinProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
 	{
 		t->w = LOWORD(lParam);
 		t->h = HIWORD(lParam);
-		if (t->MessageCreated) if (t->Event_Window_Resize) t->Event_Window_Resize(t);
+		if (t->Event_Window_Resize) t->Event_Window_Resize(t);
 		break;
 	}
 	case WM_MOVE:
@@ -160,19 +160,14 @@ window::window(LPTSTR classname, window* p, int x, int y, int w, int h)
 	: x(x), y(y), w(w), h(h), Parent(p), Classname(classname)
 {
 	name.setContainer(this);
-	hWnd.setContainer(this);
-	parent.setContainer(this);
 	menu.setContainer(this);
 	name.setter(&window::setName);
 	name.getter(&window::getName);
-	hWnd.getter(&window::getHwnd);
-	parent.setter(&window::setParent);
-	parent.getter(&window::getParent);
 	menu.setter(&window::setMenu);
 }
 
 form::~form() {
-	if (parent) ((form*)(void*)parent)->top();
+	if (parent()) ((form*)parent())->top();
 	auto todelete = find(formSet.begin(), formSet.end(), this);
 	if (formSet.end() != todelete) {
 		size_t pos = todelete - formSet.begin();
@@ -189,9 +184,7 @@ form::form(form* parent, const TCHAR* clsName, const TCHAR* title, int x, int y,
 	this->feature = WS_OVERLAPPEDWINDOW;
 	this->name = (TCHAR*) title;
 	RButtonMenu.setContainer(this);
-	MessageCreated.setContainer(this);
 	RButtonMenu.getter(&form::CONTEXTMENU);
-	MessageCreated.getter(&form::isCreated);
 	push();
 }
 
@@ -224,7 +217,7 @@ size_t form::create() {
 	window::create();
 	if (x < 0) {
 		RECT r;
-		GetWindowRect(hWnd, &r);
+		GetWindowRect(hWnd(), &r);
 		x = r.left;
 		y = r.top;
 		w = r.right - x;
@@ -237,10 +230,10 @@ size_t form::create() {
 void form::paintLine(int x1, int y1, int x2, int y2) {
 	//if x1 = x2 = y1 = y2 = 0 then end paint.
 	PAINTSTRUCT ps;
-	hdc = BeginPaint(hWnd, &ps);
+	hdc = BeginPaint(hWnd(), &ps);
 	MoveToEx(hdc, x1, y1, NULL);
 	LineTo(hdc, x2, y2);
-	EndPaint(hWnd, &ps);
+	EndPaint(hWnd(), &ps);
 	hdc = NULL;
 }
 
@@ -248,15 +241,15 @@ void form::paintLine(int x1, int y1, int x2, int y2, RECT* rect) {
 	//if x1 = x2 = y1 = y2 = 0 then end paint.
 	static PAINTSTRUCT ps;
 	if (!hdc) {
-		hdc = BeginPaint(hWnd, &ps);
+		hdc = BeginPaint(hWnd(), &ps);
 	}
 	if (x1 || x2 || y1 || y2) {
 		MoveToEx(hdc, x1, y1, NULL);
 		LineTo(hdc, x2, y2);
 	}
 	else {
-		EndPaint(hWnd, &ps);
+		EndPaint(hWnd(), &ps);
 		hdc = NULL;
-		UpdateWindow(hWnd);
+		UpdateWindow(hWnd());
 	}
 }

@@ -10,7 +10,6 @@ control::control(LPTSTR clsname, window* parent, int x, int y, int w, int h)
 Button::Button(form* parent, int x, int y, int w, int h, const TCHAR* Name) 
 	: control((TCHAR*)_T("BUTTON"), parent, x, y, w, h) {
 	this->type = 'b';
-	this->parent = parent;
 	this->name = (LPTSTR) Name;
 	this->feature |= BS_DEFPUSHBUTTON;
 }
@@ -18,7 +17,6 @@ Button::Button(form* parent, int x, int y, int w, int h, const TCHAR* Name)
 Label::Label(form* parent, int x, int y, int w, int h, const TCHAR* Name) 
 	: control((TCHAR*)_T("STATIC"), parent, x, y, w, h) {
 	this->type = 'l';
-	this->parent = parent;
 	this->name = (LPTSTR) Name;
 	this->feature |= SS_NOTIFY | BS_FLAT;
 }
@@ -28,13 +26,12 @@ void Label::setFont(LPTSTR fontName, int size) {
 		CHINESEBIG5_CHARSET, OUT_CHARACTER_PRECIS,
 		CLIP_CHARACTER_PRECIS, DEFAULT_QUALITY,
 		FF_MODERN, fontName);
-	SendMessage(this->hWnd, WM_SETFONT, (WPARAM)hFont, TRUE);//发送设置字体消息
+	SendMessage(this->hWnd(), WM_SETFONT, (WPARAM)hFont, TRUE);//发送设置字体消息
 }
 
 Picture::Picture(form* parent, int x, int y, int w, int h, const LPTSTR Name, const LPTSTR picPath) 
 	: control((TCHAR*)_T("STATIC"), parent, x, y, w, h) {
 	this->type = 'p';
-	this->parent = parent;
 	this->name = (LPTSTR)Name;				//x
 	this->path = (LPTSTR)picPath;
 	this->feature |= SS_NOTIFY | SS_BITMAP;
@@ -43,7 +40,6 @@ Picture::Picture(form* parent, int x, int y, int w, int h, const LPTSTR Name, co
 ProgressBar::ProgressBar(form* parent, int x, int y, int w, int h, const LPTSTR Name) 
 	: control((TCHAR*)_T("msctls_progress32"), parent, x, y, w, h) {
 	this->type = 'P';
-	this->parent = parent;
 	this->name = (LPTSTR)Name;
 	this->feature |= PBS_SMOOTH;
 }
@@ -52,7 +48,6 @@ Radio::Radio(form* parent, int x, int y, int w, int h, const LPTSTR Name, bool h
 	: control((TCHAR*)_T("BUTTON"), parent, x, y, w, h) {
 	this->head = head;
 	this->type = 'r';
-	this->parent = parent;
 	this->name = Name;
 	this->feature |= BS_AUTORADIOBUTTON;
 	if (head) this->feature |= WS_GROUP;
@@ -65,7 +60,6 @@ Radio::Radio(form* parent, int x, int y, int w, int h, const LPTSTR Name, bool h
 Checkbox::Checkbox(form* parent, int x, int y, int w, int h, const TCHAR* Name) 
 	: control((TCHAR*)_T("BUTTON"), parent, x, y, w, h) {
 	this->type = 'c';
-	this->parent = parent;
 	this->name = (LPTSTR) Name;
 	this->feature |= BS_AUTOCHECKBOX;
 	Value.setContainer(this);
@@ -79,16 +73,14 @@ void Timer::setTimer(bool value) {
 	if (value) {
 		if (Event_Timer) {
 			assert(Event_Timer);
-			void* t = parent;
-			if (!SetTimer(((form*)t)->hWnd, id, Interval, NULL)) {
+			if (!SetTimer(parent()->hWnd(), id, Interval, NULL)) {
 				MessageBox(NULL, _T("Fail to set timer"), (LPTSTR)(ULONG_PTR)GetLastError(), MB_OK);
 				this->value = false;
 			}
 		}
 	}
 	else {
-		void* t = parent;
-		KillTimer(((form*)t)->hWnd, id);
+		KillTimer(parent()->hWnd(), id);
 	}
 }
 
@@ -105,7 +97,6 @@ Timer::Timer(form* parent, UINT interval, void(*Event)(form*), bool enabled = fa
 	: control(NULL, parent) {
 	this->Event_Timer = Event;
 	this->Interval = interval;
-	this->parent = parent;
 	this->enabled.setContainer(this);
 	this->interval.setContainer(this);
 	this->enabled.setter(&Timer::setTimer);
@@ -118,7 +109,6 @@ Timer::Timer(form* parent, UINT interval, void(*Event)(form*), bool enabled = fa
 Textbox::Textbox(form* parent, int x, int y, int w, int h, const LPTSTR Name, bool Multiline) 
 	: control((TCHAR*)_T("Edit"), parent, x, y, w, h) {
 	this->type = 't';
-	this->parent = parent;
 	this->name = Name;
 	this->multiline = Multiline;
 	this->feature |= WS_BORDER | WS_GROUP | WS_TABSTOP | ES_WANTRETURN;

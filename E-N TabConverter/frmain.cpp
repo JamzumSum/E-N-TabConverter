@@ -55,7 +55,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 		OPENFILENAME ofn;
 		ZeroMemory(&ofn, sizeof(ofn));
 		ofn.lStructSize = sizeof(ofn);
-		ofn.hwndOwner = main.hWnd;
+		ofn.hwndOwner = main.hWnd();
 		ofn.lpstrDefExt = 0;
 		ofn.lpstrFile = f;
 		ofn.lpstrFile[0] = '\0';
@@ -99,7 +99,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 		scan.show();
 	};
 	Exit.Event_On_Click = [](Button* me) {
-		void* p = me->parent;
+		window* p = me->parent();
 		((form*)p)->close();
 	};
 	cut.Event_On_Check = [](Checkbox* me) {
