@@ -1,22 +1,20 @@
 #pragma once
 #include "stdafx.h"
 
-control::control(LPTSTR clsname, window* parent, int x, int y, int w, int h)
-	: window(clsname, parent, x, y, w, h) {
+control::control(char t, LPTSTR clsname, window* parent, int x, int y, int w, int h)
+	: window(t, clsname, parent, x, y, w, h) {
 	this->feature = this->feature | WS_CHILD | WS_VISIBLE;
 	push();
 }
 
 Button::Button(form* parent, int x, int y, int w, int h, const TCHAR* Name) 
-	: control((TCHAR*)_T("BUTTON"), parent, x, y, w, h) {
-	this->type = 'b';
+	: control('b', (TCHAR*)_T("BUTTON"), parent, x, y, w, h) {
 	this->name = (LPTSTR) Name;
 	this->feature |= BS_DEFPUSHBUTTON;
 }
 
 Label::Label(form* parent, int x, int y, int w, int h, const TCHAR* Name) 
-	: control((TCHAR*)_T("STATIC"), parent, x, y, w, h) {
-	this->type = 'l';
+	: control('l', (TCHAR*)_T("STATIC"), parent, x, y, w, h) {
 	this->name = (LPTSTR) Name;
 	this->feature |= SS_NOTIFY | BS_FLAT;
 }
@@ -30,24 +28,21 @@ void Label::setFont(LPTSTR fontName, int size) {
 }
 
 Picture::Picture(form* parent, int x, int y, int w, int h, const LPTSTR Name, const LPTSTR picPath) 
-	: control((TCHAR*)_T("STATIC"), parent, x, y, w, h) {
-	this->type = 'p';
+	: control('p', (TCHAR*)_T("STATIC"), parent, x, y, w, h) {
 	this->name = (LPTSTR)Name;				//x
 	this->path = (LPTSTR)picPath;
 	this->feature |= SS_NOTIFY | SS_BITMAP;
 }
 
 ProgressBar::ProgressBar(form* parent, int x, int y, int w, int h, const LPTSTR Name) 
-	: control((TCHAR*)_T("msctls_progress32"), parent, x, y, w, h) {
-	this->type = 'P';
+	: control('P', (TCHAR*)_T("msctls_progress32"), parent, x, y, w, h) {
 	this->name = (LPTSTR)Name;
 	this->feature |= PBS_SMOOTH;
 }
 
 Radio::Radio(form* parent, int x, int y, int w, int h, const LPTSTR Name, bool head) 
-	: control((TCHAR*)_T("BUTTON"), parent, x, y, w, h) {
+	: control('r', (TCHAR*)_T("BUTTON"), parent, x, y, w, h) {
 	this->head = head;
-	this->type = 'r';
 	this->name = Name;
 	this->feature |= BS_AUTORADIOBUTTON;
 	if (head) this->feature |= WS_GROUP;
@@ -58,8 +53,7 @@ Radio::Radio(form* parent, int x, int y, int w, int h, const LPTSTR Name, bool h
 }
 
 Checkbox::Checkbox(form* parent, int x, int y, int w, int h, const TCHAR* Name) 
-	: control((TCHAR*)_T("BUTTON"), parent, x, y, w, h) {
-	this->type = 'c';
+	: control('c', (TCHAR*)_T("BUTTON"), parent, x, y, w, h) {
 	this->name = (LPTSTR) Name;
 	this->feature |= BS_AUTOCHECKBOX;
 	Value.setContainer(this);
@@ -94,7 +88,7 @@ void Timer::setInterval(UINT value) {
 }
 
 Timer::Timer(form* parent, UINT interval, void(*Event)(form*), bool enabled = false) 
-	: control(NULL, parent) {
+	: control('T', NULL, parent) {
 	this->Event_Timer = Event;
 	this->Interval = interval;
 	this->enabled.setContainer(this);
@@ -107,8 +101,7 @@ Timer::Timer(form* parent, UINT interval, void(*Event)(form*), bool enabled = fa
 }
 
 Textbox::Textbox(form* parent, int x, int y, int w, int h, const LPTSTR Name, bool Multiline) 
-	: control((TCHAR*)_T("Edit"), parent, x, y, w, h) {
-	this->type = 't';
+	: control('t', (TCHAR*)_T("Edit"), parent, x, y, w, h) {
 	this->name = Name;
 	this->multiline = Multiline;
 	this->feature |= WS_BORDER | WS_GROUP | WS_TABSTOP | ES_WANTRETURN;

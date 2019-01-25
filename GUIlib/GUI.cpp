@@ -1,22 +1,22 @@
 #pragma once
 #include "stdafx.h"
 
-std::vector<window*> window::formSet;
+using namespace std;
 
 void form::run() {
 	//在此处挂起
-	for (void* p : tab) ((control*)p)->create();
-
 	MSG msg;
-	ShowWindow(hWnd(), SW_SHOW);
-	UpdateWindow(hWnd());
-	ZeroMemory(&msg, sizeof(msg));
-	//this->createOver = true;						//消息队列建立		//我想了两天终于下决心把这个SB东西和下边那句话调了过来		//上帝保佑我别再出bug了		//再写bug我学分就都没了
+	memset(&msg, 0, sizeof(msg));
+
+	vector<window*> a = (vector<window*>)tab;
+	for (void* p : a) ((control*)p)->create();
+	show();
+	//UpdateWindow(hWnd());
+	
 	if (this->Event_Load_Complete) this->Event_Load_Complete(this);
 
 	int loopret = 0;
-	while ((loopret = GetMessage(&msg, this->hWnd(), 0, 0)) > 0)
-	{
+	while ((loopret = GetMessage(&msg, this->hWnd(), 0, 0)) > 0) {
 		if (loopret == -1) {
 			popError();
 			exit(1);
@@ -24,48 +24,48 @@ void form::run() {
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 	}
-	std::vector<window*>::iterator r = find_if(formSet.begin(), formSet.end(), [this](window* x) -> bool {
-		return x != (void*)this && (_tcscmp(x->classname(), this->classname()) == 0);
-	});
-	if(r != formSet.end()) UnregisterClass(classname(), hi);
+	fset.remove(id);
+	window* w = fset.find(classname());
+	if (!w) UnregisterClass(classname(), hi);
 }
 
 control* form::getControl(HWND controlHwnd) {
-	std::vector<window*>::iterator r = find_if(tab.begin(), tab.end(), [controlHwnd](window* x) -> bool { return x->hWnd() == controlHwnd; });
-	return r == tab.end() ? nullptr : (control*)*r;
+	window* r = tab.find(controlHwnd);
+	return (control*)r;
 }
 
-form* form::getForm(HWND hWnd) {
-	std::vector<window*>::iterator r = find_if(window::formSet.begin(), window::formSet.end(), [hWnd](window* x) -> bool {
-		return x->hWnd() == hWnd;
-	});
-	return r == window::formSet.end() ? nullptr : (form*)*r;
-};
+static LRESULT CALLBACK WinProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam){
 
-static LRESULT CALLBACK WinProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
-{
-	form* t = form::getForm(hwnd);
-	if (!t) return DefWindowProc(hwnd, message, wParam, lParam);
-	switch (message)
-	{
+	form* t = NULL;
+	switch (message) {
 	case WM_CREATE:
-		//创建事件的思路还没有头绪。。暂时丢到CreateWindow后面去
+		t = (form*)(((LPCREATESTRUCT)lParam)->lpCreateParams);
+		fset.add(t);
 		break;
+	default: t = (form*)fset.find(hwnd);
+	}
+	
+	if (t) return t->winproc(hwnd, message, wParam, lParam);
+	else return DefWindowProc(hwnd, message, wParam, lParam);
+}
+
+LRESULT CALLBACK form::winproc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
+	switch (message) {
 	case WM_PAINT:
-		if (t->bitmapName) {
+		if (bitmapName) {
 			HBITMAP hbm;
 			BITMAP bminfo;
-			hbm = LoadBitmap(GetModuleHandle(NULL), t->bitmapName);
+			hbm = LoadBitmap(GetModuleHandle(NULL), bitmapName);
 			GetObject(hbm, sizeof(bminfo), &bminfo);
 			PAINTSTRUCT ps;
-			t->hdc = BeginPaint(hwnd, &ps);
-			HDC memdc = CreateCompatibleDC(t->hdc);
+			hdc = BeginPaint(hwnd, &ps);
+			HDC memdc = CreateCompatibleDC(hdc);
 			SelectObject(memdc, hbm);
-			BitBlt(t->hdc, 0, 0, bminfo.bmWidth, bminfo.bmHeight, memdc, 0, 0, SRCCOPY);
+			BitBlt(hdc, 0, 0, bminfo.bmWidth, bminfo.bmHeight, memdc, 0, 0, SRCCOPY);
 			DeleteDC(memdc);
 			EndPaint(hwnd, &ps);
 		}
-		if (t->Event_On_Paint) t->Event_On_Paint(t);
+		if (Event_On_Paint) Event_On_Paint(this);
 		break;
 	case WM_CONTEXTMENU:
 	{
@@ -77,31 +77,31 @@ static LRESULT CALLBACK WinProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
 		//把屏幕坐标转为客户区坐标  
 		ScreenToClient((HWND)wParam, &pt);
 		if (PtInRect(&rect, pt))
-			if (!TrackPopupMenu(t->RButtonMenu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_LEFTBUTTON, LOWORD(lParam), HIWORD(lParam), 0, (HWND)wParam, NULL)) {
-				if (t->RButtonMenu) MessageBox(NULL, TEXT("弹出菜单失败"), NULL, MB_OK);
+			if (!TrackPopupMenu(RButtonMenu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_LEFTBUTTON, LOWORD(lParam), HIWORD(lParam), 0, (HWND)wParam, NULL)) {
+				if (RButtonMenu) MessageBox(NULL, TEXT("弹出菜单失败"), NULL, MB_OK);
 			}
 			else return DefWindowProc(hwnd, message, wParam, lParam);
 		break;
 	}
 	case WM_TIMER:
-		((Timer*)t->tab[wParam - 1])->Event_Timer(t);
+		((Timer*)tab[wParam - 1])->Event_Timer(this);
 		break;
 	case WM_SIZE:
 	{
-		t->w = LOWORD(lParam);
-		t->h = HIWORD(lParam);
-		if (t->Event_Window_Resize) t->Event_Window_Resize(t);
+		w = LOWORD(lParam);
+		h = HIWORD(lParam);
+		if (Event_Window_Resize) Event_Window_Resize(this);
 		break;
 	}
 	case WM_MOVE:
-		t->x = LOWORD(lParam);
-		t->y = HIWORD(lParam);
+		x = LOWORD(lParam);
+		y = HIWORD(lParam);
 		break;
 	case WM_COMMAND:
 		if (lParam)
 		{
 			//这是控件点击事件
-			void* p = t->getControl((HWND)lParam);
+			void* p = getControl((HWND)lParam);
 			if (p) switch (((control*)p)->type) {
 			case 'b':
 				if (((Button*)p)->Event_On_Click) ((Button*)p)->Event_On_Click((Button*)p);
@@ -121,22 +121,20 @@ static LRESULT CALLBACK WinProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
 			}
 		}
 		else {
-			t->Event_Menu_Click(LOWORD(wParam));
+			Event_Menu_Click(LOWORD(wParam));
 		}
 		break;
 	case WM_CTLCOLORSTATIC://拦截WM_CTLCOLORSTATIC消息
 		SetBkMode((HDC)wParam, TRANSPARENT);//设置背景透明
-		if (t) return (INT_PTR)GetStockObject(t->brush);//返回父窗画刷
+		return (INT_PTR)GetStockObject(brush);//返回父窗画刷
 		break;
 	case WM_CLOSE:
-		if (t->Event_On_Unload) t->Event_On_Unload(t);
+		if (Event_On_Unload) Event_On_Unload(this);
 		DestroyWindow(hwnd);
 		PostQuitMessage(0);
 		break;
 	case WM_CHAR:
 		break;
-	default:
-		return DefWindowProc(hwnd, message, wParam, lParam);
 	}
 	return DefWindowProc(hwnd, message, wParam, lParam);
 }
@@ -147,7 +145,7 @@ size_t window::create() {
 		this->feature,
 		this->x, this->y, this->w, this->h,
 		Parent ? ((window*)Parent)->Hwnd : NULL,
-		Menu, hi, NULL
+		Menu, hi, this
 	);
 	if (Hwnd) return id;
 	else {
@@ -156,8 +154,8 @@ size_t window::create() {
 	}
 }
 
-window::window(LPTSTR classname, window* p, int x, int y, int w, int h)
-	: x(x), y(y), w(w), h(h), Parent(p), Classname(classname)
+window::window(char type, LPTSTR classname, window* p, int x, int y, int w, int h)
+	: x(x), y(y), w(w), h(h), Parent(p), Classname(classname), type(type)
 {
 	name.setContainer(this);
 	menu.setContainer(this);
@@ -168,24 +166,18 @@ window::window(LPTSTR classname, window* p, int x, int y, int w, int h)
 
 form::~form() {
 	if (parent()) ((form*)parent())->top();
-	auto todelete = find(formSet.begin(), formSet.end(), this);
-	if (formSet.end() != todelete) {
-		size_t pos = todelete - formSet.begin();
-		formSet.erase(todelete);
-		for (; pos < formSet.size(); pos++) {
-			((form*)formSet[pos])->id = pos + 1;
-		}
+	if (hdc) {
+		//TODO
 	}
 }
 
 form::form(form* parent, const TCHAR* clsName, const TCHAR* title, int x, int y, int w, int h) 
-	: window((LPTSTR)clsName, parent, x, y, w, h) {
-	this->type = 'f';
+	: window('f', (LPTSTR)clsName, parent, x, y, w, h) {
 	this->feature = WS_OVERLAPPEDWINDOW;
 	this->name = (TCHAR*) title;
 	RButtonMenu.setContainer(this);
 	RButtonMenu.getter(&form::CONTEXTMENU);
-	push();
+	
 }
 
 bool form::regist() {
@@ -252,4 +244,34 @@ void form::paintLine(int x1, int y1, int x2, int y2, RECT* rect) {
 		hdc = NULL;
 		UpdateWindow(hWnd());
 	}
+}
+
+window* windowSet::find(HWND hWnd) {
+	std::vector<window*>::iterator r = find_if(pool.begin(), pool.end(), [hWnd](window* x) -> bool {return x && hWnd == x->hWnd(); });
+	return r == pool.end() ? NULL : *r;
+}
+
+window* windowSet::find(LPTSTR clsname) {
+	static std::vector<window*>::iterator r;
+	if (clsname) r = pool.begin();
+	else if (r == pool.end()) return NULL;
+	else r++;
+
+	r = find_if(r, pool.end(), [clsname](window* x) -> bool {
+		return x && _tcscmp(x->classname(), clsname) == 0;
+	});
+	return r == pool.end() ? NULL : *r;
+}
+
+void windowSet::add(window* which) {
+	std::vector<window*>::iterator r = std::find(pool.begin(), pool.end(), nullptr);
+	if (r == pool.end()) {
+		pool.push_back(which);
+		which->id = pool.size();
+	}
+	else {
+		which->id = r - pool.begin() + 1;
+		pool[which->id - 1] = which;
+	}
+	size++;
 }

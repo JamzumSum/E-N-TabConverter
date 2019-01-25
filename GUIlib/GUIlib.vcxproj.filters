@@ -24,6 +24,9 @@
     <ClInclude Include="GUI.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="prec.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
