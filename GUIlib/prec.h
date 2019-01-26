@@ -1,7 +1,24 @@
 #pragma once
+#pragma warning(disable : 4302)
+#pragma warning(disable : 4311)
+#pragma warning(disable : 4312)
+#include <assert.h>
+#include <vector>
 class window;
 class form;
 class control;
+
+#define Dsetter(na,ty) void set##na(ty na){\
+this->##na = na;\
+}\
+
+#define Dgetter(na,ty) ty get##na(){\
+return this->##na;\
+}
+
+#define Dgesetter(na,ty) ty na = NULL;\
+Dgetter(na,ty)\
+Dsetter(na,ty)
 
 enum permission {
 	readWrite, readOnly, writeOnly

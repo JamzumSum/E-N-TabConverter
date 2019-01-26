@@ -11,7 +11,6 @@ void form::run() {
 	vector<window*> a = (vector<window*>)tab;
 	for (void* p : a) ((control*)p)->create();
 	show();
-	//UpdateWindow(hWnd());
 	
 	if (this->Event_Load_Complete) this->Event_Load_Complete(this);
 
@@ -77,8 +76,8 @@ LRESULT CALLBACK form::winproc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lP
 		//把屏幕坐标转为客户区坐标  
 		ScreenToClient((HWND)wParam, &pt);
 		if (PtInRect(&rect, pt))
-			if (!TrackPopupMenu(RButtonMenu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_LEFTBUTTON, LOWORD(lParam), HIWORD(lParam), 0, (HWND)wParam, NULL)) {
-				if (RButtonMenu) MessageBox(NULL, TEXT("弹出菜单失败"), NULL, MB_OK);
+			if (!TrackPopupMenu(RBmenu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_LEFTBUTTON, LOWORD(lParam), HIWORD(lParam), 0, (HWND)wParam, NULL)) {
+				if (RBmenu) MessageBox(NULL, TEXT("弹出菜单失败"), NULL, MB_OK);
 			}
 			else return DefWindowProc(hwnd, message, wParam, lParam);
 		break;
@@ -175,8 +174,6 @@ form::form(form* parent, const TCHAR* clsName, const TCHAR* title, int x, int y,
 	: window('f', (LPTSTR)clsName, parent, x, y, w, h) {
 	this->feature = WS_OVERLAPPEDWINDOW;
 	this->name = (TCHAR*) title;
-	RButtonMenu.setContainer(this);
-	RButtonMenu.getter(&form::CONTEXTMENU);
 	
 }
 

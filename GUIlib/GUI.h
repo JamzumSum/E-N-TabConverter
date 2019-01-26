@@ -1,26 +1,9 @@
 #pragma once
-#pragma warning(disable : 4302)
-#pragma warning(disable : 4311)
-#pragma warning(disable : 4312)
 #include <windows.h>
-#include <assert.h>
 #include <tchar.h>
-#include <vector>
 #include <string>
 #include <algorithm>
 #include "prec.h"
-
-#define Dsetter(na,ty) void set##na(ty na){\
-this->##na = na;\
-}\
-
-#define Dgetter(na,ty) ty get##na(){\
-return this->##na;\
-}
-
-#define Dgesetter(na,ty) ty na = NULL;\
-Dgetter(na,ty)\
-Dsetter(na,ty)
 
 #define GWL_WNDPROC				(-4)
 #define GWL_USERDATA			(-21)
@@ -40,6 +23,8 @@ static HINSTANCE hi = GetModuleHandle(NULL);
 static windowSet fset;
 static LRESULT CALLBACK WinProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 static void popError();
+typedef void(*vvEvent)();
+
 
 class window {
 private:
@@ -106,19 +91,23 @@ public:
 	virtual size_t create();
 };
 
-
 class form :public window {
+	
+
 private:
 	//窝已经尽量私有了QAQ
 	std::vector<LPTSTR> menuList;
-	std::vector<void*> menuEventList;
+	std::vector<vvEvent> menuEventList;
 
 	HMENU RBmenu = NULL;
 	LPTSTR icon = IDI_APPLICATION;
 	LPTSTR smallIcon = IDI_APPLICATION;
 
-	HMENU CONTEXTMENU() { return this->RBmenu; }
 	bool regist();
+	void Menulist_pushback(vvEvent Event_Menu_Click, size_t ID) {
+		this->menuList.push_back(MAKEINTRESOURCE(ID));
+		this->menuEventList.push_back(Event_Menu_Click);
+	}
 	//===================================================================================================
 	//===================================================================================================
 	//===================================================================================================
@@ -128,7 +117,6 @@ public:
 		int x = CW_USEDEFAULT, int y = CW_USEDEFAULT, int w = CW_USEDEFAULT, int h = CW_USEDEFAULT);
 	~form();
 	//属性
-	Property<form, HMENU, readOnly> RButtonMenu;
 	windowSet tab;
 	
 	int brush = 0;
@@ -141,20 +129,17 @@ public:
 		if (iconName) this->icon = iconName;
 		smallIcon = smallIconName;
 	}
-	void pushMenu(void(*Event_Menu_Click)(), LPTSTR menu) {
+	void pushMenu(vvEvent Event_Menu_Click, LPTSTR menu) {
 		if (!this->RBmenu) RBmenu = CreatePopupMenu();
 		if (AppendMenu(this->RBmenu, MF_STRING, ID_MENU + this->menuList.size(), menu)) {
-			LPTSTR A = MAKEINTRESOURCE(ID_MENU + this->menuList.size());
-			this->menuList.push_back(MAKEINTRESOURCE(ID_MENU + this->menuList.size()));
-			this->menuEventList.push_back(Event_Menu_Click);
+			Menulist_pushback(Event_Menu_Click, ID_MENU + this->menuList.size());
 		}
 	}
-	void pushMenu(void(*Event_Menu_Click)(), int ID) {
-		this->menuList.push_back(MAKEINTRESOURCE(ID));
-		this->menuEventList.push_back(Event_Menu_Click);
-	}
 	void Event_Menu_Click(WORD ID) {
-		for (size_t i = 0; i < menuList.size(); i++) if ((WORD)(ULONG_PTR)menuList[i] == ID) ((void(*)())menuEventList[i])();
+		auto r = find_if(menuList.begin(), menuList.end(), [ID](LPTSTR x) ->bool {return (WORD)(ULONG_PTR)x == ID; });
+		assert(r != menuList.end());
+		menuEventList[r - menuList.begin()]();
+		//for (size_t i = 0; i < menuList.size(); i++) if ((WORD)(ULONG_PTR)menuList[i] == ID) menuEventList[i]();
 	}
 	void minimum() {
 		ShowWindow(hWnd(), SW_SHOWMINNOACTIVE);

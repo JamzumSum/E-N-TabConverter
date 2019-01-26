@@ -1,12 +1,11 @@
-#include <string>
+/*
+	frmain.cpp 控制程序的GUI
+*/
+#pragma once
 #include "type.h"
 #include "..\GUIlib\GUI.h"
 
 using namespace std;
-
-/*
-	frmain.cpp 控制程序的GUI
-*/
 
 #define IDI_ICON1 101
 #define IDI_WINDOW1 102
