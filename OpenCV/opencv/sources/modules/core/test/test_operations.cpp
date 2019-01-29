@@ -43,7 +43,7 @@
 #include "test_precomp.hpp"
 #include "opencv2/ts/ocl_test.hpp" // T-API like tests
 
-namespace cvtest {
+namespace opencv_test {
 namespace {
 
 class CV_OperationsTest : public cvtest::BaseTest
@@ -134,16 +134,16 @@ bool CV_OperationsTest::TestMat()
         res = Mat(Mat(2 * rot_2x3) * res - shi_2x1) + shift;
 
         Mat tmp, res2;
-        add(one_3x1, shi_3x1, tmp);
-        add(tmp, shi_3x1, tmp);
-        add(tmp, shi_3x1, tmp);
-        gemm(rot_2x3, tmp, 2, shi_2x1, -1, res2, 0);
-        add(res2, Mat(2, 1, CV_32F, shift), res2);
+        cv::add(one_3x1, shi_3x1, tmp);
+        cv::add(tmp, shi_3x1, tmp);
+        cv::add(tmp, shi_3x1, tmp);
+        cv::gemm(rot_2x3, tmp, 2, shi_2x1, -1, res2, 0);
+        cv::add(res2, Mat(2, 1, CV_32F, shift), res2);
 
         CHECK_DIFF(res, res2);
 
         Mat mat4x4(4, 4, CV_32F);
-        randu(mat4x4, Scalar(0), Scalar(10));
+        cv::randu(mat4x4, Scalar(0), Scalar(10));
 
         Mat roi1 = mat4x4(Rect(Point(1, 1), Size(2, 2)));
         Mat roi2 = mat4x4(Range(1, 3), Range(1, 3));
@@ -466,7 +466,7 @@ bool CV_OperationsTest::TestSubMatAccess()
         Vec3f ydir(1.f, 0.f, 1.f);
         Vec3f fpt(0.1f, 0.7f, 0.2f);
         T_bs.setTo(0);
-        T_bs(Range(0,3),Range(2,3)) = 1.0*Mat(cdir); // wierd OpenCV stuff, need to do multiply
+        T_bs(Range(0,3),Range(2,3)) = 1.0*Mat(cdir); // weird OpenCV stuff, need to do multiply
         T_bs(Range(0,3),Range(1,2)) = 1.0*Mat(ydir);
         T_bs(Range(0,3),Range(0,1)) = 1.0*Mat(cdir.cross(ydir));
         T_bs(Range(0,3),Range(3,4)) = 1.0*Mat(fpt);
@@ -508,19 +508,19 @@ bool CV_OperationsTest::TestTemplateMat()
         Mat_<float> resS = rot_2x3 * one_3x1;
 
         Mat_<float> tmp, res2, resS2;
-        add(one_3x1, shi_3x1, tmp);
-        add(tmp, shi_3x1, tmp);
-        add(tmp, shi_3x1, tmp);
-        gemm(rot_2x3, tmp, 2, shi_2x1, -1, res2, 0);
-        add(res2, Mat(2, 1, CV_32F, shift), res2);
+        cv::add(one_3x1, shi_3x1, tmp);
+        cv::add(tmp, shi_3x1, tmp);
+        cv::add(tmp, shi_3x1, tmp);
+        cv::gemm(rot_2x3, tmp, 2, shi_2x1, -1, res2, 0);
+        cv::add(res2, Mat(2, 1, CV_32F, shift), res2);
 
-        gemm(rot_2x3, one_3x1, 1, shi_2x1, 0, resS2, 0);
+        cv::gemm(rot_2x3, one_3x1, 1, shi_2x1, 0, resS2, 0);
         CHECK_DIFF(res, res2);
         CHECK_DIFF(resS, resS2);
 
 
         Mat_<float> mat4x4(4, 4);
-        randu(mat4x4, Scalar(0), Scalar(10));
+        cv::randu(mat4x4, Scalar(0), Scalar(10));
 
         Mat_<float> roi1 = mat4x4(Rect(Point(1, 1), Size(2, 2)));
         Mat_<float> roi2 = mat4x4(Range(1, 3), Range(1, 3));
@@ -794,13 +794,13 @@ bool CV_OperationsTest::TestTemplateMat()
 
         Size size(2, 5);
         TestType<float>(size, 1.f);
-        cv::Vec3f val1 = 1.f;
+        cv::Vec3f val1(1.f);
         TestType<cv::Vec3f>(size, val1);
-        cv::Matx31f val2 = 1.f;
+        cv::Matx31f val2(1.f);
         TestType<cv::Matx31f>(size, val2);
-        cv::Matx41f val3 = 1.f;
+        cv::Matx41f val3(1.f);
         TestType<cv::Matx41f>(size, val3);
-        cv::Matx32f val4 = 1.f;
+        cv::Matx32f val4(1.f);
         TestType<cv::Matx32f>(size, val4);
     }
     catch (const test_excep& e)
@@ -970,7 +970,14 @@ bool CV_OperationsTest::operations1()
         Size sz(10, 20);
         if (sz.area() != 200) throw test_excep();
         if (sz.width != 10 || sz.height != 20) throw test_excep();
-        if (((CvSize)sz).width != 10 || ((CvSize)sz).height != 20) throw test_excep();
+        if (cvSize(sz).width != 10 || cvSize(sz).height != 20) throw test_excep();
+
+        Rect r1(0, 0, 10, 20);
+        Size sz1(5, 10);
+        r1 -= sz1;
+        if (r1.size().width != 5 || r1.size().height != 10) throw test_excep();
+        Rect r2 = r1 - sz1;
+        if (r2.size().width != 0 || r2.size().height != 0) throw test_excep();
 
         Vec<double, 5> v5d(1, 1, 1, 1, 1);
         Vec<double, 6> v6d(1, 1, 1, 1, 1, 1);
@@ -988,17 +995,17 @@ bool CV_OperationsTest::operations1()
         Mat A(1, 32, CV_32F), B;
         for( int i = 0; i < A.cols; i++ )
             A.at<float>(i) = (float)(i <= 12 ? i : 24 - i);
-        transpose(A, B);
+        cv::transpose(A, B);
 
         int minidx[2] = {0, 0}, maxidx[2] = {0, 0};
         double minval = 0, maxval = 0;
-        minMaxIdx(A, &minval, &maxval, minidx, maxidx);
+        cv::minMaxIdx(A, &minval, &maxval, minidx, maxidx);
 
         if( !(minidx[0] == 0 && minidx[1] == 31 && maxidx[0] == 0 && maxidx[1] == 12 &&
                   minval == -7 && maxval == 12))
             throw test_excep();
 
-        minMaxIdx(B, &minval, &maxval, minidx, maxidx);
+        cv::minMaxIdx(B, &minval, &maxval, minidx, maxidx);
 
         if( !(minidx[0] == 31 && minidx[1] == 0 && maxidx[0] == 12 && maxidx[1] == 0 &&
               minval == -7 && maxval == 12))
@@ -1006,13 +1013,13 @@ bool CV_OperationsTest::operations1()
 
         Matx33f b(1.f, 2.f, 3.f, 4.f, 5.f, 6.f, 7.f, 8.f, 9.f);
         Mat c;
-        add(Mat::zeros(3, 3, CV_32F), b, c);
+        cv::add(Mat::zeros(3, 3, CV_32F), b, c);
         CV_Assert( cvtest::norm(b, c, CV_C) == 0 );
 
-        add(Mat::zeros(3, 3, CV_64F), b, c, noArray(), c.type());
+        cv::add(Mat::zeros(3, 3, CV_64F), b, c, noArray(), c.type());
         CV_Assert( cvtest::norm(b, c, CV_C) == 0 );
 
-        add(Mat::zeros(6, 1, CV_64F), 1, c, noArray(), c.type());
+        cv::add(Mat::zeros(6, 1, CV_64F), 1, c, noArray(), c.type());
         CV_Assert( cvtest::norm(Matx61f(1.f, 1.f, 1.f, 1.f, 1.f, 1.f), c, CV_C) == 0 );
 
         vector<Point2f> pt2d(3);
@@ -1025,7 +1032,7 @@ bool CV_OperationsTest::operations1()
                 0.9058f, 0.0975f, 0.9649f, 0.4854f,
                 0.1270f, 0.2785f, 0.1576f, 0.8003f,
                 0.9134f, 0.5469f, 0.9706f, 0.1419f);
-        double d = determinant(m44);
+        double d = cv::determinant(m44);
         CV_Assert( fabs(d - (-0.0262)) <= 0.001 );
 
         Cv32suf z;

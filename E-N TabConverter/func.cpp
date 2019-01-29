@@ -82,7 +82,8 @@ int go(string f,bool isCut) {
 					case 1:
 						//timeValue‘ΩΩÁ
 						#if _DEBUG
-							imshow("2", origin[j]); cvWaitKey();
+						
+							imshow("2", origin[j]); waitKey();
 						#endif
 						break;
 					default:
@@ -127,7 +128,7 @@ int go(string f,bool isCut) {
 	fn = fn + ".xml";
 	finish.save(fn.c_str());
 	progress = 100;
-	cvDestroyAllWindows();
+	destroyAllWindows();
 	return 0;
 }
 

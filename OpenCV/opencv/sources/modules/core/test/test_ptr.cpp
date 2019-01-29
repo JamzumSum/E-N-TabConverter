@@ -41,6 +41,8 @@
 
 #include "test_precomp.hpp"
 
+namespace opencv_test { namespace {
+
 #ifdef GTEST_CAN_COMPARE_NULL
 #  define EXPECT_NULL(ptr) EXPECT_EQ(NULL, ptr)
 #else
@@ -96,22 +98,25 @@ TEST(Core_Ptr, owning_ctor)
         Ptr<void> p(r);
         EXPECT_EQ(r, p.get());
     }
-
     EXPECT_TRUE(deleted);
 
     {
         Ptr<int> p(&dummyObject, ReportingDeleter(&deleted));
         EXPECT_EQ(&dummyObject, p.get());
     }
-
     EXPECT_TRUE(deleted);
 
     {
         Ptr<void> p((void*)0, ReportingDeleter(&deleted));
         EXPECT_NULL(p.get());
     }
+    EXPECT_TRUE(deleted);  // Differ from OpenCV 3.4 (but conformant to std::shared_ptr, see below)
 
-    EXPECT_FALSE(deleted);
+    {
+        std::shared_ptr<void> p((void*)0, ReportingDeleter(&deleted));
+        EXPECT_NULL(p.get());
+    }
+    EXPECT_TRUE(deleted);
 }
 
 TEST(Core_Ptr, sharing_ctor)
@@ -335,7 +340,7 @@ TEST(Core_Ptr, casts)
         Ptr<SubReporter> p2 = p1.dynamicCast<SubReporter>();
         EXPECT_NULL(p2.get());
         p1.release();
-        EXPECT_FALSE(deleted);
+        EXPECT_TRUE(deleted);
     }
 
     EXPECT_TRUE(deleted);
@@ -366,6 +371,8 @@ TEST(Core_Ptr, make)
     EXPECT_TRUE(deleted);
 }
 
+}} // namespace
+
 namespace {
 
 struct SpeciallyDeletable
@@ -375,15 +382,16 @@ struct SpeciallyDeletable
     bool deleted;
 };
 
-}
+} // namespace
 
 namespace cv {
+template<> struct DefaultDeleter<SpeciallyDeletable>
+{
+    void operator()(SpeciallyDeletable * obj) const { obj->deleted = true; }
+};
+} // namespace
 
-template<>
-void DefaultDeleter<SpeciallyDeletable>::operator()(SpeciallyDeletable * obj) const
-{ obj->deleted = true; }
-
-}
+namespace opencv_test { namespace {
 
 TEST(Core_Ptr, specialized_deleter)
 {
@@ -393,3 +401,17 @@ TEST(Core_Ptr, specialized_deleter)
 
     ASSERT_TRUE(sd.deleted);
 }
+
+TEST(Core_Ptr, specialized_deleter_via_reset)
+{
+    SpeciallyDeletable sd;
+
+    {
+        Ptr<SpeciallyDeletable> p;
+        p.reset(&sd);
+    }
+
+    ASSERT_TRUE(sd.deleted);
+}
+
+}} // namespace

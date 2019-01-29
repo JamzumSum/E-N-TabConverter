@@ -77,8 +77,8 @@ void KeyPointsFilter::retainBest(std::vector<KeyPoint>& keypoints, int n_points)
             return;
         }
         //first use nth element to partition the keypoints into the best and worst.
-        std::nth_element(keypoints.begin(), keypoints.begin() + n_points, keypoints.end(), KeypointResponseGreater());
-        //this is the boundary response, and in the case of FAST may be ambigous
+        std::nth_element(keypoints.begin(), keypoints.begin() + n_points - 1, keypoints.end(), KeypointResponseGreater());
+        //this is the boundary response, and in the case of FAST may be ambiguous
         float ambiguous_response = keypoints[n_points - 1].response;
         //use std::partition to grab all of the keypoints with the boundary response.
         std::vector<KeyPoint>::const_iterator new_end =
@@ -156,7 +156,7 @@ private:
 
 void KeyPointsFilter::runByPixelsMask( std::vector<KeyPoint>& keypoints, const Mat& mask )
 {
-    CV_INSTRUMENT_REGION()
+    CV_INSTRUMENT_REGION();
 
     if( mask.empty() )
         return;

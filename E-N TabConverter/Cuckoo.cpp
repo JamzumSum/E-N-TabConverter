@@ -10,7 +10,7 @@
 #define Showrectangle 0
 #define Showline 0
 #define draw(func, img, from, to, color) if(Show##func) func(img, from, to, color)
-#define imdebug(img, title) imshow((img), title); cvWaitKey()
+#define imdebug(img, title) imshow((img), title); waitKey()
 #else 
 #define draw(func, img, from, to, color)
 #define imdebug(img, title)
@@ -300,7 +300,7 @@ measure::measure(cv::Mat org, cv::Mat img, vector<cv::Vec4i> rows, int id) {
 			break;
 		case 6:
 			//没有竖直结构用以判断时值
-			imdebug("2", org); cvWaitKey();
+			imdebug("2", org);
 			break;
 		default:
 			throw ex;

@@ -1,3 +1,7 @@
+// This file is part of OpenCV project.
+// It is subject to the license terms in the LICENSE file found in the top-level directory
+// of this distribution and at http://opencv.org/license.html
+
 #include "opencv2/core.hpp"
 #include "opencv2/core/ocl.hpp"
 #include "opencv2/highgui.hpp"
@@ -68,7 +72,7 @@ int main(int argc, char** argv)
         string image_file = args.get<string>("i");
         if (!image_file.empty())
         {
-            Mat image = imread(image_file);
+            Mat image = imread(samples::findFile(image_file));
             if (image.empty())
             {
                 cout << "error read image: " << image_file << endl;

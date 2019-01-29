@@ -1,4 +1,9 @@
-if(EXISTS "${CMAKE_ROOT}/Modules/CPack.cmake")
+ocv_cmake_hook(INIT_CPACK)
+if(NOT EXISTS "${CMAKE_ROOT}/Modules/CPack.cmake")
+  message(STATUS "CPack is not found. SKIP")
+  return()
+endif()
+
 set(CPACK_set_DESTDIR "on")
 
 if(NOT OPENCV_CUSTOM_PACKAGE_INFO)
@@ -84,7 +89,7 @@ set(CPACK_COMPONENT_TESTS_DEPENDS libs)
 
 if(HAVE_CUDA)
   string(REPLACE "." "-" cuda_version_suffix ${CUDA_VERSION})
-  if(${CUDA_VERSION} VERSION_LESS "6.5")
+  if(CUDA_VERSION VERSION_LESS "6.5")
     set(CPACK_DEB_libs_PACKAGE_DEPENDS "cuda-core-libs-${cuda_version_suffix}, cuda-extra-libs-${cuda_version_suffix}")
     set(CPACK_DEB_dev_PACKAGE_DEPENDS "cuda-headers-${cuda_version_suffix}")
   else()
@@ -118,7 +123,7 @@ foreach(module calib3d core cudaarithm cudabgsegm cudacodec cudafeatures2d cudaf
                cudev features2d flann hal highgui imgcodecs imgproc ml objdetect ocl
                photo shape stitching superres ts video videoio videostab viz)
   if(HAVE_opencv_${module})
-    list(APPEND STD_OPENCV_LIBS "libopencv-${module}3.0")
+    list(APPEND STD_OPENCV_LIBS "libopencv-${module}4.0")
     list(APPEND STD_OPENCV_DEV "libopencv-${module}-dev")
   endif()
 endforeach()
@@ -135,9 +140,9 @@ set(CPACK_COMPONENT_PYTHON_CONFLICTS python-opencv)
 set(CPACK_COMPONENT_PYTHON_PROVIDES python-opencv)
 set(CPACK_COMPONENT_PYTHON_REPLACES python-opencv)
 
-set(CPACK_COMPONENT_JAVA_CONFLICTS "libopencv3.0-java, libopencv3.0-jni")
-set(CPACK_COMPONENT_JAVA_PROVIDES "libopencv3.0-java, libopencv3.0-jni")
-set(CPACK_COMPONENT_JAVA_REPLACES "libopencv3.0-java, libopencv3.0-jni")
+set(CPACK_COMPONENT_JAVA_CONFLICTS "libopencv4.0-java, libopencv4.0-jni")
+set(CPACK_COMPONENT_JAVA_PROVIDES "libopencv4.0-java, libopencv4.0-jni")
+set(CPACK_COMPONENT_JAVA_REPLACES "libopencv4.0-java, libopencv4.0-jni")
 
 set(CPACK_COMPONENT_DOCS_CONFLICTS opencv-doc)
 set(CPACK_COMPONENT_SAMPLES_CONFLICTS opencv-doc)
@@ -165,6 +170,6 @@ if(NOT OPENCV_CUSTOM_PACKAGE_INFO)
   set(CPACK_DEBIAN_COMPONENT_TESTS_NAME "lib${CMAKE_PROJECT_NAME}-tests")
 endif(NOT OPENCV_CUSTOM_PACKAGE_INFO)
 
+ocv_cmake_hook(PRE_CPACK)
 include(CPack)
-
-ENDif(EXISTS "${CMAKE_ROOT}/Modules/CPack.cmake")
+ocv_cmake_hook(POST_CPACK)

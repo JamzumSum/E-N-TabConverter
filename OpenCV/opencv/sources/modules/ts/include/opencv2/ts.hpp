@@ -17,17 +17,39 @@
 
 #include "opencv2/core/utils/trace.hpp"
 
+#include "opencv2/core/hal/hal.hpp"
+
 #include <stdarg.h> // for va_list
 
 #include "cvconfig.h"
 
+#include <cmath>
+#include <vector>
+#include <list>
+#include <map>
+#include <queue>
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <iomanip>
 #include <sstream>
+#include <cstdio>
 #include <iterator>
 #include <limits>
-#include <numeric>
+#include <algorithm>
+
+
+#ifndef OPENCV_32BIT_CONFIGURATION
+# if defined(INTPTR_MAX) && defined(INT32_MAX) && INTPTR_MAX == INT32_MAX
+#   define OPENCV_32BIT_CONFIGURATION 1
+# elif defined(_WIN32) && !defined(_WIN64)
+#   define OPENCV_32BIT_CONFIGURATION 1
+# endif
+#else
+# if OPENCV_32BIT_CONFIGURATION == 0
+#   undef OPENCV_32BIT_CONFIGURATION
+# endif
+#endif
 
 #ifdef WINRT
     #pragma warning(disable:4447) // Disable warning 'main' signature found without threading model
@@ -47,7 +69,25 @@
 #define GTEST_DONT_DEFINE_ASSERT_GT 0
 #define GTEST_DONT_DEFINE_TEST      0
 
+#ifndef GTEST_LANG_CXX11
+#if __cplusplus >= 201103L || (defined(_MSVC_LANG) && !(_MSVC_LANG < 201103))
+#  define GTEST_LANG_CXX11 1
+#  define GTEST_HAS_TR1_TUPLE 0
+#  define GTEST_HAS_COMBINE 1
+# endif
+#endif
+
+#if defined(__OPENCV_BUILD) && defined(__clang__)
+#pragma clang diagnostic ignored "-Winconsistent-missing-override"
+#endif
+#if defined(__OPENCV_BUILD) && defined(__GNUC__) && __GNUC__ >= 5
+//#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wsuggest-override"
+#endif
 #include "opencv2/ts/ts_gtest.h"
+#if defined(__OPENCV_BUILD) && defined(__GNUC__) && __GNUC__ >= 5
+//#pragma GCC diagnostic pop
+#endif
 #include "opencv2/ts/ts_ext.hpp"
 
 #ifndef GTEST_USES_SIMPLE_RE
@@ -64,10 +104,35 @@ namespace cvtest
 {
 
 using std::vector;
+using std::map;
 using std::string;
-using namespace cv;
+using std::stringstream;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::numeric_limits;
+using std::pair;
+using std::make_pair;
+using testing::TestWithParam;
 using testing::Values;
+using testing::ValuesIn;
 using testing::Combine;
+
+using cv::Mat;
+using cv::Mat_;
+using cv::UMat;
+using cv::InputArray;
+using cv::OutputArray;
+using cv::noArray;
+
+using cv::Range;
+using cv::Point;
+using cv::Rect;
+using cv::Size;
+using cv::Scalar;
+using cv::RNG;
 
 // Tuple stuff from Google Tests
 using testing::get;
@@ -121,7 +186,7 @@ double getMaxVal(int depth);
 
 Size randomSize(RNG& rng, double maxSizeLog);
 void randomSize(RNG& rng, int minDims, int maxDims, double maxSizeLog, vector<int>& sz);
-int randomType(RNG& rng, int typeMask, int minChannels, int maxChannels);
+int randomType(RNG& rng, cv::_OutputArray::DepthMask typeMask, int minChannels, int maxChannels);
 Mat randomMat(RNG& rng, Size size, int type, double minVal, double maxVal, bool useRoi);
 Mat randomMat(RNG& rng, const vector<int>& size, int type, double minVal, double maxVal, bool useRoi);
 void add(const Mat& a, double alpha, const Mat& b, double beta,
@@ -157,7 +222,7 @@ void copyMakeBorder(const Mat& src, Mat& dst, int top, int bottom, int left, int
 Mat calcSobelKernel2D( int dx, int dy, int apertureSize, int origin=0 );
 Mat calcLaplaceKernel2D( int aperture_size );
 
-void initUndistortMap( const Mat& a, const Mat& k, Size sz, Mat& mapx, Mat& mapy );
+void initUndistortMap( const Mat& a, const Mat& k, const Mat& R, const Mat& new_a, Size sz, Mat& mapx, Mat& mapy, int map_type );
 
 void minMaxLoc(const Mat& src, double* minval, double* maxval,
                           vector<int>* minloc, vector<int>* maxloc, const Mat& mask=Mat());
@@ -254,7 +319,7 @@ protected:
     int test_case_count; // the total number of test cases
 
     // read test params
-    virtual int read_params( CvFileStorage* fs );
+    virtual int read_params( const cv::FileStorage& fs );
 
     // returns the number of tests or -1 if it is unknown a-priori
     virtual int get_test_case_count();
@@ -272,7 +337,7 @@ protected:
     virtual int update_progress( int progress, int test_case_idx, int count, double dt );
 
     // finds test parameter
-    const CvFileNode* find_param( CvFileStorage* fs, const char* param_name );
+    cv::FileNode find_param( const cv::FileStorage& fs, const char* param_name );
 
     // name of the test (it is possible to locate a test by its name)
     string name;
@@ -328,10 +393,9 @@ struct TSParams
 
 class TS
 {
-public:
-    // constructor(s) and destructor
     TS();
     virtual ~TS();
+public:
 
     enum
     {
@@ -433,9 +497,6 @@ public:
         SKIPPED=1
     };
 
-    // get file storage
-    CvFileStorage* get_file_storage();
-
     // get RNG to generate random input data for a test
     RNG& get_rng() { return rng; }
 
@@ -479,13 +540,13 @@ public:
     ArrayTest();
     virtual ~ArrayTest();
 
-    virtual void clear();
+    virtual void clear() CV_OVERRIDE;
 
 protected:
 
-    virtual int read_params( CvFileStorage* fs );
-    virtual int prepare_test_case( int test_case_idx );
-    virtual int validate_test_results( int test_case_idx );
+    virtual int read_params( const cv::FileStorage& fs ) CV_OVERRIDE;
+    virtual int prepare_test_case( int test_case_idx ) CV_OVERRIDE;
+    virtual int validate_test_results( int test_case_idx ) CV_OVERRIDE;
 
     virtual void prepare_to_validation( int test_case_idx );
     virtual void get_test_array_types_and_sizes( int test_case_idx, vector<vector<Size> >& sizes, vector<vector<int> >& types );
@@ -518,7 +579,7 @@ public:
 
 protected:
     virtual int run_test_case( int expected_code, const string& descr );
-    virtual void run_func(void) = 0;
+    virtual void run_func(void) CV_OVERRIDE = 0;
     int test_case_idx;
 
     template<class F>
@@ -535,7 +596,7 @@ protected:
         catch(const cv::Exception& e)
         {
             thrown = true;
-            if( e.code != expected_code )
+            if( e.code != expected_code && e.code != cv::Error::StsAssert && e.code != cv::Error::StsError )
             {
                 ts->printf(TS::LOG, "%s (test case #%d): the error code %d is different from the expected %d\n",
                     descr, test_case_idx, e.code, expected_code);
@@ -578,9 +639,6 @@ struct DefaultRngAuto
 void fillGradient(Mat& img, int delta = 5);
 void smoothBorder(Mat& img, const Scalar& color, int delta = 3);
 
-void printVersionInfo(bool useStdOut = true);
-
-
 // Utility functions
 
 void addDataSearchPath(const std::string& path);
@@ -604,6 +662,18 @@ void addDataSearchSubDirectory(const std::string& subdir);
  */
 std::string findDataFile(const std::string& relative_path, bool required = true);
 
+/*! @brief Try to find requested data directory
+@sa findDataFile
+ */
+std::string findDataDirectory(const std::string& relative_path, bool required = true);
+
+// Test definitions
+
+class SystemInfoCollector : public testing::EmptyTestEventListener
+{
+private:
+    virtual void OnTestProgramStart(const testing::UnitTest&);
+};
 
 #ifndef __CV_TEST_EXEC_ARGS
 #if defined(_MSC_VER) && (_MSC_VER <= 1400)
@@ -613,15 +683,6 @@ std::string findDataFile(const std::string& relative_path, bool required = true)
 #define __CV_TEST_EXEC_ARGS(...)    \
     __VA_ARGS__;
 #endif
-#endif
-
-#ifdef HAVE_OPENCL
-namespace ocl {
-void dumpOpenCLDevice();
-}
-#define TEST_DUMP_OCL_INFO cvtest::ocl::dumpOpenCLDevice();
-#else
-#define TEST_DUMP_OCL_INFO
 #endif
 
 void parseCustomOptions(int argc, char **argv);
@@ -640,8 +701,7 @@ int main(int argc, char **argv) \
     ts->init(resourcesubdir); \
     __CV_TEST_EXEC_ARGS(CV_TEST_INIT0_ ## INIT0) \
     ::testing::InitGoogleTest(&argc, argv); \
-    cvtest::printVersionInfo(); \
-    TEST_DUMP_OCL_INFO \
+    ::testing::UnitTest::GetInstance()->listeners().Append(new SystemInfoCollector); \
     __CV_TEST_EXEC_ARGS(__VA_ARGS__) \
     parseCustomOptions(argc, argv); \
     } \
@@ -661,6 +721,7 @@ int main(int argc, char **argv) \
 
 namespace cvtest {
 using perf::MatDepth;
+using perf::MatType;
 }
 
 #ifdef WINRT
@@ -761,5 +822,32 @@ public:
 } // namespace std
 #endif // __FSTREAM_EMULATED__
 #endif // WINRT
+
+
+namespace opencv_test {
+using namespace cvtest;
+using namespace cv;
+
+#ifdef CV_CXX11
+#define CVTEST_GUARD_SYMBOL(name) \
+    class required_namespace_specificatin_here_for_symbol_ ## name {}; \
+    using name = required_namespace_specificatin_here_for_symbol_ ## name;
+#else
+#define CVTEST_GUARD_SYMBOL(name) /* nothing */
+#endif
+
+CVTEST_GUARD_SYMBOL(norm)
+CVTEST_GUARD_SYMBOL(add)
+CVTEST_GUARD_SYMBOL(multiply)
+CVTEST_GUARD_SYMBOL(divide)
+CVTEST_GUARD_SYMBOL(transpose)
+CVTEST_GUARD_SYMBOL(copyMakeBorder)
+CVTEST_GUARD_SYMBOL(filter2D)
+CVTEST_GUARD_SYMBOL(compare)
+CVTEST_GUARD_SYMBOL(minMaxIdx)
+CVTEST_GUARD_SYMBOL(threshold)
+
+extern bool required_opencv_test_namespace;  // compilation check for non-refactored tests
+}
 
 #endif // OPENCV_TS_HPP

@@ -1,8 +1,9 @@
+// This file is part of OpenCV project.
+// It is subject to the license terms in the LICENSE file found in the top-level directory
+// of this distribution and at http://opencv.org/license.html
 #include "test_precomp.hpp"
 
-using namespace cv;
-using namespace std;
-using namespace std::tr1;
+namespace opencv_test { namespace {
 
 #ifdef HAVE_PNG
 
@@ -41,7 +42,7 @@ TEST(Imgcodecs_Png, regression_ImreadVSCvtColor)
     Mat original_image = imread(imgName);
     Mat gray_by_codec = imread(imgName, IMREAD_GRAYSCALE);
     Mat gray_by_cvt;
-    cvtColor(original_image, gray_by_cvt, CV_BGR2GRAY);
+    cvtColor(original_image, gray_by_cvt, COLOR_BGR2GRAY);
 
     Mat diff;
     absdiff(gray_by_codec, gray_by_cvt, diff);
@@ -93,3 +94,5 @@ TEST(Imgcodecs_Png, read_color_palette_with_alpha)
 }
 
 #endif // HAVE_PNG
+
+}} // namespace

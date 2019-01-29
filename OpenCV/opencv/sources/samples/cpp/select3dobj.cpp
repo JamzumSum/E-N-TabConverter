@@ -1,7 +1,7 @@
 /*
  *
  * select3obj.cpp With a calibration chessboard on a table, mark an object in a 3D box and
- *                track that object in all subseqent frames as long as the camera can see
+ *                track that object in all subsequent frames as long as the camera can see
  *                the chessboard. Also segments the object using the box projection. This
  *                program is useful for collecting large datasets of many views of an object
  *                on a table.
@@ -42,11 +42,11 @@ const char* helphelp =
 "\n"
 "Using a camera's intrinsics (from calibrating a camera -- see calibration.cpp) and an\n"
 "image of the object sitting on a planar surface with a calibration pattern of\n"
-"(board_width x board_height) on the surface, we draw a 3D box aroung the object. From\n"
+"(board_width x board_height) on the surface, we draw a 3D box around the object. From\n"
 "then on, we can move a camera and as long as it sees the chessboard calibration pattern,\n"
-"it will store a mask of where the object is. We get succesive images using <output_prefix>\n"
+"it will store a mask of where the object is. We get successive images using <output_prefix>\n"
 "of the segmentation mask containing the object. This makes creating training sets easy.\n"
-"It is best of the chessboard is odd x even in dimensions to avoid amiguous poses.\n"
+"It is best if the chessboard is odd x even in dimensions to avoid ambiguous poses.\n"
 "\n"
 "The actions one can use while the program is running are:\n"
 "\n"
@@ -416,7 +416,7 @@ int main(int argc, char** argv)
     if ( parser.get<string>("@input").size() == 1 && isdigit(parser.get<string>("@input")[0]) )
         cameraId = parser.get<int>("@input");
     else
-        inputName = parser.get<string>("@input");
+        inputName = samples::findFileOrKeep(parser.get<string>("@input"));
     if (!parser.check())
     {
         puts(help);
@@ -559,7 +559,7 @@ int main(int argc, char** argv)
             {
                 Rect r = extract3DBox(frame, shownFrame, selectedObjFrame,
                                       cameraMatrix, rvec, tvec, box, 4, true);
-                if( r.area() )
+                if( !r.empty() )
                 {
                     const int maxFrameIdx = 10000;
                     char path[1000];

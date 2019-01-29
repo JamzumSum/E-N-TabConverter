@@ -1,8 +1,8 @@
 #include <iostream>
-#include <opencv2/opencv_modules.hpp>
-#ifdef HAVE_OPENCV_ARUCO
-#include <opencv2/opencv.hpp>
-#include <opencv2/aruco.hpp>
+#include <opencv2/core.hpp>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/calib3d.hpp>
+#include <opencv2/highgui.hpp>
 
 using namespace std;
 using namespace cv;
@@ -15,32 +15,6 @@ Scalar randomColor( RNG& rng )
 {
   int icolor = (unsigned int) rng;
   return Scalar( icolor & 255, (icolor >> 8) & 255, (icolor >> 16) & 255 );
-}
-
-void calcChessboardCorners(Size boardSize, float squareSize, vector<Point3f>& corners, Pattern patternType = CHESSBOARD)
-{
-    corners.resize(0);
-
-    switch (patternType)
-    {
-    case CHESSBOARD:
-    case CIRCLES_GRID:
-        for( int i = 0; i < boardSize.height; i++ )
-            for( int j = 0; j < boardSize.width; j++ )
-                corners.push_back(Point3f(float(j*squareSize),
-                                          float(i*squareSize), 0));
-        break;
-
-    case ASYMMETRIC_CIRCLES_GRID:
-        for( int i = 0; i < boardSize.height; i++ )
-            for( int j = 0; j < boardSize.width; j++ )
-                corners.push_back(Point3f(float((2*j + i % 2)*squareSize),
-                                          float(i*squareSize), 0));
-        break;
-
-    default:
-        CV_Error(Error::StsBadArg, "Unknown pattern type\n");
-    }
 }
 
 void perspectiveCorrection(const string &img1Path, const string &img2Path, const Size &patternSize, RNG &rng)
@@ -120,10 +94,3 @@ int main(int argc, char *argv[])
 
     return 0;
 }
-#else
-int main()
-{
-    std::cerr << "FATAL ERROR: This sample requires opencv_aruco module (from opencv_contrib)" << std::endl;
-    return 0;
-}
-#endif

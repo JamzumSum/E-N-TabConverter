@@ -1,34 +1,28 @@
-#ifdef __GNUC__
-#  pragma GCC diagnostic ignored "-Wmissing-declarations"
-#  if defined __clang__ || defined __APPLE__
-#    pragma GCC diagnostic ignored "-Wmissing-prototypes"
-#    pragma GCC diagnostic ignored "-Wextra"
-#  endif
-#endif
-
 #ifndef __OPENCV_PERF_PRECOMP_HPP__
 #define __OPENCV_PERF_PRECOMP_HPP__
 
 #include "opencv2/ts.hpp"
 #include "opencv2/stitching.hpp"
 
-#ifdef GTEST_CREATE_SHARED_LIBRARY
-#error no modules except ts should have GTEST_CREATE_SHARED_LIBRARY defined
+#ifdef HAVE_OPENCV_XFEATURES2D
+#include "opencv2/xfeatures2d/nonfree.hpp"
 #endif
 
 namespace cv
 {
 
-static inline Ptr<detail::FeaturesFinder> getFeatureFinder(const std::string& name)
+static inline Ptr<Feature2D> getFeatureFinder(const std::string& name)
 {
     if (name == "orb")
-        return makePtr<detail::OrbFeaturesFinder>();
+        return ORB::create();
+#ifdef HAVE_OPENCV_XFEATURES2D
     else if (name == "surf")
-        return makePtr<detail::SurfFeaturesFinder>();
+        return xfeatures2d::SURF::create();
+#endif
     else if (name == "akaze")
-        return makePtr<detail::AKAZEFeaturesFinder>();
+        return AKAZE::create();
     else
-        return Ptr<detail::FeaturesFinder>();
+        return Ptr<Feature2D>();
 }
 
 } // namespace cv

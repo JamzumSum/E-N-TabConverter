@@ -41,8 +41,7 @@
 
 #include "test_precomp.hpp"
 
-using namespace cv;
-using namespace std;
+namespace opencv_test { namespace {
 
 /////////////////////////// base test class for color transformations /////////////////////////
 
@@ -416,7 +415,7 @@ void CV_ColorCvtBaseTest::convert_backward( const Mat& src, const Mat& dst, Mat&
 
 #undef INIT_FWD_INV_CODES
 #define INIT_FWD_INV_CODES( fwd, inv )          \
-    fwd_code = CV_##fwd; inv_code = CV_##inv;   \
+    fwd_code = COLOR_##fwd; inv_code = COLOR_##inv;   \
     fwd_code_str = #fwd; inv_code_str = #inv
 
 //// rgb <=> gray
@@ -448,16 +447,16 @@ void CV_ColorGrayTest::get_test_array_types_and_sizes( int test_case_idx, vector
     if( cn == 3 )
     {
         if( blue_idx == 0 )
-            fwd_code = CV_BGR2GRAY, inv_code = CV_GRAY2BGR;
+            fwd_code = COLOR_BGR2GRAY, inv_code = COLOR_GRAY2BGR;
         else
-            fwd_code = CV_RGB2GRAY, inv_code = CV_GRAY2RGB;
+            fwd_code = COLOR_RGB2GRAY, inv_code = COLOR_GRAY2RGB;
     }
     else
     {
         if( blue_idx == 0 )
-            fwd_code = CV_BGRA2GRAY, inv_code = CV_GRAY2BGRA;
+            fwd_code = COLOR_BGRA2GRAY, inv_code = COLOR_GRAY2BGRA;
         else
-            fwd_code = CV_RGBA2GRAY, inv_code = CV_GRAY2RGBA;
+            fwd_code = COLOR_RGBA2GRAY, inv_code = COLOR_GRAY2RGBA;
     }
 }
 
@@ -516,9 +515,9 @@ void CV_ColorYCrCbTest::get_test_array_types_and_sizes( int test_case_idx, vecto
     CV_ColorCvtBaseTest::get_test_array_types_and_sizes( test_case_idx, sizes, types );
 
     if( blue_idx == 0 )
-        fwd_code = CV_BGR2YCrCb, inv_code = CV_YCrCb2BGR;
+        fwd_code = COLOR_BGR2YCrCb, inv_code = COLOR_YCrCb2BGR;
     else
-        fwd_code = CV_RGB2YCrCb, inv_code = CV_YCrCb2RGB;
+        fwd_code = COLOR_RGB2YCrCb, inv_code = COLOR_YCrCb2RGB;
 }
 
 
@@ -613,17 +612,17 @@ void CV_ColorHSVTest::get_test_array_types_and_sizes( int test_case_idx, vector<
     if( full_hrange )
     {
         if( blue_idx == 0 )
-            fwd_code = CV_BGR2HSV_FULL, inv_code = CV_HSV2BGR_FULL;
+            fwd_code = COLOR_BGR2HSV_FULL, inv_code = COLOR_HSV2BGR_FULL;
         else
-            fwd_code = CV_RGB2HSV_FULL, inv_code = CV_HSV2RGB_FULL;
+            fwd_code = COLOR_RGB2HSV_FULL, inv_code = COLOR_HSV2RGB_FULL;
         hue_range = 256;
     }
     else
     {
         if( blue_idx == 0 )
-            fwd_code = CV_BGR2HSV, inv_code = CV_HSV2BGR;
+            fwd_code = COLOR_BGR2HSV, inv_code = COLOR_HSV2BGR;
         else
-            fwd_code = CV_RGB2HSV, inv_code = CV_HSV2RGB;
+            fwd_code = COLOR_RGB2HSV, inv_code = COLOR_HSV2RGB;
         hue_range = 180;
     }
 }
@@ -748,9 +747,9 @@ void CV_ColorHLSTest::get_test_array_types_and_sizes( int test_case_idx, vector<
     CV_ColorCvtBaseTest::get_test_array_types_and_sizes( test_case_idx, sizes, types );
 
     if( blue_idx == 0 )
-        fwd_code = CV_BGR2HLS, inv_code = CV_HLS2BGR;
+        fwd_code = COLOR_BGR2HLS, inv_code = COLOR_HLS2BGR;
     else
-        fwd_code = CV_RGB2HLS, inv_code = CV_HLS2RGB;
+        fwd_code = COLOR_RGB2HLS, inv_code = COLOR_HLS2RGB;
 }
 
 
@@ -931,9 +930,9 @@ void CV_ColorXYZTest::get_test_array_types_and_sizes( int test_case_idx, vector<
     CV_ColorCvtBaseTest::get_test_array_types_and_sizes( test_case_idx, sizes, types );
 
     if( blue_idx == 0 )
-        fwd_code = CV_BGR2XYZ, inv_code = CV_XYZ2BGR;
+        fwd_code = COLOR_BGR2XYZ, inv_code = COLOR_XYZ2BGR;
     else
-        fwd_code = CV_RGB2XYZ, inv_code = CV_XYZ2RGB;
+        fwd_code = COLOR_RGB2XYZ, inv_code = COLOR_XYZ2RGB;
 }
 
 
@@ -1060,16 +1059,16 @@ void CV_ColorLabTest::get_test_array_types_and_sizes( int test_case_idx, vector<
     if(srgb)
     {
         if( blue_idx == 0 )
-            fwd_code = CV_BGR2Lab, inv_code = CV_Lab2BGR;
+            fwd_code = COLOR_BGR2Lab, inv_code = COLOR_Lab2BGR;
         else
-            fwd_code = CV_RGB2Lab, inv_code = CV_Lab2RGB;
+            fwd_code = COLOR_RGB2Lab, inv_code = COLOR_Lab2RGB;
     }
     else
     {
         if( blue_idx == 0 )
-            fwd_code = CV_LBGR2Lab, inv_code = CV_Lab2LBGR;
+            fwd_code = COLOR_LBGR2Lab, inv_code = COLOR_Lab2LBGR;
         else
-            fwd_code = CV_LRGB2Lab, inv_code = CV_Lab2LRGB;
+            fwd_code = COLOR_LRGB2Lab, inv_code = COLOR_Lab2LRGB;
     }
 }
 
@@ -1239,16 +1238,16 @@ void CV_ColorLuvTest::get_test_array_types_and_sizes( int test_case_idx, vector<
     if(srgb)
     {
         if( blue_idx == 0 )
-            fwd_code = CV_BGR2Luv, inv_code = CV_Luv2BGR;
+            fwd_code = COLOR_BGR2Luv, inv_code = COLOR_Luv2BGR;
         else
-            fwd_code = CV_RGB2Luv, inv_code = CV_Luv2RGB;
+            fwd_code = COLOR_RGB2Luv, inv_code = COLOR_Luv2RGB;
     }
     else
     {
         if( blue_idx == 0 )
-            fwd_code = CV_LBGR2Luv, inv_code = CV_Luv2LBGR;
+            fwd_code = COLOR_LBGR2Luv, inv_code = COLOR_Luv2LBGR;
         else
-            fwd_code = CV_LRGB2Luv, inv_code = CV_Luv2LRGB;
+            fwd_code = COLOR_LRGB2Luv, inv_code = COLOR_Luv2LRGB;
     }
 }
 
@@ -1454,17 +1453,17 @@ void CV_ColorRGBTest::get_test_array_types_and_sizes( int test_case_idx, vector<
         if( cvtest::randInt(rng) & 1 )
         {
             if( blue_idx == 0 )
-                fwd_code = CV_BGR2BGR565, inv_code = CV_BGR5652BGR;
+                fwd_code = COLOR_BGR2BGR565, inv_code = COLOR_BGR5652BGR;
             else
-                fwd_code = CV_RGB2BGR565, inv_code = CV_BGR5652RGB;
+                fwd_code = COLOR_RGB2BGR565, inv_code = COLOR_BGR5652RGB;
             dst_bits = 16;
         }
         else
         {
             if( blue_idx == 0 )
-                fwd_code = CV_BGR2BGR555, inv_code = CV_BGR5552BGR;
+                fwd_code = COLOR_BGR2BGR555, inv_code = COLOR_BGR5552BGR;
             else
-                fwd_code = CV_RGB2BGR555, inv_code = CV_BGR5552RGB;
+                fwd_code = COLOR_RGB2BGR555, inv_code = COLOR_BGR5552RGB;
             dst_bits = 15;
         }
     }
@@ -1472,13 +1471,13 @@ void CV_ColorRGBTest::get_test_array_types_and_sizes( int test_case_idx, vector<
     {
         if( cn == 3 )
         {
-            fwd_code = CV_RGB2BGR, inv_code = CV_BGR2RGB;
+            fwd_code = COLOR_RGB2BGR, inv_code = COLOR_BGR2RGB;
             blue_idx = 2;
         }
         else if( blue_idx == 0 )
-            fwd_code = CV_BGRA2BGR, inv_code = CV_BGR2BGRA;
+            fwd_code = COLOR_BGRA2BGR, inv_code = COLOR_BGR2BGRA;
         else
-            fwd_code = CV_RGBA2BGR, inv_code = CV_BGR2RGBA;
+            fwd_code = COLOR_RGBA2BGR, inv_code = COLOR_BGR2RGBA;
     }
 
     if( CV_MAT_CN(types[INPUT][0]) != CV_MAT_CN(types[OUTPUT][0]) )
@@ -1705,7 +1704,7 @@ CV_ColorBayerTest::CV_ColorBayerTest() : CV_ColorCvtBaseTest( false, false, true
 
     fwd_code_str = "BayerBG2BGR";
     inv_code_str = "";
-    fwd_code = CV_BayerBG2BGR;
+    fwd_code = COLOR_BayerBG2BGR;
     inv_code = -1;
 }
 
@@ -1719,7 +1718,7 @@ void CV_ColorBayerTest::get_test_array_types_and_sizes( int test_case_idx, vecto
     types[OUTPUT][0] = types[REF_OUTPUT][0] = CV_MAKETYPE(CV_MAT_DEPTH(types[INPUT][0]), 3);
     inplace = false;
 
-    fwd_code = cvtest::randInt(rng)%4 + CV_BayerBG2BGR;
+    fwd_code = cvtest::randInt(rng)%4 + COLOR_BayerBG2BGR;
 }
 
 
@@ -1748,7 +1747,7 @@ static void bayer2BGR_(const Mat& src, Mat& dst, int code)
     int bi = 0;
     int step = (int)(src.step/sizeof(T));
 
-    if( code == CV_BayerRG2BGR || code == CV_BayerGR2BGR )
+    if( code == COLOR_BayerRG2BGR || code == COLOR_BayerGR2BGR )
         bi ^= 2;
 
     for( i = 1; i < src.rows - 1; i++ )
@@ -1851,7 +1850,7 @@ TEST(Imgproc_ColorBayer, regression)
 
     CV_Assert( !given.empty() && !gold.empty() );
 
-    cvtColor(given, result, CV_BayerBG2GRAY);
+    cvtColor(given, result, COLOR_BayerBG2GRAY);
 
     EXPECT_EQ(gold.type(), result.type());
     EXPECT_EQ(gold.cols, result.cols);
@@ -1874,7 +1873,7 @@ TEST(Imgproc_ColorBayerVNG, regression)
 
     CV_Assert( !given.empty() );
 
-    cvtColor(given, result, CV_BayerBG2BGR_VNG, 3);
+    cvtColor(given, result, COLOR_BayerBG2BGR_VNG, 3);
 
     if (gold.empty())
         imwrite(goldfname, result);
@@ -1978,7 +1977,7 @@ TEST(Imgproc_ColorBayerVNG_Strict, regression)
         CV_Assert(!bayer.empty() && bayer.type() == CV_8UC1);
 
         // calculating a dst image
-        cvtColor(bayer, dst, CV_BayerBG2BGR_VNG + i);
+        cvtColor(bayer, dst, COLOR_BayerBG2BGR_VNG + i);
 
         // reading a reference image
         full_path = parent_path + pattern[i] + image_name;
@@ -2054,7 +2053,7 @@ static void validateResult(const Mat& reference, const Mat& actual, const Mat& s
     int cn = reference.channels();
     ssize.width *= cn;
     bool next = true;
-    //RGB2Lab_f works throug LUT and brings additional error
+    //RGB2Lab_f works through LUT and brings additional error
     static const float maxErr = 1.f/192.f;
 
     for (int y = 0; y < ssize.height && next; ++y)
@@ -2100,8 +2099,8 @@ TEST(Imgproc_ColorLab_Full, accuracy)
 
         // Convert test image to LAB
         cv::Mat lab;
-        int forward_code = blueInd ? srgb ? CV_BGR2Lab : CV_LBGR2Lab : srgb ? CV_RGB2Lab : CV_LRGB2Lab;
-        int inverse_code = blueInd ? srgb ? CV_Lab2BGR : CV_Lab2LBGR : srgb ? CV_Lab2RGB : CV_Lab2LRGB;
+        int forward_code = blueInd ? srgb ? COLOR_BGR2Lab : COLOR_LBGR2Lab : srgb ? COLOR_RGB2Lab : COLOR_LRGB2Lab;
+        int inverse_code = blueInd ? srgb ? COLOR_Lab2BGR : COLOR_Lab2LBGR : srgb ? COLOR_Lab2RGB : COLOR_Lab2LRGB;
         cv::cvtColor(src, lab, forward_code);
         // Convert LAB image back to BGR(RGB)
         cv::Mat recons;
@@ -2338,9 +2337,9 @@ static void initLabTabs()
                     #define FILL(_p, _q, _r) \
                         do {\
                         int idxold = 0;\
-                        idxold += min(p+(_p), (int)(LAB_LUT_DIM-1))*3;\
-                        idxold += min(q+(_q), (int)(LAB_LUT_DIM-1))*LAB_LUT_DIM*3;\
-                        idxold += min(r+(_r), (int)(LAB_LUT_DIM-1))*LAB_LUT_DIM*LAB_LUT_DIM*3;\
+                        idxold += std::min(p+(_p), (int)(LAB_LUT_DIM-1))*3;\
+                        idxold += std::min(q+(_q), (int)(LAB_LUT_DIM-1))*LAB_LUT_DIM*3;\
+                        idxold += std::min(r+(_r), (int)(LAB_LUT_DIM-1))*LAB_LUT_DIM*LAB_LUT_DIM*3;\
                         int idxnew = p*3*8 + q*LAB_LUT_DIM*3*8 + r*LAB_LUT_DIM*LAB_LUT_DIM*3*8+4*(_p)+2*(_q)+(_r);\
                         RGB2LuvLUT_s16[idxnew]    = RGB2Luvprev[idxold];\
                         RGB2LuvLUT_s16[idxnew+8]  = RGB2Luvprev[idxold+1];\
@@ -2464,9 +2463,9 @@ int row8uLab2RGB(const uchar* src_row, uchar *dst_row, int n, int cn, int blue_i
         go = CV_DESCALE(coeffs[3]*xx + coeffs[4]*yy + coeffs[5]*zz, shift);
         bo = CV_DESCALE(coeffs[6]*xx + coeffs[7]*yy + coeffs[8]*zz, shift);
 
-        ro = max(0, min((int)INV_GAMMA_TAB_SIZE-1, ro));
-        go = max(0, min((int)INV_GAMMA_TAB_SIZE-1, go));
-        bo = max(0, min((int)INV_GAMMA_TAB_SIZE-1, bo));
+        ro = std::max(0, std::min((int)INV_GAMMA_TAB_SIZE-1, ro));
+        go = std::max(0, std::min((int)INV_GAMMA_TAB_SIZE-1, go));
+        bo = std::max(0, std::min((int)INV_GAMMA_TAB_SIZE-1, bo));
 
         ro = tab[ro];
         go = tab[go];
@@ -2580,16 +2579,16 @@ int row8uLuv2RGB(const uchar* src_row, uchar *dst_row, int n, int cn, int blue_i
         int z = zm/256 + zm/65536;
 
         //limit X, Y, Z to [0, 2] to fit white point
-        x = max(0, min(2*BASE, x)); z = max(0, min(2*BASE, z));
+        x = std::max(0, std::min(2*BASE, x)); z = std::max(0, std::min(2*BASE, z));
 
         int ro, go, bo;
         ro = CV_DESCALE(C0 * x + C1 * y + C2 * z, shift);
         go = CV_DESCALE(C3 * x + C4 * y + C5 * z, shift);
         bo = CV_DESCALE(C6 * x + C7 * y + C8 * z, shift);
 
-        ro = max(0, min((int)INV_GAMMA_TAB_SIZE-1, ro));
-        go = max(0, min((int)INV_GAMMA_TAB_SIZE-1, go));
-        bo = max(0, min((int)INV_GAMMA_TAB_SIZE-1, bo));
+        ro = max(0, std::min((int)INV_GAMMA_TAB_SIZE-1, ro));
+        go = max(0, std::min((int)INV_GAMMA_TAB_SIZE-1, go));
+        bo = max(0, std::min((int)INV_GAMMA_TAB_SIZE-1, bo));
 
         ro = tab[ro];
         go = tab[go];
@@ -2624,10 +2623,10 @@ int row8uLuvChoose(const uchar* src_row, uchar *dst_row, int n, bool forward, in
 
 TEST(Imgproc_ColorLab_Full, bitExactness)
 {
-    int codes[] = { CV_BGR2Lab, CV_RGB2Lab, CV_LBGR2Lab, CV_LRGB2Lab,
-                    CV_Lab2BGR, CV_Lab2RGB, CV_Lab2LBGR, CV_Lab2LRGB};
-    string names[] = { "CV_BGR2Lab", "CV_RGB2Lab", "CV_LBGR2Lab", "CV_LRGB2Lab",
-                       "CV_Lab2BGR", "CV_Lab2RGB", "CV_Lab2LBGR", "CV_Lab2LRGB" };
+    int codes[] = { COLOR_BGR2Lab, COLOR_RGB2Lab, COLOR_LBGR2Lab, COLOR_LRGB2Lab,
+                    COLOR_Lab2BGR, COLOR_Lab2RGB, COLOR_Lab2LBGR, COLOR_Lab2LRGB};
+    string names[] = { "COLOR_BGR2Lab", "COLOR_RGB2Lab", "COLOR_LBGR2Lab", "COLOR_LRGB2Lab",
+                       "COLOR_Lab2BGR", "COLOR_Lab2RGB", "COLOR_Lab2LBGR", "COLOR_Lab2LRGB" };
 
     // need to be recalculated each time we change Lab algorithms, RNG or test system
     const int nIterations = 8;
@@ -2708,10 +2707,10 @@ TEST(Imgproc_ColorLab_Full, bitExactness)
 
 TEST(Imgproc_ColorLuv_Full, bitExactness)
 {
-    int codes[] = { CV_BGR2Luv, CV_RGB2Luv, CV_LBGR2Luv, CV_LRGB2Luv,
-                    CV_Luv2BGR, CV_Luv2RGB, CV_Luv2LBGR, CV_Luv2LRGB};
-    string names[] = { "CV_BGR2Luv", "CV_RGB2Luv", "CV_LBGR2Luv", "CV_LRGB2Luv",
-                       "CV_Luv2BGR", "CV_Luv2RGB", "CV_Luv2LBGR", "CV_Luv2LRGB" };
+    int codes[] = { COLOR_BGR2Luv, COLOR_RGB2Luv, COLOR_LBGR2Luv, COLOR_LRGB2Luv,
+                    COLOR_Luv2BGR, COLOR_Luv2RGB, COLOR_Luv2LBGR, COLOR_Luv2LRGB};
+    string names[] = { "COLOR_BGR2Luv", "COLOR_RGB2Luv", "COLOR_LBGR2Luv", "COLOR_LRGB2Luv",
+                       "COLOR_Luv2BGR", "COLOR_Luv2RGB", "COLOR_Luv2LBGR", "COLOR_Luv2LRGB" };
     /* to be enabled when bit-exactness is done for other codes */
     bool codeEnabled[] = { true, true, false, false, true, true, true, true };
 
@@ -2813,8 +2812,8 @@ static void test_Bayer2RGB_EdgeAware_8u(const Mat& src, Mat& dst, int code)
     const uchar* S = src.ptr<uchar>(1) + 1;
     uchar* D = dst.ptr<uchar>(1) + dcn;
 
-    int start_with_green = code == CV_BayerGB2BGR_EA || code == CV_BayerGR2BGR_EA ? 1 : 0;
-    int blue = code == CV_BayerGB2BGR_EA || code == CV_BayerBG2BGR_EA ? 1 : 0;
+    int start_with_green = code == COLOR_BayerGB2BGR_EA || code == COLOR_BayerGR2BGR_EA ? 1 : 0;
+    int blue = code == COLOR_BayerGB2BGR_EA || code == COLOR_BayerBG2BGR_EA ? 1 : 0;
 
     for (int y = 1; y < size.height; ++y)
     {
@@ -2963,7 +2962,7 @@ TEST(ImgProc_BayerEdgeAwareDemosaicing, accuracy)
     {
         calculateBayerPattern<uchar, CV_8U>(src, bayer, types[i]);
         Mat reference;
-        test_Bayer2RGB_EdgeAware_8u(bayer, reference, CV_BayerBG2BGR_EA + i);
+        test_Bayer2RGB_EdgeAware_8u(bayer, reference, COLOR_BayerBG2BGR_EA + i);
 
         for (int t = 0; t <= 1; ++t)
         {
@@ -2973,7 +2972,7 @@ TEST(ImgProc_BayerEdgeAwareDemosaicing, accuracy)
             CV_Assert(!bayer.empty() && (bayer.type() == CV_8UC1 || bayer.type() == CV_16UC1));
 
             Mat actual;
-            cv::demosaicing(bayer, actual, CV_BayerBG2BGR_EA + i);
+            cv::demosaicing(bayer, actual, COLOR_BayerBG2BGR_EA + i);
 
             if (t == 0)
                 checkData<unsigned char>(actual, reference, ts, types[i], next, "CV_8U");
@@ -2997,10 +2996,10 @@ TEST(ImgProc_Bayer2RGBA, accuracy)
     CV_Assert(raw.depth() == CV_8U);
     CV_Assert(!raw.empty());
 
-    for (int code = CV_BayerBG2BGR; code <= CV_BayerGR2BGR; ++code)
+    for (int code = COLOR_BayerBG2BGR; code <= COLOR_BayerGR2BGR; ++code)
     {
         cvtColor(raw, rgb, code);
-        cvtColor(rgb, reference, CV_BGR2BGRA);
+        cvtColor(rgb, reference, COLOR_BGR2BGRA);
 
         Mat actual;
         cvtColor(raw, actual, code, 4);
@@ -3046,7 +3045,7 @@ TEST(ImgProc_BGR2RGBA, regression_8696)
     Mat dst;
     cvtColor(src, dst, COLOR_BGR2BGRA);
 
-    EXPECT_DOUBLE_EQ(norm(dst - src, NORM_INF), 0.);
+    EXPECT_DOUBLE_EQ(cvtest::norm(dst - src, NORM_INF), 0.);
 }
 
 TEST(ImgProc_BGR2RGBA, 3ch24ch)
@@ -3060,5 +3059,7 @@ TEST(ImgProc_BGR2RGBA, 3ch24ch)
     Mat expected(Size(80, 10), CV_8UC4);
     expected.setTo(Scalar(80, 0, 200, 255));
 
-    EXPECT_DOUBLE_EQ(norm(expected - dst, NORM_INF), 0.);
+    EXPECT_DOUBLE_EQ(cvtest::norm(expected - dst, NORM_INF), 0.);
 }
+
+}} // namespace

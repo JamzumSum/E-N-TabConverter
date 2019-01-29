@@ -13,7 +13,7 @@
 #endif
 
 namespace cv { namespace dnn {
-CV__DNN_EXPERIMENTAL_NS_BEGIN
+CV__DNN_INLINE_NS_BEGIN
 
 #ifdef HAVE_PROTOBUF
 
@@ -54,7 +54,11 @@ void shrinkCaffeModel(const String& src, const String& dst, const std::vector<St
             blob->set_raw_data_type(caffe::FLOAT16);
         }
     }
+#if GOOGLE_PROTOBUF_VERSION < 3005000
+    size_t msgSize = saturate_cast<size_t>(net.ByteSize());
+#else
     size_t msgSize = net.ByteSizeLong();
+#endif
     std::vector<uint8_t> output(msgSize);
     net.SerializeWithCachedSizesToArray(&output[0]);
 
@@ -72,5 +76,5 @@ void shrinkCaffeModel(const String& src, const String& dst, const std::vector<St
 
 #endif  // HAVE_PROTOBUF
 
-CV__DNN_EXPERIMENTAL_NS_END
+CV__DNN_INLINE_NS_END
 }} // namespace

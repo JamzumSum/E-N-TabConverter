@@ -1,6 +1,9 @@
 File Input and Output using XML and YAML files {#tutorial_file_input_output_with_xml_yml}
 ==============================================
 
+@prev_tutorial{tutorial_discrete_fourier_transform}
+@next_tutorial{tutorial_how_to_use_OpenCV_parallel_for_}
+
 Goal
 ----
 
@@ -112,7 +115,7 @@ you may access it. For sequences you need to go through them to query a specific
     for (; it != it_end; ++it)
         cout << (string)*it << endl;
     @endcode
-    For maps you can use the [] operator again to acces the given item (or the \>\> operator too):
+    For maps you can use the [] operator again to access the given item (or the \>\> operator too):
     @code{.cpp}
     n = fs["Mapping"];                                // Read mappings from a sequence
     cout << "Two  " << (int)(n["Two"]) << "; ";

@@ -120,10 +120,11 @@ def explore_match(win, img1, img2, kp_pairs, status = None, H = None):
             r = 8
             m = (anorm(np.array(p1) - (x, y)) < r) | (anorm(np.array(p2) - (x, y)) < r)
             idxs = np.where(m)[0]
+
             kp1s, kp2s = [], []
             for i in idxs:
                 (x1, y1), (x2, y2) = p1[i], p2[i]
-                col = (red, green)[status[i]]
+                col = (red, green)[status[i][0]]
                 cv.line(cur_vis, (x1, y1), (x2, y2), col)
                 kp1, kp2 = kp_pairs[i]
                 kp1s.append(kp1)
@@ -146,11 +147,11 @@ if __name__ == '__main__':
     try:
         fn1, fn2 = args
     except:
-        fn1 = '../data/box.png'
-        fn2 = '../data/box_in_scene.png'
+        fn1 = 'box.png'
+        fn2 = 'box_in_scene.png'
 
-    img1 = cv.imread(fn1, 0)
-    img2 = cv.imread(fn2, 0)
+    img1 = cv.imread(cv.samples.findFile(fn1), cv.IMREAD_GRAYSCALE)
+    img2 = cv.imread(cv.samples.findFile(fn2), cv.IMREAD_GRAYSCALE)
     detector, matcher = init_feature(feature_name)
 
     if img1 is None:

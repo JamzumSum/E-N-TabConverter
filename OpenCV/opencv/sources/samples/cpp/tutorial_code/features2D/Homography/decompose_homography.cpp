@@ -1,8 +1,7 @@
 #include <iostream>
-#include <opencv2/opencv_modules.hpp>
-#ifdef HAVE_OPENCV_ARUCO
-#include <opencv2/opencv.hpp>
-#include <opencv2/aruco.hpp>
+#include <opencv2/core.hpp>
+#include <opencv2/highgui.hpp>
+#include <opencv2/calib3d.hpp>
 
 using namespace std;
 using namespace cv;
@@ -184,10 +183,3 @@ int main(int argc, char *argv[])
 
     return 0;
 }
-#else
-int main()
-{
-    std::cerr << "FATAL ERROR: This sample requires opencv_aruco module (from opencv_contrib)" << std::endl;
-    return 0;
-}
-#endif

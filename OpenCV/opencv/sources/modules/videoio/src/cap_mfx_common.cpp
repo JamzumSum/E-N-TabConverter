@@ -41,7 +41,7 @@ bool DeviceHandler::init(MFXVideoSession &session)
 
 VAHandle::VAHandle() {
     // TODO: provide a way of modifying this path
-    const string filename = "/dev/dri/card0";
+    const string filename = "/dev/dri/renderD128";
     file = open(filename.c_str(), O_RDWR);
     if (file < 0)
         CV_Error(Error::StsError, "Can't open file: " + filename);
@@ -96,7 +96,7 @@ SurfacePool::SurfacePool(ushort width_, ushort height_, ushort count, const mfxF
     for(int i = 0; i < count; ++i)
     {
         mfxFrameSurface1 &surface = surfaces[i];
-        uint8_t * dataPtr = buffers + oneSize * i;
+        uint8_t * dataPtr = buffers.data() + oneSize * i;
         memset(&surface, 0, sizeof(mfxFrameSurface1));
         surface.Info = frameInfo;
         surface.Data.Y = dataPtr;
