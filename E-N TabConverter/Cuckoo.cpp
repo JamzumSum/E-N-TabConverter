@@ -238,13 +238,13 @@ void measure::recTime(std::vector<cv::Vec4i> rows) {
 		timeValue.push_back((int)(this->time.beat_type * pow(2, max(sum1, !sum3 && sum2 ? sum2 - 1 : sum2)) * (!sum3 && sum2 ? 1.5 : 1)));
 		timePos.push_back((tmp[0] + tmp[2]) / 2);
 	}
-	for (int i : timeValue) {
-		if (i != quarter) {
-			goto distribute;
-		}
+	int kk = timeValue[0];
+	for (unsigned i = 1; i < timeValue.size(); i++) {
+		if (timeValue[i] != kk) goto distribute;
 	}
-	for (int &i : timeValue) {
-		i = half;
+	kk = time.beats / (int)timeValue.size() * time.beat_type;
+	for (int& i : timeValue) {
+		i = kk;
 	}
 distribute:
 	/*for (int k = 0, i = 0; i < notes.size(); i++) {
@@ -530,11 +530,13 @@ void splitter::start(vector<cv::Mat>& piece) {
 		}
 	}
 	if (Showline) imdebug("2", ccolor);
-	piece.clear();
-	piece.resize(n);
 
 	if (toCut.size() > 2) collection.clear();
 	else toCut.swap(collection);
+
+	n = toCut.size();
+	piece.clear();
+	piece.resize(n+1);
 
 	org(cv::Range(0, toCut[0].start), cv::Range(0, org.cols)).copyTo(piece[0]);
 	for (size_t i = 1; i < n; i++) {

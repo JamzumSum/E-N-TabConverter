@@ -52,16 +52,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 	
 	scan.Event_On_Click = [](Button* me) {
 		OPENFILENAME ofn;
-		ZeroMemory(&ofn, sizeof(ofn));
+		memset(&ofn, 0, sizeof(ofn));
 		ofn.lStructSize = sizeof(ofn);
 		ofn.hwndOwner = main.hWnd();
-		ofn.lpstrDefExt = 0;
 		ofn.lpstrFile = f;
-		ofn.lpstrFile[0] = '\0';
 		ofn.nMaxFile = MAX_PATH;
-		ofn.lpstrFilter = "Í¼Æ¬ÎÄ¼þ\0*.bmp;*.jpg;*.JPG;*.jpeg;*.png;*.gif\0\0";
+		ofn.lpstrFilter = "Í¼Æ¬\0*.bmp;*.jpg;*.JPG;*.jpeg;*.png;*.gif\0\0";
 		ofn.nFilterIndex = 0;
-		ofn.lpstrInitialDir = 0;
 		ofn.lpstrTitle = "Ñ¡ÔñÀÖÆ×£º";
 		ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
 

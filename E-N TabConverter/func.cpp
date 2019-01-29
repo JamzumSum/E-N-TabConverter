@@ -29,6 +29,7 @@ int go(string f,bool isCut) {
 		throw ex;
 		return 1;
 	}
+	
 	cv::Mat trimmed = trim(img);
 	std::vector<cv::Mat> piece;
 	//imshow("2", trimmed); cvWaitKey();
@@ -39,6 +40,7 @@ int go(string f,bool isCut) {
 	progress = 1;
 	notification = "过滤算法正常";
 	
+	global = new GlobalPool(cfgPath,trimmed.cols);
 	std::vector<measure> sections;
 	std::vector<cv::Mat> timeValue;
 	std::vector<cv::Mat> info;
@@ -50,7 +52,7 @@ int go(string f,bool isCut) {
 	int k = 1;
 	size_t n = piece.size();
 
-	for (int i = 0; i <= n; i++) {
+	for (int i = 0; i < n; i++) {
 		if (piece[i].empty()) continue;
 		std::vector<cv::Vec4i> rows;
 		vector<int> thick;
