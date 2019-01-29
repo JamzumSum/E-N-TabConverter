@@ -24,7 +24,7 @@ void Label::setFont(LPTSTR fontName, int size) {
 		CHINESEBIG5_CHARSET, OUT_CHARACTER_PRECIS,
 		CLIP_CHARACTER_PRECIS, DEFAULT_QUALITY,
 		FF_MODERN, fontName);
-	SendMessage(this->hWnd(), WM_SETFONT, (WPARAM)hFont, TRUE);//发送设置字体消息
+	SendMessage(this->Hwnd, WM_SETFONT, (WPARAM)hFont, TRUE);//发送设置字体消息
 }
 
 Picture::Picture(form* parent, int x, int y, int w, int h, const LPTSTR Name, const LPTSTR picPath) 

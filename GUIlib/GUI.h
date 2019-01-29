@@ -27,13 +27,14 @@ typedef void(*vvEvent)();
 
 
 class window {
+protected:
+	HWND Hwnd = NULL;
+	window* Parent = NULL;
+	LPTSTR Classname = NULL;
 private:
 	TCHAR Name[MAXSIZE] = {};
 	HMENU Menu = NULL;
-	HWND Hwnd = NULL;
-	LPTSTR Classname = NULL;
-	window* Parent = NULL;
-
+	
 	void setName(LPTSTR newName) {
 		if (Hwnd) SetWindowText(Hwnd, newName);
 		_tcscpy_s(Name, newName);
@@ -142,16 +143,16 @@ public:
 		//for (size_t i = 0; i < menuList.size(); i++) if ((WORD)(ULONG_PTR)menuList[i] == ID) menuEventList[i]();
 	}
 	void minimum() {
-		ShowWindow(hWnd(), SW_SHOWMINNOACTIVE);
+		ShowWindow(Hwnd, SW_SHOWMINNOACTIVE);
 	}
 	void close() {
-		PostMessage(hWnd(), WM_CLOSE, 0, 0);
+		PostMessage(Hwnd, WM_CLOSE, 0, 0);
 	}
 	void top() {
-		SwitchToThisWindow(hWnd(), true);
+		SwitchToThisWindow(Hwnd, true);
 	}
 	void cls(RECT* area = NULL) {
-		InvalidateRect(hWnd(), area, true);
+		InvalidateRect(Hwnd, area, true);
 	}
 
 	size_t create();
@@ -175,11 +176,8 @@ public:
 	std::string tag;
 	//∑Ω∑®
 	control(char type, LPTSTR clsname, window* parent, int x = 0, int y = 0, int w = 0, int h = 0);
-	size_t operator()() {
-		return this->create();
-	}
 	form* parent() {
-		return (form*)window::parent();
+		return (form*)Parent;
 	}
 	void push() {
 		form* t = parent();
@@ -245,7 +243,7 @@ public:
 	Textbox(form* parent, int x, int y, int w, int h, const LPTSTR Name, bool Multiline = true);
 	size_t create() {
 		control::create();
-		preProc = SetWindowLong(hWnd(), GWL_WNDPROC, (long)proc);
+		preProc = SetWindowLong(Hwnd, GWL_WNDPROC, (long)proc);
 		return id;
 	}
 	
@@ -258,44 +256,44 @@ public:
 	int range = 100;
 	ProgressBar(form* parent, int x, int y, int w, int h, const LPTSTR Name);
 	void stepIn() {
-		SendMessage(hWnd(), PBM_STEPIT, 0, 0);
+		SendMessage(Hwnd, PBM_STEPIT, 0, 0);
 	}
 	int setStep(int newStep = 0) {
 		if (newStep) {
-			SendMessage(hWnd(), PBM_SETSTEP, (WPARAM)newStep, 0);
+			SendMessage(Hwnd, PBM_SETSTEP, (WPARAM)newStep, 0);
 			step = newStep;
 		}
 		return step;
 	}
 	int setRange(int newRange = 0) {
 		if (newRange) {
-			SendMessage(hWnd(), PBM_SETRANGE, 0, MAKELPARAM(0, newRange));
+			SendMessage(Hwnd, PBM_SETRANGE, 0, MAKELPARAM(0, newRange));
 			range = newRange;
 		}
 		return range;
 	}
 	void setPos(int pos) {
-		SendMessage(hWnd(), PBM_SETPOS, pos, 0);
+		SendMessage(Hwnd, PBM_SETPOS, pos, 0);
 	}
 	void empty() {
 		setPos(0);
 	}
 	void full() {
-		setPos((int)SendMessage(hWnd(), PBM_GETPOS, 0, 0));
+		setPos((int)SendMessage(Hwnd, PBM_GETPOS, 0, 0));
 	}
 	void setColor(ULONG color = CLR_DEFAULT) {
 		//back to default if void
-		SendMessage(hWnd(), PBM_SETBARCOLOR, 0, color);
+		SendMessage(Hwnd, PBM_SETBARCOLOR, 0, color);
 	}
 };
 
 class Radio :public control {
 private:
 	bool getCheck() {
-		return (int)SendMessage(hWnd(), BM_GETCHECK, 0, 0);
+		return (int)SendMessage(Hwnd, BM_GETCHECK, 0, 0);
 	}
 	void setCheck(bool value) {
-		SendMessage(hWnd(), BM_SETCHECK, (int)value, 0);
+		SendMessage(Hwnd, BM_SETCHECK, (int)value, 0);
 	}
 public:
 	// Ù–‘
@@ -310,10 +308,10 @@ public:
 class Checkbox :public control {
 private:
 	bool getCheck() {
-		return (int)SendMessage(hWnd(), BM_GETCHECK, 0, 0);
+		return (int)SendMessage(Hwnd, BM_GETCHECK, 0, 0);
 	}
 	void setCheck(bool value) {
-		SendMessage(hWnd(), BM_SETCHECK, (int)value, 0);
+		SendMessage(Hwnd, BM_SETCHECK, (int)value, 0);
 	}
 public:
 	Property<Checkbox, bool, readWrite> Value;

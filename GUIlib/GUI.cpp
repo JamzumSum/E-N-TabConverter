@@ -15,7 +15,7 @@ void form::run() {
 	if (this->Event_Load_Complete) this->Event_Load_Complete(this);
 
 	int loopret = 0;
-	while ((loopret = GetMessage(&msg, this->hWnd(), 0, 0)) > 0) {
+	while ((loopret = GetMessage(&msg, this->Hwnd, 0, 0)) > 0) {
 		if (loopret == -1) {
 			popError();
 			exit(1);
@@ -24,8 +24,8 @@ void form::run() {
 		DispatchMessage(&msg);
 	}
 	fset.remove(id);
-	window* w = fset.find(classname());
-	if (!w) UnregisterClass(classname(), hi);
+	window* w = fset.find(Classname);
+	if (!w) UnregisterClass(Classname, hi);
 }
 
 control* form::getControl(HWND controlHwnd) {
@@ -164,7 +164,7 @@ window::window(char type, LPTSTR classname, window* p, int x, int y, int w, int 
 }
 
 form::~form() {
-	if (parent()) ((form*)parent())->top();
+	if (Parent) ((form*)Parent)->top();
 	if (hdc) {
 		//TODO
 	}
@@ -190,7 +190,7 @@ bool form::regist() {
 	wndclass.hIcon = LoadIcon(hi, this->icon);
 	wndclass.hIconSm = LoadIcon(hi, this->smallIcon);
 	wndclass.hInstance = hi;
-	wndclass.lpszClassName = classname();
+	wndclass.lpszClassName = Classname;
 	wndclass.lpszMenuName = NULL;
 	if (RegisterClassEx(&wndclass)) return true;
 	else {
@@ -206,7 +206,7 @@ size_t form::create() {
 	window::create();
 	if (x < 0) {
 		RECT r;
-		GetWindowRect(hWnd(), &r);
+		GetWindowRect(Hwnd, &r);
 		x = r.left;
 		y = r.top;
 		w = r.right - x;
@@ -219,10 +219,10 @@ size_t form::create() {
 void form::paintLine(int x1, int y1, int x2, int y2) {
 	//if x1 = x2 = y1 = y2 = 0 then end paint.
 	PAINTSTRUCT ps;
-	hdc = BeginPaint(hWnd(), &ps);
+	hdc = BeginPaint(Hwnd, &ps);
 	MoveToEx(hdc, x1, y1, NULL);
 	LineTo(hdc, x2, y2);
-	EndPaint(hWnd(), &ps);
+	EndPaint(Hwnd, &ps);
 	hdc = NULL;
 }
 
@@ -230,16 +230,16 @@ void form::paintLine(int x1, int y1, int x2, int y2, RECT* rect) {
 	//if x1 = x2 = y1 = y2 = 0 then end paint.
 	static PAINTSTRUCT ps;
 	if (!hdc) {
-		hdc = BeginPaint(hWnd(), &ps);
+		hdc = BeginPaint(Hwnd, &ps);
 	}
 	if (x1 || x2 || y1 || y2) {
 		MoveToEx(hdc, x1, y1, NULL);
 		LineTo(hdc, x2, y2);
 	}
 	else {
-		EndPaint(hWnd(), &ps);
+		EndPaint(Hwnd, &ps);
 		hdc = NULL;
-		UpdateWindow(hWnd());
+		UpdateWindow(Hwnd);
 	}
 }
 
