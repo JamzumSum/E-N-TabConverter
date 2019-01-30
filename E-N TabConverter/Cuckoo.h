@@ -4,7 +4,6 @@
 
 using namespace std;
 
-#define savepic 0
 #define picFolder "C:\\Users\\Administrator\\Desktop\\oh"
 
 enum Value {

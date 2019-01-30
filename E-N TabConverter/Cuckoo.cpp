@@ -4,21 +4,27 @@
 #include "imgproc.hpp"
 #include "opencv.hpp"
 
+using namespace std;
+using namespace cv;
+
 #define optimize 1
 
 #if _DEBUG
-#define Showrectangle 0
-#define Showline 0
-#define draw(func, img, from, to, color) if(Show##func) func(img, from, to, color)
+#define Showrectangle //
+#define Showline //
+#define draw(func, img, from, to, color) Show##func func(img, from, to, color)
 #define imdebug(img, title) imshow((img), title); waitKey()
 #else 
 #define draw(func, img, from, to, color)
+#define Showrectangle //
+#define Showline //
 #define imdebug(img, title)
 #endif
 
+bool savepic = 0;
 extern notify<string> notification;
 
-static int count(cv::Mat img, cv::Vec4i range, int delta) {
+static int count(Mat img, Vec4i range, int delta) {
 	bool lock = false;
 	int sum = 0, x = range[delta > 0 ? 2 : 0] + delta;
 	//int blocksize = 2 * (int)max(1.0, round(global->col / 1000.0)) + 1;
@@ -38,7 +44,7 @@ static int count(cv::Mat img, cv::Vec4i range, int delta) {
 	return sum;
 }
 
-void measure::recNum(cv::Mat section, std::vector<cv::Vec4i> rows) {
+void measure::recNum(Mat section, vector<Vec4i> rows) {
 	/*
 	* 函数：measure::recNum
 	* 功能：从传入图像中提取数字等
@@ -46,21 +52,21 @@ void measure::recNum(cv::Mat section, std::vector<cv::Vec4i> rows) {
 		section，Mat，传入图像
 		rows，Vec4i，传入的网格信息（谱线）
 	*/
-	//imshow("2", section); cvWaitKey();
-	std::vector<std::vector<cv::Point>> cont;
-	cv::Mat inv = 255 - section;
+	//imshow("2", section); waitKey();
+	vector<vector<Point>> cont;
+	Mat inv = 255 - section;
 
-	cv::Mat ccolor;
-	if (Showrectangle) cvtColor(section, ccolor, CV_GRAY2BGR);
+	Mat ccolor;
+	Showrectangle cvtColor(section, ccolor, CV_GRAY2BGR);
 
-	cv::findContours(inv, cont, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
+	findContours(inv, cont, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
 	for (int q = 0; q < cont.size(); q++) {
-		cv::Vec4i tmp = { section.cols,section.rows,0,0 };
+		Vec4i tmp = { section.cols,section.rows,0,0 };
 		for (int k = 0; k < cont[q].size(); k++) {
-			tmp[0] = std::min(tmp[0], cont[q][k].x);
-			tmp[2] = std::max(tmp[2], cont[q][k].x);
-			tmp[1] = std::min(tmp[1], cont[q][k].y);
-			tmp[3] = std::max(tmp[3], cont[q][k].y);
+			tmp[0] = min(tmp[0], cont[q][k].x);
+			tmp[2] = max(tmp[2], cont[q][k].x);
+			tmp[1] = min(tmp[1], cont[q][k].y);
+			tmp[3] = max(tmp[3], cont[q][k].y);
 		}
 		//限定筛选
 		if (tmp[3] - tmp[1] < rows[1][1] - rows[0][1]					//网格限定
@@ -70,7 +76,7 @@ void measure::recNum(cv::Mat section, std::vector<cv::Vec4i> rows) {
 			&& (tmp[3] - tmp[1])*(tmp[2] - tmp[0]) > 9)					//大小限定
 		{
 			note newNote;
-			cv::Mat number = section(cv::Range(tmp[1], tmp[3] + 1), cv::Range(tmp[0], tmp[2] + 1)).clone();
+			Mat number = section(Range(tmp[1], tmp[3] + 1), Range(tmp[0], tmp[2] + 1)).clone();
 			int sum = 0;
 			for (int y = 0; y < number.rows; y++) {
 				uchar *ptr = number.ptr<uchar>(y);
@@ -81,9 +87,8 @@ void measure::recNum(cv::Mat section, std::vector<cv::Vec4i> rows) {
 			if (sum > 0.8 * number.rows * number.cols) continue;
 			cvtColor(number, number, CV_GRAY2BGR);
 			if (number.cols != 8 || number.rows != 10) number = perspect(number, 8, 10);
-#if savepic
-			savePic(picFolder, number);
-#endif
+			
+			if(savepic) savePic(picFolder, number);															//保存数字样本
 
 			newNote.notation.technical.string = whichLine(tmp, rows);										//几何关系判断string
 			if (!newNote.notation.technical.string) continue;
@@ -93,7 +98,7 @@ void measure::recNum(cv::Mat section, std::vector<cv::Vec4i> rows) {
 				return;
 			}
 
-			draw(rectangle, ccolor, cv::Point(tmp[0], tmp[1]), cv::Point(tmp[2], tmp[3]), cv::Scalar(0, 0, 255));
+			draw(rectangle, ccolor, Point(tmp[0], tmp[1]), Point(tmp[2], tmp[3]), Scalar(0, 0, 255));
 
 
 			newNote.pos = (tmp[0] + tmp[2]) / 2;
@@ -105,7 +110,7 @@ void measure::recNum(cv::Mat section, std::vector<cv::Vec4i> rows) {
 			this->notes.push_back(newNote);
 		}
 	}
-	if (Showrectangle) imdebug("2", ccolor);
+	Showrectangle imdebug("2", ccolor);
 
 	int t = maxCharacterWidth;
 	auto n = notes.end();
@@ -142,7 +147,7 @@ void measure::recNum(cv::Mat section, std::vector<cv::Vec4i> rows) {
 		}
 	}
 
-	std::sort(this->notes.begin(), this->notes.end(), [](const note x, const note y) -> bool {
+	sort(this->notes.begin(), this->notes.end(), [](const note x, const note y) -> bool {
 		return x.pos < y.pos || (x.pos == y.pos && x.notation.technical.string < y.notation.technical.string);
 	});
 	for (size_t i = 1; i < notes.size(); i++) {
@@ -150,24 +155,24 @@ void measure::recNum(cv::Mat section, std::vector<cv::Vec4i> rows) {
 			notes[i].chord = true;
 		}
 	}
-	//imshow("2", ccolor); cvWaitKey();
+	//imshow("2", ccolor); waitKey();
 }
 
-void measure::recTime(std::vector<cv::Vec4i> rows) {
+void measure::recTime(vector<Vec4i> rows) {
 	int predLen = 0;
-	cv::Mat picValue = org(cv::Range(max(noteBottom, rows[5][1]) + 1, org.rows), cv::Range::all()).clone();
-	cv::Mat inv;
-	std::vector<std::vector<cv::Point>> cont;
+	Mat picValue = org(Range(max(noteBottom, rows[5][1]) + 1, org.rows), Range::all()).clone();
+	Mat inv;
+	vector<vector<Point>> cont;
 	if (org.rows < global->rowLenth * 2 && org.rows > global->rowLenth / 2) {
 		inv = 255 - Morphology(picValue, picValue.rows / 3, false, true);
-		cv::findContours(inv, cont, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
+		findContours(inv, cont, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
 
-		//imshow("2", picValue); cvWaitKey();
-		cv::Vec2i temp = { picValue.rows,0 };
+		//imshow("2", picValue); waitKey();
+		Vec2i temp = { picValue.rows,0 };
 		int tr = picValue.rows / 4;
 		while (!cont.size()) {
-			cv::Mat inv = 255 - Morphology(picValue, tr--, false, true);
-			cv::findContours(inv, cont, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
+			Mat inv = 255 - Morphology(picValue, tr--, false, true);
+			findContours(inv, cont, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
 			if (tr < 2) {
 				for (int i = 0; i < picValue.rows; i++) {
 					if (!isEmptyLine(picValue, i, 0.04)) {
@@ -181,8 +186,8 @@ void measure::recTime(std::vector<cv::Vec4i> rows) {
 
 		for (int i = 0; i < cont.size(); i++) {
 			for (int j = 0; j < cont[i].size(); j++) {
-				temp[0] = std::min(temp[0], cont[i][j].y);
-				temp[1] = std::max(temp[1], cont[i][j].y);
+				temp[0] = min(temp[0], cont[i][j].y);
+				temp[1] = max(temp[1], cont[i][j].y);
 			}
 			predLen = max(predLen, temp[1] - temp[0]);
 		}
@@ -192,18 +197,18 @@ void measure::recTime(std::vector<cv::Vec4i> rows) {
 		predLen = global->valueSignalLen;
 	}
 	inv = 255 - Morphology(picValue, round(predLen * 0.3), false, true);
-	cv::findContours(inv, cont, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
+	findContours(inv, cont, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
 
 	//去掉节拍记号再往下的乱七八糟的东西
 	auto m = cont.end();
 	while (1) {
-		m = find_if(cont.begin(), cont.end(), [cont](vector<cv::Point> x) ->bool {
-			auto l = [](cv::Point m, cv::Point n) ->bool {
+		m = find_if(cont.begin(), cont.end(), [cont](vector<Point> x) ->bool {
+			auto l = [](Point m, Point n) ->bool {
 				return m.y < n.y;
 			};
 			int up = min_element(x.begin(), x.end(), l)->y;
 			int len = max_element(x.begin(), x.end(), l)->y - up;
-			return find_if(cont.begin(), cont.end(), [cont, x, l, up, len](vector<cv::Point> y) ->bool {
+			return find_if(cont.begin(), cont.end(), [cont, x, l, up, len](vector<Point> y) ->bool {
 				int max = max_element(y.begin(), y.end(), l)->y;
 				return max < up
 					&& max - min_element(y.begin(), y.end(), l)->y > len;
@@ -213,19 +218,19 @@ void measure::recTime(std::vector<cv::Vec4i> rows) {
 		else cont.erase(m);
 	};
 
-	sort(cont.begin(), cont.end(), [](vector<cv::Point> x, vector<cv::Point> y) ->bool {
+	sort(cont.begin(), cont.end(), [](vector<Point> x, vector<Point> y) ->bool {
 		return x[0].x < y[0].x;
 	});
 
 	vector<int> timeValue;
 	vector<int> timePos;
 	for (int i = 0; i < cont.size(); i++) {
-		cv::Vec4i tmp = { picValue.cols,picValue.rows,0,0 };
+		Vec4i tmp = { picValue.cols,picValue.rows,0,0 };
 		for (int j = 0; j < cont[i].size(); j++) {
-			tmp[0] = std::min(tmp[0], cont[i][j].x);
-			tmp[2] = std::max(tmp[2], cont[i][j].x);
-			tmp[1] = std::min(tmp[1], cont[i][j].y);
-			tmp[3] = std::max(tmp[3], cont[i][j].y);
+			tmp[0] = min(tmp[0], cont[i][j].x);
+			tmp[2] = max(tmp[2], cont[i][j].x);
+			tmp[1] = min(tmp[1], cont[i][j].y);
+			tmp[3] = max(tmp[3], cont[i][j].y);
 		}
 
 		int sum1 = 0, sum2 = 0, sum3 = 0;
@@ -275,13 +280,13 @@ distribute:
 			noValue.erase(s);
 		}
 	}
-	if (noValue.size()) {
+	if (!noValue.empty()) {
 		err ex = { 1,__LINE__,"有未分配时值的乐符" };
 		throw ex;
 	}
 }
 
-measure::measure(cv::Mat org, cv::Mat img, vector<cv::Vec4i> rows, int id) {
+measure::measure(Mat org, Mat img, vector<Vec4i> rows, int id) {
 	this->id = id;
 	this->org = org;
 	if (org.cols < global->colLenth / 5) {
@@ -375,9 +380,9 @@ int splitter::split() {
 		r = 2;
 		notification = "裁剪失败，等待二次裁剪";
 		//二次裁剪为缩减判断空行的范围，从之前的从像素x=0 至x=col到检测到的横线的x1至x2
-		vector<cv::Vec4i> rows;
+		vector<Vec4i> rows;
 		vector<int> thick;
-		cv::Mat toOCR;
+		Mat toOCR;
 		findRow(org, toOCR, CV_PI / 18, rows, thick);
 		if (rows.size() > 5) {
 			notification =  "二次裁剪开始.";
@@ -404,7 +409,7 @@ int splitter::split() {
 			err ex = { 4,__LINE__,"二次裁剪失败，请手动处理" };
 			throw ex;
 		}
-		/*cv::Mat ccolor;
+		/*Mat ccolor;
 		for (int i = 0; i < coll.size(); i++) {
 			cvtColor(img, ccolor, CV_GRAY2BGR);
 			line(ccolor, CvPoint(0, coll[i].start), CvPoint(img.cols, coll[i].start), CvScalar(0, 0, 255));
@@ -482,11 +487,11 @@ void splitter::interCheck(vector<int> &f) {
 #endif
 }
 
-splitter::splitter(cv::Mat img) {
+splitter::splitter(Mat img) {
 	this->org = img;
 }
 
-void splitter::start(vector<cv::Mat>& piece) {
+void splitter::start(vector<Mat>& piece) {
 	try { split(); }
 	catch (err ex) {
 		switch (ex.id)
@@ -517,8 +522,8 @@ void splitter::start(vector<cv::Mat>& piece) {
 	}
 	n = collection.size();
 
-	cv::Mat ccolor;
-	if (Showline) cvtColor(org, ccolor, CV_GRAY2BGR);
+	Mat ccolor;
+	Showline cvtColor(org, ccolor, CV_GRAY2BGR);
 
 	for (int i = 0; i < n; i++) {
 		if (r[i]) {
@@ -529,7 +534,7 @@ void splitter::start(vector<cv::Mat>& piece) {
 			toCut.push_back(collection[i]);
 		}
 	}
-	if (Showline) imdebug("2", ccolor);
+	Showline imdebug("2", ccolor);
 
 	if (toCut.size() > 2) collection.clear();
 	else toCut.swap(collection);
@@ -538,12 +543,12 @@ void splitter::start(vector<cv::Mat>& piece) {
 	piece.clear();
 	piece.resize(n+1);
 
-	org(cv::Range(0, toCut[0].start), cv::Range(0, org.cols)).copyTo(piece[0]);
+	org(Range(0, toCut[0].start), Range(0, org.cols)).copyTo(piece[0]);
 	for (size_t i = 1; i < n; i++) {
-		org(cv::Range(toCut[i - 1].start + toCut[i - 1].length + 1, toCut[i].start),
-			cv::Range(0, org.cols)).copyTo(piece[i]);
+		org(Range(toCut[i - 1].start + toCut[i - 1].length + 1, toCut[i].start),
+			Range(0, org.cols)).copyTo(piece[i]);
 	}
-	org(cv::Range(toCut[n - 1].start + toCut[n - 1].length + 1, org.rows), cv::Range(0, org.cols)).copyTo(piece[n]);
+	org(Range(toCut[n - 1].start + toCut[n - 1].length + 1, org.rows), Range(0, org.cols)).copyTo(piece[n]);
 
-	for (cv::Mat& i: piece) i = trim(i);				//每个分割出来的行再剪去空白
+	for (Mat& i: piece) i = trim(i);				//每个分割出来的行再剪去空白
 }

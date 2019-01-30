@@ -8,6 +8,8 @@
 
 using namespace std;
 
+#define imdebug(img, title) imshow((img), title); waitKey()
+
 GlobalPool *global = NULL;
 
 #if workMode
@@ -31,8 +33,14 @@ int go(string f,bool isCut) {
 	}
 	
 	cv::Mat trimmed = trim(img);
+	float screenCols = 1919 / 1.25;					//1919, 最大显示宽度；1.25， win10 系统缩放比
+													//TODO：不知道怎么获取QAQ
+	if (trimmed.cols > screenCols) {
+		float toRows = screenCols / trimmed.cols * trimmed.rows;
+		trimmed = perspect(trimmed, screenCols, (int) toRows);
+	}
 	std::vector<cv::Mat> piece;
-	//imshow("2", trimmed); cvWaitKey();
+	imdebug("trimmed pic", trimmed);
 	
 	splitter piccut(trimmed);
 	piccut.start(piece);
@@ -79,18 +87,12 @@ int go(string f,bool isCut) {
 					sections.push_back(newSec);
 				}
 				catch (err ex) {
-					switch (ex.id)
-					{
+					switch (ex.id){
 					case 1:
 						//timeValue越界
-						#if _DEBUG
-						
-							imshow("2", origin[j]); waitKey();
-						#endif
+						imdebug(ex.description, origin[j]); 
 						break;
-					default:
-						throw ex;
-						break;
+					default: throw ex; break;
 					}
 				}
 			}
