@@ -44,10 +44,9 @@ public:
 		if (!x) return (value)v;
 		else return value(x * v / abs(x - v));
 	}
-	Value operator*(const int x) {
-		assert(!(v % x));
+	Value operator*(const float x) {
 		assert(x);
-		return (value)(v / x);
+		return (value)(int)(v / x);
 	}
 	Value operator/(const int x) {
 		return (value)(v * x);
@@ -119,7 +118,7 @@ typedef struct key {
 class measure {
 
 private:
-	int noteBottom = 0;
+	int maxCharacterHeight = 0;
 	int maxCharacterWidth = 0;
 	void recNum(cv::Mat section, vector<cv::Vec4i> rows);
 	void recTime(vector<cv::Vec4i> rows);

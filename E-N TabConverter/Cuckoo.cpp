@@ -91,7 +91,7 @@ void measure::recNum(Mat section, vector<Vec4i> rows) {
 	};
 	auto fillTimeAndPos = [this](int t) {
 		for (easynote& i : notes[0].chords) {
-			auto add = find_if(notes.begin(), notes.end(), [i, t](const ChordSet x) -> bool {
+			auto add = find_if(notes.begin() + 1, notes.end(), [i, t](const ChordSet x) -> bool {
 				return abs(i.pos - x.avrpos) <= t / 2;
 			});
 			if (add == notes.end()) {
@@ -109,6 +109,8 @@ void measure::recNum(Mat section, vector<Vec4i> rows) {
 		}
 	};
 	Showrectangle cvtColor(section, ccolor, CV_GRAY2BGR);
+
+	notes.resize(1);
 
 	findContours(inv, cont, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
 	for (int q = 0; q < cont.size(); q++) {
@@ -128,6 +130,7 @@ void measure::recNum(Mat section, vector<Vec4i> rows) {
 		{
 			easynote newNote;
 			Mat number = section(Range(tmp[1], tmp[3] + 1), Range(tmp[0], tmp[2] + 1)).clone();
+
 			int sum = 0;
 			for (int y = 0; y < number.rows; y++) {
 				uchar* ptr = number.ptr<uchar>(y);
@@ -139,15 +142,20 @@ void measure::recNum(Mat section, vector<Vec4i> rows) {
 			cvtColor(number, number, CV_GRAY2BGR);
 			if (number.cols != 8 || number.rows != 10) number = perspect(number, 8, 10);
 
-			if (savepic) savePic(picFolder, number);															//保存数字样本
+			if (savepic) savePic(picFolder, number);										//保存数字样本
 
-			newNote.string = whichLine(tmp, rows);										//几何关系判断string
+			newNote.string = whichLine(tmp, rows);											//几何关系判断string
 			if (!newNote.string) continue;
-			newNote.fret = rec(number, newNote.possible);								//识别数字fret
-			if (!SUCCEED(newNote.fret)) {
-				//TODO: 识别错误
-				return;
+			try {
+				newNote.fret = rec(number, newNote.possible);								//识别数字fret
 			}
+			catch (err ex) {
+				switch (ex.id) {
+				case 5: 
+				default: throw ex; break;
+				}
+			}
+			
 
 			draw(rectangle, ccolor, Point(tmp[0], tmp[1]), Point(tmp[2], tmp[3]), Scalar(0, 0, 255));
 
@@ -157,7 +165,7 @@ void measure::recNum(Mat section, vector<Vec4i> rows) {
 			global->characterWidth += tmp[2] - tmp[0];
 
 			this->maxCharacterWidth = max(maxCharacterWidth, tmp[2] - tmp[0]);
-			this->noteBottom = max(noteBottom, tmp[3]);
+			this->maxCharacterHeight = max(maxCharacterHeight, tmp[3] - tmp[1]);
 			this->notes[0].chords.emplace_back(newNote);
 		}
 	}
@@ -182,7 +190,7 @@ void measure::recTime(vector<Vec4i> rows) {
 		int pos = 0;
 	}timeComb;
 	int t = maxCharacterWidth;
-	Mat picValue = org(Range(max(noteBottom, rows[5][1]) + 1, org.rows), Range::all()).clone();
+	Mat picValue = org(Range(max(rows[5][1], rows[5][3]) + maxCharacterHeight / 2, org.rows), Range::all()).clone();
 	Mat inv;
 	vector<vector<Point>> cont;
 	vector<timeComb> TimeValue;
@@ -282,13 +290,13 @@ void measure::recTime(vector<Vec4i> rows) {
 	for (unsigned i = 1; i < TimeValue.size(); i++) {
 		if (TimeValue[i].time != kk) goto distribute;
 	}
-	kk = time.beat_type * (time.beats / (int)TimeValue.size());		//防止4个全音符或者2个四分音符之类的情况
+	kk = time.beat_type * (time.beats / (float)TimeValue.size());		//防止4个全音符或者2个四分音符之类的情况
 	for (timeComb& i : TimeValue) i.time = kk;
 
 distribute:
 	if (TimeValue.size() == 1 && notes.size() == 1) {
 		//全音符
-		kk = time.beat_type * time.beats;
+		kk = time.beat_type * (float)time.beats;
 		for (easynote& i : notes[0].chords) i.time = kk;
 		return;
 	}
@@ -332,6 +340,7 @@ vector<note> measure::getNotes() {
 			newn.timeValue = i.chords[j].time;
 			newn.notation.technical.string = i.chords[j].string;
 			newn.notation.technical.fret = i.chords[j].fret;
+			r.emplace_back(newn);
 		}
 	}
 	return r;

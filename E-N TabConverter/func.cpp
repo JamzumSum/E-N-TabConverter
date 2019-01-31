@@ -37,7 +37,7 @@ int go(string f,bool isCut) {
 		trimmed = perspect(trimmed, screenCols, (int) toRows);
 	}
 	std::vector<cv::Mat> piece;
-	imdebug("trimmed pic", trimmed);
+	//imdebug("trimmed pic", trimmed);
 	
 	splitter piccut(trimmed);
 	piccut.start(piece);

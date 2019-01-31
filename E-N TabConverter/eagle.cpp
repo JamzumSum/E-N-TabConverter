@@ -26,7 +26,6 @@ int rec(Mat character,vector<int> &possible) {
 	if (!knn->isTrained()) {
 		err ex = {5,__LINE__,"knnÍøÂç¶ÁÈ¡Ê§°Ü"};
 		throw ex;
-		return -1;
 	}
 	knn->findNearest(tmp, 5, res, neighbour);
 	possible.clear();
