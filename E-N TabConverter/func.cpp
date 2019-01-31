@@ -8,16 +8,14 @@
 
 using namespace std;
 
-#define imdebug(img, title) imshow((img), title); waitKey()
+#define imdebug(img, title) imshow((img), (title)); cv::waitKey()
 
 GlobalPool *global = NULL;
 
-#if workMode
-int main() {
+int TrainMode() {
 	train();
 	return 0;
 }
-#else
 
 extern notify<int> progress;
 extern notify<string> notification;
@@ -29,11 +27,10 @@ int go(string f,bool isCut) {
 	if (img.empty()) {
 		err ex = { 3,__LINE__,"Wrong format." };
 		throw ex;
-		return 1;
 	}
 	
 	cv::Mat trimmed = trim(img);
-	float screenCols = 1919 / 1.25;					//1919, 最大显示宽度；1.25， win10 系统缩放比
+	float screenCols = 1919 / 1.25f;				//1919, 最大显示宽度；1.25， win10 系统缩放比
 													//TODO：不知道怎么获取QAQ
 	if (trimmed.cols > screenCols) {
 		float toRows = screenCols / trimmed.cols * trimmed.rows;
@@ -84,24 +81,21 @@ int go(string f,bool isCut) {
 				try {
 					measure newSec(origin[j], section[j], rows, (int)k);
 					if (SUCCEED(newSec.id)) k++;
-					sections.push_back(newSec);
+					sections.emplace_back(newSec);
 				}
 				catch (err ex) {
 					switch (ex.id){
 					case 1:
-						//timeValue越界
-						imdebug(ex.description, origin[j]); 
-						break;
 					default: throw ex; break;
 					}
 				}
 			}
 		}
 		else {
-			if(flag) notes.push_back(piece[i]);
-			else info.push_back(piece[i]);
+			if(flag) notes.emplace_back(piece[i]);
+			else info.emplace_back(piece[i]);
 		}
-		progress = progress + 49 / (int)(n + 1);
+		progress = progress + 49 / (int)n;
 	}
 	piece.clear();
 
@@ -119,11 +113,9 @@ int go(string f,bool isCut) {
 		catch (err ex) {
 			switch (ex.id)
 			{
-			case 3:
-				//unexpected timeValue
-				break;
-			default:
-				break;
+			case 3: break;				//unexpected timeValue
+										//impossible
+			default: break;
 			}
 		}
 		progress = progress + 50 / (int)sections.size();
@@ -135,5 +127,3 @@ int go(string f,bool isCut) {
 	destroyAllWindows();
 	return 0;
 }
-
-#endif

@@ -295,21 +295,22 @@ void saveDoc::saveMeasure(measure toSave) {
 	int sta = 1;
 keepnote:
 
-
-	XMLElement** notes = new XMLElement*[toSave.notes.size()];
-	XMLElement** pitchs = new XMLElement*[toSave.notes.size()];
-	XMLElement** steps = new XMLElement*[toSave.notes.size()];
-	XMLElement** octaves = new XMLElement*[toSave.notes.size()];
-	XMLElement** durations = new XMLElement*[toSave.notes.size()];
-	XMLElement** voices = new XMLElement*[toSave.notes.size()];
-	XMLElement** types = new XMLElement*[toSave.notes.size()];
-	XMLElement** notations = new XMLElement*[toSave.notes.size()];
-	XMLElement** technicals = new XMLElement*[toSave.notes.size()];
-	XMLElement** frets = new XMLElement*[toSave.notes.size()];
-	XMLElement** strings = new XMLElement*[toSave.notes.size()];
+	vector<note> srcnotes = toSave.getNotes();
+	size_t n = srcnotes.size();
+	XMLElement** notes = new XMLElement*[n];
+	XMLElement** pitchs = new XMLElement*[n];
+	XMLElement** steps = new XMLElement*[n];
+	XMLElement** octaves = new XMLElement*[n];
+	XMLElement** durations = new XMLElement*[n];
+	XMLElement** voices = new XMLElement*[n];
+	XMLElement** types = new XMLElement*[n];
+	XMLElement** notations = new XMLElement*[n];
+	XMLElement** technicals = new XMLElement*[n];
+	XMLElement** frets = new XMLElement*[n];
+	XMLElement** strings = new XMLElement*[n];
 
 	
-	for (size_t i = 0; i < toSave.notes.size(); i++) {
+	for (size_t i = 0; i < n; i++) {
 		notes[i] = doc.NewElement("note");
 		pitchs[i] = doc.NewElement("pitch");
 		steps[i] = doc.NewElement("step");
@@ -322,28 +323,28 @@ keepnote:
 		frets[i] = doc.NewElement("fret");
 		technicals[i] = doc.NewElement("technical");
 
-		if (toSave.notes[i].chord) notes[i]->InsertEndChild(doc.NewElement("chord"));
+		if (srcnotes[i].chord) notes[i]->InsertEndChild(doc.NewElement("chord"));
 		char pi[3]; 
 		bool up;
-		switch (toSave.notes[i].notation.technical.string)
+		switch (srcnotes[i].notation.technical.string)
 		{
 		case 6:							//E2
-			pitch(toSave.notes[i].notation.technical.string, toSave.notes[i].notation.technical.fret, "E2", pi,up);
+			pitch(srcnotes[i].notation.technical.string, srcnotes[i].notation.technical.fret, "E2", pi,up);
 			break;
 		case 5:							//A2
-			pitch(toSave.notes[i].notation.technical.string, toSave.notes[i].notation.technical.fret, "A2", pi,up);
+			pitch(srcnotes[i].notation.technical.string, srcnotes[i].notation.technical.fret, "A2", pi,up);
 			break;
 		case 4:							//D3
-			pitch(toSave.notes[i].notation.technical.string, toSave.notes[i].notation.technical.fret, "D3", pi,up);
+			pitch(srcnotes[i].notation.technical.string, srcnotes[i].notation.technical.fret, "D3", pi,up);
 			break;
 		case 3:							//G3
-			pitch(toSave.notes[i].notation.technical.string, toSave.notes[i].notation.technical.fret, "G3", pi,up);
+			pitch(srcnotes[i].notation.technical.string, srcnotes[i].notation.technical.fret, "G3", pi,up);
 			break;
 		case 2:							//B3
-			pitch(toSave.notes[i].notation.technical.string, toSave.notes[i].notation.technical.fret, "B3", pi,up);
+			pitch(srcnotes[i].notation.technical.string, srcnotes[i].notation.technical.fret, "B3", pi,up);
 			break;
 		case 1:							//E4
-			pitch(toSave.notes[i].notation.technical.string, toSave.notes[i].notation.technical.fret, "E4", pi,up);
+			pitch(srcnotes[i].notation.technical.string, srcnotes[i].notation.technical.fret, "E4", pi,up);
 			break;
 		}
 		char qu[2];
@@ -360,12 +361,12 @@ keepnote:
 		//duration: 4:1024
 
 		char a[8] = "";
-		_itoa_s(1024 / toSave.time.beats * toSave.notes[i].timeValue, a, 10);
+		_itoa_s(1024 / toSave.time.beats * srcnotes[i].timeValue, a, 10);
 		durations[i]->InsertEndChild(doc.NewText(a));
 		notes[i]->InsertEndChild(durations[i]);
 		notes[i]->InsertEndChild(doc.NewElement("voice"))->InsertEndChild(doc.NewText(sta == 2 ? "5" : "1"));
 
-		switch (toSave.notes[i].timeValue)
+		switch (srcnotes[i].timeValue)
 		{
 		case 1:
 			types[i]->InsertEndChild(doc.NewText("whole"));
@@ -421,9 +422,9 @@ keepnote:
 		notes[i]->InsertEndChild(doc.NewElement("stem"))->InsertEndChild(doc.NewText("up"));
 		_itoa_s(sta, a, 10);
 		notes[i]->InsertEndChild(doc.NewElement("staff"))->InsertEndChild(doc.NewText(a));
-		_itoa_s(toSave.notes[i].notation.technical.string, a, 10);
+		_itoa_s(srcnotes[i].notation.technical.string, a, 10);
 		strings[i]->InsertEndChild(doc.NewText(a));
-		_itoa_s(toSave.notes[i].notation.technical.fret, a, 10);
+		_itoa_s(srcnotes[i].notation.technical.fret, a, 10);
 
 		frets[i]->InsertEndChild(doc.NewText(a));
 

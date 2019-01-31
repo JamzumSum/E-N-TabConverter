@@ -6,7 +6,8 @@ using namespace std;
 
 #define picFolder "C:\\Users\\Administrator\\Desktop\\oh"
 
-enum Value {
+enum value {
+	zero = 0,
 	whole = 1,
 	half = 2,
 	quarter = 4,
@@ -14,31 +15,100 @@ enum Value {
 	sixteenth = 16,
 	thirty_second = 32
 };
-typedef struct technical {
+
+class Value {
+private:
+	int v = whole;
+public:
+	bool dot = false;
+	Value(const value init) :v(init) {}
+	Value() {}
+	Value operator= (const value x) {
+		v = x;
+		return x;
+	}
+	Value operator+(const value x) {
+		if (!v) v = x;
+		else if (!x) return *this;
+		else return value(v * x / (v + x));
+	}
+	Value operator+= (const value x) {
+		if (!v) v = x;
+		else if (!x) return *this;
+		else v = v * x / (v + x);
+		return *this;
+	}
+	Value operator-(const value x) {
+		if (x == v) return zero;
+		if (!v) return x;
+		if (!x) return (value)v;
+		else return value(x * v / abs(x - v));
+	}
+	Value operator*(const int x) {
+		assert(!(v % x));
+		assert(x);
+		return (value)(v / x);
+	}
+	Value operator/(const int x) {
+		return (value)(v * x);
+	}
+	bool operator<(const value x) {
+		return x < this->v;
+	}
+	bool operator>(const value x) {
+		return x > this->v;
+	}
+	bool operator==(const value x) {
+		return x == this->v;
+	}
+	operator value() {
+		return (value)v;
+	}
+};
+
+typedef struct {
+	int pos;
+	unsigned string, fret;
+	vector<int> possible;
+	Value time;
+}easynote;
+
+typedef struct {
+	vector<easynote> chords;
+	int avrpos;
+}ChordSet;
+
+typedef struct{
 	int string = 1;									//弦
 	int fret = 0;									//品
 }technical;
 
-typedef struct notations {
+typedef struct{
 	char* dynamics = (char*)"mf";					//力度
 	technical technical;
 }notations;
 
-typedef struct note {
+class note{
+public:
 	bool chord = false;							//和声标记，为true与上一个音符同时发声
 	std::vector<int> possible;					//其他可能的品数
-	Value timeValue = whole;					//时值
+	Value timeValue;							//时值
 	bool dot = false;							//附点
 	int voice = 1;								//发声类型
 	int duration = 1;							//延音值
 	notations notation = { (char*)"mf",{1,0} };
 
 	int pos;									//x坐标
-}note;
+	bool operator==(const note x) {
+		return pos == x.pos &&
+			notation.technical.string == x.notation.technical.string &&
+			notation.technical.fret == x.notation.technical.fret;
+	}
+};
 
 typedef struct Time {
 	int beats = 4;								//每小节拍数
-	int beat_type = 4;							//几分音符算作一拍
+	Value beat_type = quarter;					//几分音符算作一拍
 }Time;
 
 typedef struct key {
@@ -47,19 +117,21 @@ typedef struct key {
 }key;
 
 class measure {
+
 private:
 	int noteBottom = 0;
 	int maxCharacterWidth = 0;
 	void recNum(cv::Mat section, vector<cv::Vec4i> rows);
 	void recTime(vector<cv::Vec4i> rows);
 	cv::Mat org;
+	vector<ChordSet> notes;
 public:
 	int id;
 	unsigned int number = 1;						//小节数
 	Time time;
-	vector<note> notes;
 	key key;
 	measure(cv::Mat org, cv::Mat img, vector<cv::Vec4i> rows, int id);
+	vector<note> getNotes();
 };
 
 typedef struct{
@@ -75,7 +147,7 @@ public:
 private:
 	cv::Mat org;
 	vector<space> collection;
-	int split();
+	void split();
 	void interCheck(vector<int> &f);
 	void KClassify(vector<bool> &classifier);
 };

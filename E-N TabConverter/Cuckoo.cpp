@@ -7,17 +7,15 @@
 using namespace std;
 using namespace cv;
 
-#define optimize 1
-
 #if _DEBUG
-#define Showrectangle //
-#define Showline //
+#define Showrectangle if(0)
+#define Showline if(0)
 #define draw(func, img, from, to, color) Show##func func(img, from, to, color)
 #define imdebug(img, title) imshow((img), title); waitKey()
 #else 
 #define draw(func, img, from, to, color)
-#define Showrectangle //
-#define Showline //
+#define Showrectangle /##/
+#define Showline /##/
 #define imdebug(img, title)
 #endif
 
@@ -55,8 +53,61 @@ void measure::recNum(Mat section, vector<Vec4i> rows) {
 	//imshow("2", section); waitKey();
 	vector<vector<Point>> cont;
 	Mat inv = 255 - section;
-
 	Mat ccolor;
+	auto mergeFret = [this](int t) {
+		auto n = notes[0].chords.end();
+		auto m = notes[0].chords.end();
+		while (1) {
+			//合并相邻的fret version2
+		mfind:
+			m = find_if(notes[0].chords.begin(), notes[0].chords.end(), [this, t, &n](const easynote x) ->bool {
+				n = find_if(notes[0].chords.begin(), notes[0].chords.end(), [x, t](const easynote y) ->bool {
+					return x.pos != y.pos
+						&& y.string == x.string
+						&& abs(x.pos - y.pos) <= 2 * t;
+				});
+				return n != notes[0].chords.end();
+			});
+			if (m == notes[0].chords.end()) break;
+			else {
+				if (m->pos > n->pos) swap(m, n);
+				if (m->fret > 1) {
+					for (int i : m->possible) {
+						if (i < 2) {
+							m->pos = (m->pos + n->pos) / 2;
+							m->fret = 10 * i + n->fret;
+							notes[0].chords.erase(n);
+							goto mfind;
+						}
+					}
+					err ex = { 0,__LINE__,"fret合并：不可置信条件. 检查模型" };
+					throw ex;
+				}
+				m->pos = (m->pos + n->pos) / 2;
+				m->fret = 10 + n->fret;
+				notes[0].chords.erase(n);
+			}
+		}
+	};
+	auto fillTimeAndPos = [this](int t) {
+		for (easynote& i : notes[0].chords) {
+			auto add = find_if(notes.begin(), notes.end(), [i, t](const ChordSet x) -> bool {
+				return abs(i.pos - x.avrpos) <= t / 2;
+			});
+			if (add == notes.end()) {
+				ChordSet newc;
+				newc.avrpos = i.pos;
+				newc.chords.emplace_back(i);
+				notes.emplace_back(newc);
+			}
+			else {
+				add->chords.emplace_back(i);
+				unsigned sum = 0;
+				for (easynote& i : add->chords) sum += i.pos;
+				add->avrpos = sum / (int)add->chords.size();
+			}
+		}
+	};
 	Showrectangle cvtColor(section, ccolor, CV_GRAY2BGR);
 
 	findContours(inv, cont, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
@@ -73,27 +124,27 @@ void measure::recNum(Mat section, vector<Vec4i> rows) {
 			&& tmp[3] - tmp[1] < 5 * (tmp[2] - tmp[0])
 			&& tmp[3] - tmp[1] > tmp[2] - tmp[0]						//形状限定
 			&& (global->characterWidth ? (tmp[2] - tmp[0] > global->characterWidth / 2) : 1)
-			&& (tmp[3] - tmp[1])*(tmp[2] - tmp[0]) > 9)					//大小限定
+			&& (tmp[3] - tmp[1]) * (tmp[2] - tmp[0]) > 9)					//大小限定
 		{
-			note newNote;
+			easynote newNote;
 			Mat number = section(Range(tmp[1], tmp[3] + 1), Range(tmp[0], tmp[2] + 1)).clone();
 			int sum = 0;
 			for (int y = 0; y < number.rows; y++) {
-				uchar *ptr = number.ptr<uchar>(y);
+				uchar* ptr = number.ptr<uchar>(y);
 				for (int w = 0; w < number.cols; w++) {
 					if (!ptr[w]) sum++;
 				}
 			}
-			if (sum > 0.8 * number.rows * number.cols) continue;
+			if (sum > 0.8* number.rows* number.cols) continue;
 			cvtColor(number, number, CV_GRAY2BGR);
 			if (number.cols != 8 || number.rows != 10) number = perspect(number, 8, 10);
-			
-			if(savepic) savePic(picFolder, number);															//保存数字样本
 
-			newNote.notation.technical.string = whichLine(tmp, rows);										//几何关系判断string
-			if (!newNote.notation.technical.string) continue;
-			newNote.notation.technical.fret = rec(number, newNote.possible);								//识别数字fret
-			if (!SUCCEED(newNote.notation.technical.fret)) {
+			if (savepic) savePic(picFolder, number);															//保存数字样本
+
+			newNote.string = whichLine(tmp, rows);										//几何关系判断string
+			if (!newNote.string) continue;
+			newNote.fret = rec(number, newNote.possible);								//识别数字fret
+			if (!SUCCEED(newNote.fret)) {
 				//TODO: 识别错误
 				return;
 			}
@@ -107,123 +158,104 @@ void measure::recNum(Mat section, vector<Vec4i> rows) {
 
 			this->maxCharacterWidth = max(maxCharacterWidth, tmp[2] - tmp[0]);
 			this->noteBottom = max(noteBottom, tmp[3]);
-			this->notes.push_back(newNote);
+			this->notes[0].chords.emplace_back(newNote);
 		}
 	}
 	Showrectangle imdebug("2", ccolor);
 
-	int t = maxCharacterWidth;
-	auto n = notes.end();
-	auto m = notes.end();
-	while (1) {
-		//合并相邻的fret version2
-	mfind:
-		m = find_if(notes.begin(), notes.end(), [this, t, &n](const note x) ->bool {
-			n = find_if(notes.begin(), notes.end(), [x, t](const note y) ->bool {
-				return x.pos != y.pos
-					&& y.notation.technical.string == x.notation.technical.string
-					&& abs(x.pos - y.pos) <= 2 * t;
-			});
-			return n != notes.end();
-		});
-		if (m == notes.end()) break;
-		else {
-			if (m->pos > n->pos) swap(m, n);
-			if (m->notation.technical.fret > 1) {
-				for (int i : m->possible) {
-					if (i < 2) {
-						m->pos = (m->pos + n->pos) / 2;
-						m->notation.technical.fret = 10 * i + n->notation.technical.fret;
-						notes.erase(n);
-						goto mfind;
-					}
-				}
-				err ex = { 0,__LINE__,"fret合并：不可置信条件. 检查模型" };
-				throw ex;
-			}
-			m->pos = (m->pos + n->pos) / 2;
-			m->notation.technical.fret = 10 + n->notation.technical.fret;
-			notes.erase(n);
-		}
-	}
-
-	sort(this->notes.begin(), this->notes.end(), [](const note x, const note y) -> bool {
-		return x.pos < y.pos || (x.pos == y.pos && x.notation.technical.string < y.notation.technical.string);
+	
+	
+	mergeFret(maxCharacterWidth);
+	sort(notes[0].chords.begin(), notes[0].chords.end(), [](const easynote x, const easynote y) -> bool {
+		return x.pos < y.pos || (x.pos == y.pos && x.string < y.string);
 	});
-	for (size_t i = 1; i < notes.size(); i++) {
-		if (notes[i].pos - notes[i - 1].pos <= t / 2) {
-			notes[i].chord = true;
-		}
-	}
-	//imshow("2", ccolor); waitKey();
+	
+	fillTimeAndPos(maxCharacterWidth);
+	notes.erase(notes.begin());
+	//imdebug("2", ccolor);
 }
 
 void measure::recTime(vector<Vec4i> rows) {
-	int predLen = 0;
+	typedef struct {
+		value time = whole;
+		bool dot = false;
+		int pos = 0;
+	}timeComb;
+	int t = maxCharacterWidth;
 	Mat picValue = org(Range(max(noteBottom, rows[5][1]) + 1, org.rows), Range::all()).clone();
 	Mat inv;
 	vector<vector<Point>> cont;
-	if (org.rows < global->rowLenth * 2 && org.rows > global->rowLenth / 2) {
-		inv = 255 - Morphology(picValue, picValue.rows / 3, false, true);
-		findContours(inv, cont, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
-
-		//imshow("2", picValue); waitKey();
-		Vec2i temp = { picValue.rows,0 };
-		int tr = picValue.rows / 4;
-		while (!cont.size()) {
-			Mat inv = 255 - Morphology(picValue, tr--, false, true);
+	vector<timeComb> TimeValue;
+	auto predictLenth = [&inv, &picValue, &cont, this]() -> int {
+		int predLen = 0;
+		if (org.rows < global->rowLenth * 2 && org.rows > global->rowLenth / 2) {
+			inv = 255 - Morphology(picValue, picValue.rows / 3, false, true);
 			findContours(inv, cont, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
-			if (tr < 2) {
-				for (int i = 0; i < picValue.rows; i++) {
-					if (!isEmptyLine(picValue, i, 0.04)) {
-						err ex = { 6,__LINE__,"未扫描到纵向结构" };
-						throw ex;
-					}
-				}
-				return;
-			}
-		}
 
-		for (int i = 0; i < cont.size(); i++) {
-			for (int j = 0; j < cont[i].size(); j++) {
-				temp[0] = min(temp[0], cont[i][j].y);
-				temp[1] = max(temp[1], cont[i][j].y);
+			//imdebug("2", picValue);
+			Vec2i temp = { picValue.rows,0 };
+			int tr = picValue.rows / 4;
+			while (!cont.size()) {
+				inv = 255 - Morphology(picValue, tr--, false, true);
+				findContours(inv, cont, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
+				if (tr < 2) {
+					for (int i = 0; i < picValue.rows; i++) {
+						if (!isEmptyLine(picValue, i, 0.04)) {
+							err ex = { 6,__LINE__,"未扫描到纵向结构" };
+							throw ex;
+						}
+					}
+					return 0;
+				}
 			}
-			predLen = max(predLen, temp[1] - temp[0]);
+
+			for (int i = 0; i < cont.size(); i++) {
+				for (int j = 0; j < cont[i].size(); j++) {
+					temp[0] = min(temp[0], cont[i][j].y);
+					temp[1] = max(temp[1], cont[i][j].y);
+				}
+				predLen = max((int)predLen, temp[1] - temp[0]);
+			}
+			global->valueSignalLen += predLen;
 		}
-		global->valueSignalLen += predLen;
-	}
-	else {
-		predLen = global->valueSignalLen;
-	}
+		else {
+			predLen = global->valueSignalLen;
+		}
+		return predLen;
+	};
+	auto time_denoise = [&cont]() {
+		auto m = cont.end();
+		while (1) {
+			m = find_if(cont.begin(), cont.end(), [cont](vector<Point> x) ->bool {
+				auto l = [](Point m, Point n) ->bool {
+					return m.y < n.y;
+				};
+				int up = min_element(x.begin(), x.end(), l)->y;
+				int len = max_element(x.begin(), x.end(), l)->y - up;
+				return find_if(cont.begin(), cont.end(), [cont, x, l, up, len](vector<Point> y) ->bool {
+					int max = max_element(y.begin(), y.end(), l)->y;
+					return max < up
+						&& max - min_element(y.begin(), y.end(), l)->y > len;
+				}) != cont.end();
+			});
+			if (m == cont.end()) break;
+			else cont.erase(m);
+		};
+		sort(cont.begin(), cont.end(), [](vector<Point> x, vector<Point> y) ->bool {
+			return x[0].x < y[0].x;
+		});
+	};
+	//==========================================local and lambda=================================================
+	//==========================================local and lambda=================================================
+	//==========================================local and lambda=================================================
+	int predLen = predictLenth();
+	if (!predLen) return;
+
 	inv = 255 - Morphology(picValue, round(predLen * 0.3), false, true);
 	findContours(inv, cont, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
 
-	//去掉节拍记号再往下的乱七八糟的东西
-	auto m = cont.end();
-	while (1) {
-		m = find_if(cont.begin(), cont.end(), [cont](vector<Point> x) ->bool {
-			auto l = [](Point m, Point n) ->bool {
-				return m.y < n.y;
-			};
-			int up = min_element(x.begin(), x.end(), l)->y;
-			int len = max_element(x.begin(), x.end(), l)->y - up;
-			return find_if(cont.begin(), cont.end(), [cont, x, l, up, len](vector<Point> y) ->bool {
-				int max = max_element(y.begin(), y.end(), l)->y;
-				return max < up
-					&& max - min_element(y.begin(), y.end(), l)->y > len;
-			}) != cont.end();
-		});
-		if (m == cont.end()) break;
-		else cont.erase(m);
-	};
+	time_denoise();						//去掉节拍记号再往下的乱七八糟的东西
 
-	sort(cont.begin(), cont.end(), [](vector<Point> x, vector<Point> y) ->bool {
-		return x[0].x < y[0].x;
-	});
-
-	vector<int> timeValue;
-	vector<int> timePos;
 	for (int i = 0; i < cont.size(); i++) {
 		Vec4i tmp = { picValue.cols,picValue.rows,0,0 };
 		for (int j = 0; j < cont[i].size(); j++) {
@@ -240,43 +272,43 @@ void measure::recTime(vector<Vec4i> rows) {
 		if (tmp[3] - tmp[1] <= predLen / 2 && !sum1 && !sum2) {
 			sum1--; sum2--;
 		}
-		timeValue.push_back((int)(this->time.beat_type * pow(2, max(sum1, !sum3 && sum2 ? sum2 - 1 : sum2)) * (!sum3 && sum2 ? 1.5 : 1)));
-		timePos.push_back((tmp[0] + tmp[2]) / 2);
+		timeComb newc;
+		newc.dot = !sum3 && sum2;
+		newc.time = time.beat_type / (int)pow(2, max(sum1, !sum3 && sum2 ? sum2 - 1 : sum2));
+		newc.pos = (tmp[0] + tmp[2]) / 2;
+		TimeValue.emplace_back(newc);
 	}
-	int kk = timeValue[0];
-	for (unsigned i = 1; i < timeValue.size(); i++) {
-		if (timeValue[i] != kk) goto distribute;
+	Value kk = TimeValue[0].time;
+	for (unsigned i = 1; i < TimeValue.size(); i++) {
+		if (TimeValue[i].time != kk) goto distribute;
 	}
-	kk = time.beats / (int)timeValue.size() * time.beat_type;
-	for (int& i : timeValue) {
-		i = kk;
-	}
+	kk = time.beat_type * (time.beats / (int)TimeValue.size());		//防止4个全音符或者2个四分音符之类的情况
+	for (timeComb& i : TimeValue) i.time = kk;
+
 distribute:
-	/*for (int k = 0, i = 0; i < notes.size(); i++) {
-		if (notes[i].chord) {
-			notes[i].timeValue = notes[i - 1].timeValue;
-		}
-		else {
-			if (k == timeValue.size()) {
-				err ex = { 1,__LINE__,"time 越界，自动跳出，建议检查该小节 notes 的 chord 划分" };
-				throw ex;
-			}
-			notes[i].timeValue = (Value)timeValue[k++];
-		}
-	}*/
-	vector<note*> noValue;
-	for (note &i : notes) {
-		noValue.push_back(&i);
+	if (TimeValue.size() == 1 && notes.size() == 1) {
+		//全音符
+		kk = time.beat_type * time.beats;
+		for (easynote& i : notes[0].chords) i.time = kk;
+		return;
 	}
-	for (int i = 0; i < timeValue.size(); i++) {
-		int pos = timePos[i];
-		int t = maxCharacterWidth;
+	//不应该含全音符
+
+
+	vector<ChordSet*> noValue;
+	for (ChordSet& i : notes) noValue.emplace_back(&i);
+	
+	for (int i = 0; i < TimeValue.size(); i++) {
+		int pos = TimeValue[i].pos;
 		for (;;) {
-			auto s = find_if(noValue.begin(), noValue.end(), [pos, t](note* x)->bool {
-				return abs(x->pos - pos) < t;
+			auto s = find_if(noValue.begin(), noValue.end(), [pos, t](const ChordSet* x)->bool {
+				return abs(x->avrpos - pos) < t;
 			});
 			if (s == noValue.end()) break;
-			(*s)->timeValue = (Value)timeValue[i];
+			for (easynote& j : (**s).chords) {
+				j.time = TimeValue[i].time;
+				j.time.dot = TimeValue[i].dot;
+			}
 			noValue.erase(s);
 		}
 	}
@@ -284,6 +316,25 @@ distribute:
 		err ex = { 1,__LINE__,"有未分配时值的乐符" };
 		throw ex;
 	}
+}
+
+vector<note> measure::getNotes() {
+	vector<note> r;
+	for (ChordSet& i : notes) {
+		if (i.chords.empty()) continue;
+		note newn;
+		newn.chord = false;  newn.timeValue = i.chords[0].time;
+		newn.notation.technical.string = i.chords[0].string;
+		newn.notation.technical.fret = i.chords[0].fret;
+		r.emplace_back(newn);
+		newn.chord = true;
+		for (unsigned j = 1; j < i.chords.size(); j++) {
+			newn.timeValue = i.chords[j].time;
+			newn.notation.technical.string = i.chords[j].string;
+			newn.notation.technical.fret = i.chords[j].fret;
+		}
+	}
+	return r;
 }
 
 measure::measure(Mat org, Mat img, vector<Vec4i> rows, int id) {
@@ -300,16 +351,14 @@ measure::measure(Mat org, Mat img, vector<Vec4i> rows, int id) {
 	catch (err ex) {
 		switch (ex.id)
 		{
-		case 0:
-			//包含不合理数据
+		case 0: break;									//包含不合理数据
+		case 1:											//timeValue越界
+			imdebug(ex.description, org);
 			break;
-		case 6:
-			//没有竖直结构用以判断时值
-			imdebug("2", org);
+		case 6:											//没有竖直结构用以判断时值
+			imdebug(ex.description, org);
 			break;
-		default:
-			throw ex;
-			break;
+		default: throw ex; break;
 		}
 	}
 }
@@ -355,8 +404,7 @@ void splitter::KClassify(vector<bool> &classifier) {
 	}
 }
 
-int splitter::split() {
-	int r = 1;
+void splitter::split() {
 	bool flag = false;
 	unsigned row = org.rows;
 
@@ -377,7 +425,6 @@ int splitter::split() {
 	}
 	if (collection.size() < 2) {
 		collection.clear();
-		r = 2;
 		notification = "裁剪失败，等待二次裁剪";
 		//二次裁剪为缩减判断空行的范围，从之前的从像素x=0 至x=col到检测到的横线的x1至x2
 		vector<Vec4i> rows;
@@ -405,23 +452,20 @@ int splitter::split() {
 
 		}
 		if (collection.size() < 2) {
-			r = 3;
 			err ex = { 4,__LINE__,"二次裁剪失败，请手动处理" };
 			throw ex;
 		}
 		/*Mat ccolor;
 		for (int i = 0; i < coll.size(); i++) {
 			cvtColor(img, ccolor, CV_GRAY2BGR);
-			line(ccolor, CvPoint(0, coll[i].start), CvPoint(img.cols, coll[i].start), CvScalar(0, 0, 255));
-			line(ccolor, CvPoint(0, coll[i].start + coll[i].length), CvPoint(img.cols, coll[i].start + coll[i].length), CvScalar(255, 0, 0));
+			draw(line, ccolor, CvPoint(0, coll[i].start), CvPoint(img.cols, coll[i].start), CvScalar(0, 0, 255));
+			draw(line, ccolor, CvPoint(0, coll[i].start + coll[i].length), CvPoint(img.cols, coll[i].start + coll[i].length), CvScalar(255, 0, 0));
 		}
-		imshow("2", ccolor); cvWaitKey();*/
+		imdebug("2", ccolor);*/
 	}
-	return r;
 }
 
 void splitter::interCheck(vector<int> &f) {
-#if optimize
 	//O(n^2)
 	unsigned *pool = new unsigned[collection.size()];
 	size_t n;
@@ -439,52 +483,10 @@ void splitter::interCheck(vector<int> &f) {
 
 		if (mindist > max - min) {
 			collection.erase(collection.begin() + i);
-			f.push_back(i);
+			f.emplace_back(i);
 		}
 	}
 	delete[] pool;
-#else
-	//O(what???)
-	size_t n = collection.size();
-
-	if (n <= 1) return;
-	f.clear();
-	int **pool = new int*[n];
-	//初始化截止
-	for (int i = 0; i < n; i++) pool[i] = new int[n]();
-	for (int i = 0; i < n; i++) 
-		for (int j = 0; j < n; j++) 
-			pool[i][j] = abs(collection[i].length - collection[j].length);
-	//初值设置完毕
-
-	//校验开始
-	for (int i = 0; i < n; i++) {
-		int min = _CRT_INT_MAX, max = 0;
-		for (int j = 0; j < n; j++) {
-			if (j == i) continue;
-			if (min > pool[i][j]) {
-				min = pool[i][j];
-			}
-			for (int q = 0; q < n; q++) {
-				if (q == i) continue;
-				if (max < pool[q][j]) {
-					max = pool[q][j];
-				}
-			}
-		}
-		if (max < min) {
-			collection.erase(collection.begin() + i);
-			for (int k = 0; k < n; k++) delete[] pool[k];
-			delete[] pool;
-			f.push_back(i);
-			interCheck(f);
-			return;
-		}
-	}
-	for (int k = 0; k < n; k++) delete[] pool[k];
-	delete[] pool;
-	return;
-#endif
 }
 
 splitter::splitter(Mat img) {
@@ -531,12 +533,12 @@ void splitter::start(vector<Mat>& piece) {
 			draw(line, ccolor, CvPoint(0, collection[i].start), CvPoint(org.cols, collection[i].start), CvScalar(0, 0, 255));
 			draw(line, ccolor, CvPoint(0, collection[i].start + collection[i].length), CvPoint(org.cols, collection[i].start + collection[i].length), CvScalar(0, 0, 255));
 
-			toCut.push_back(collection[i]);
+			toCut.emplace_back(collection[i]);
 		}
 	}
 	Showline imdebug("2", ccolor);
 
-	if (toCut.size() > 2) collection.clear();
+	if (toCut.size() > 2) collection.shrink_to_fit();
 	else toCut.swap(collection);
 
 	n = toCut.size();

@@ -48,6 +48,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 	main.create();
 	main.Event_Window_Resize = [](form* me) {
 		pix = me->w / 12;
+		scan.move(5 * pix, 0);
 	};
 	
 	scan.Event_On_Click = [](Button* me) {
