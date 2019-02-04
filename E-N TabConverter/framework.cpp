@@ -1,13 +1,18 @@
 #include "cv.h"
+#include "Dodo.h"
 #include "imgproc.hpp"
 #include "opencv.hpp"
 
 using namespace std;
 using namespace cv;
 
-#define useInpaint 1
+#define imdebug(img, title) imshow((img), (title)); cv::waitKey()
+
+#define useInpaint 0
 #if _DEBUG
-#define ShowDenoise 0
+#define ShowDenoise if(0)
+#else
+#define ShowDenoise /##/
 #endif
 int cut(Mat img, vector<Vec4i> divideBy, int direction, vector<Mat> &container, bool includeAll) {
 	//direction: 0是竖直裁剪, 1是水平裁剪
@@ -95,22 +100,35 @@ inline void extractNum(vector<Vec4i> &pos, vector<Mat> &nums, vector<Mat> sectio
 Mat Denoise(Mat img,vector<Vec4i> lines, double radius) {
 	//为OCR去掉横线
 	//用形态学腐蚀得到mask 将mask上的点置0
-#if !useInpaint
-	Mat dilated;
-	dilated = 255 - Morphology(img, img.cols / 50, true, true);
-	dilated = Morphology(dilated, 2, true, true);
-	//imshow("2", dilated); cvWaitKey();
-	return cv::max(dilated, img);
+#if useInpaint
+	Mat r, mask = Mat(img.size(), CV_8UC1, Scalar::all(0));
+	for (Vec4i& i : lines) line(mask, Point(i[0], i[1]), Point(i[2], i[3]), Scalar(255));
+
+	inpaint(img, mask, r, radius, INPAINT_TELEA);
+	threshold(r, r, 200, 255, THRESH_BINARY);
+
+	ShowDenoise imdebug("denoise(Inpaint)", r);
+	/*Ptr<LineSegmentDetector> ls = createLineSegmentDetector(LSD_REFINE_NONE);
+	vector<Vec4i> lines_lsd;
+
+	ls->detect(img, lines_lsd);
+	ls->drawSegments(img, lines_lsd);
+	imdebug("lsd detect", img);*/
+
+	return r;
+#else
+	Mat mask, r;
+	mask = Morphology(255 - img, img.cols / 24, true, false);
+	r = mask ^ img;
+	mask = Morphology(255 - img, img.rows / 8, false, false);
+	r = mask ^ r;
+
+	r = Morphology(r, 2, true, true);
+	r = Morphology(r, 2, false, true);
+
+	threshold(r, r, 225, 255, THRESH_BINARY);
+
+	ShowDenoise imdebug("denoise(Morphology)", r);
+	return r;
 #endif
-	Mat mask = Mat(img.size(), CV_8UC1, Scalar::all(0));
-	for (size_t i = 0; i < lines.size(); i++) {
-		line(mask, Point(lines[i][0], lines[i][1]), Point(lines[i][2], lines[i][3]), Scalar(255));
-		
-	}
-	inpaint(img, mask, img, radius, INPAINT_TELEA);
-	threshold(img, img, 217, 255, THRESH_BINARY);
-#if ShowDenoise
-	imdebug("2", img);
-#endif
-	return img;
 }

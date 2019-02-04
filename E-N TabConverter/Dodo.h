@@ -16,7 +16,7 @@ bool isEmptyLine(Mat img, int y, size_t from, size_t to, double rate);
 Mat trim(Mat img, double threshold = 0.01);
 void findRow(Mat img, Mat &Outputimg, double rangeTheta, vector<Vec4i> &lines, vector<int> &thickness);
 void findCol(Mat img, double rangeTheta, int upper,int lower, vector<int> thick , vector<Vec4i> &lines);
-unsigned whichLine(Vec4i character, vector<Vec4i> rows);
+unsigned whichLine(Rect character, vector<Vec4i> rows);
 void saveNums(string folder, vector<Mat> nums);
 Mat Morphology(Mat img, int len, bool horizontal, bool open);
 void savePic(string folder, Mat pic);

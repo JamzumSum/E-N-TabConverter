@@ -11,7 +11,7 @@ using namespace cv;
 #define Showrectangle if(0)
 #define Showline if(0)
 #define draw(func, img, from, to, color) Show##func func(img, from, to, color)
-#define imdebug(img, title) imshow((img), title); waitKey()
+#define imdebug(img, title) imshow((img), title); cv::waitKey()
 #else 
 #define draw(func, img, from, to, color)
 #define Showrectangle /##/
@@ -50,8 +50,8 @@ void measure::recNum(Mat section, vector<Vec4i> rows) {
 		section，Mat，传入图像
 		rows，Vec4i，传入的网格信息（谱线）
 	*/
-	//imshow("2", section); waitKey();
 	vector<vector<Point>> cont;
+	vector<Rect> region, possible;
 	Mat inv = 255 - section;
 	Mat ccolor;
 	auto mergeFret = [this](int t) {
@@ -108,79 +108,89 @@ void measure::recNum(Mat section, vector<Vec4i> rows) {
 			}
 		}
 	};
+	auto countBlack = [](Mat number) -> int {
+		int sum = 0;
+		for (int y = 0; y < number.rows; y++) {
+			uchar* ptr = number.ptr<uchar>(y);
+			for (int w = 0; w < number.cols; w++) if (!ptr[w]) sum++;
+		}
+		return sum;
+	};
 	Showrectangle cvtColor(section, ccolor, CV_GRAY2BGR);
 
 	notes.resize(1);
 
 	findContours(inv, cont, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
-	for (int q = 0; q < cont.size(); q++) {
-		Vec4i tmp = { section.cols,section.rows,0,0 };
-		for (int k = 0; k < cont[q].size(); k++) {
-			tmp[0] = min(tmp[0], cont[q][k].x);
-			tmp[2] = max(tmp[2], cont[q][k].x);
-			tmp[1] = min(tmp[1], cont[q][k].y);
-			tmp[3] = max(tmp[3], cont[q][k].y);
+	for (vector<Point>& i : cont) {								//convert contour to rect
+		Rect tmp = boundingRect(i);
+		if (tmp.area() > 9
+			&& tmp.height > 3
+			&& tmp.width > 3
+			&& tmp.height < 0.8 * section.rows
+			&& tmp.width < 0.8* section.cols
+			) {
+			region.emplace_back(tmp);
 		}
+	}
+	cont.shrink_to_fit();
+
+	for (Rect& i: region) {
 		//限定筛选
-		if (tmp[3] - tmp[1] < rows[1][1] - rows[0][1]					//网格限定
-			&& tmp[3] - tmp[1] < 5 * (tmp[2] - tmp[0])
-			&& tmp[3] - tmp[1] > tmp[2] - tmp[0]						//形状限定
-			&& (global->characterWidth ? (tmp[2] - tmp[0] > global->characterWidth / 2) : 1)
-			&& (tmp[3] - tmp[1]) * (tmp[2] - tmp[0]) > 9)					//大小限定
-		{
-			easynote newNote;
-			Mat number = section(Range(tmp[1], tmp[3] + 1), Range(tmp[0], tmp[2] + 1)).clone();
-
-			int sum = 0;
-			for (int y = 0; y < number.rows; y++) {
-				uchar* ptr = number.ptr<uchar>(y);
-				for (int w = 0; w < number.cols; w++) {
-					if (!ptr[w]) sum++;
-				}
+		if (i.height < rows[1][1] - rows[0][1]					//网格限定
+			&& i.height < 5 * i.width
+			&& (global->characterWidth ? (i.width > global->characterWidth / 2) : 1)
+		) {
+			if (i.height <= i.width) {
+				//TODO: 形状异常
+				if(i.height > maxCharacterHeight / 2) possible.emplace_back(i);
+				continue;
 			}
-			if (sum > 0.8* number.rows* number.cols) continue;
-			cvtColor(number, number, CV_GRAY2BGR);
-			if (number.cols != 8 || number.rows != 10) number = perspect(number, 8, 10);
+			easynote newNote;
+			Mat number = section(i).clone();
+			if (countBlack(number) > 0.8* i.area()) continue;
 
+			cvtColor(number, number, CV_GRAY2BGR);
+
+			number = perspect(number, 8, 10);
 			if (savepic) savePic(picFolder, number);										//保存数字样本
 
-			newNote.string = whichLine(tmp, rows);											//几何关系判断string
+			newNote.string = whichLine(i, rows);											//几何关系判断string
 			if (!newNote.string) continue;
 			try {
 				newNote.fret = rec(number, newNote.possible);								//识别数字fret
 			}
 			catch (err ex) {
 				switch (ex.id) {
-				case 5: 
+				case 5:
 				default: throw ex; break;
 				}
 			}
-			
-
-			draw(rectangle, ccolor, Point(tmp[0], tmp[1]), Point(tmp[2], tmp[3]), Scalar(0, 0, 255));
 
 
-			newNote.pos = (tmp[0] + tmp[2]) / 2;
+			draw(rectangle, ccolor, i.tl(), i.br(), Scalar(0, 0, 255));
 
-			global->characterWidth += tmp[2] - tmp[0];
+			newNote.pos = i.width / 2 + i.x;
+			global->characterWidth += i.width;
 
-			this->maxCharacterWidth = max(maxCharacterWidth, tmp[2] - tmp[0]);
-			this->maxCharacterHeight = max(maxCharacterHeight, tmp[3] - tmp[1]);
-			this->notes[0].chords.emplace_back(newNote);
+			maxCharacterWidth = max(maxCharacterWidth, i.width);
+			maxCharacterHeight = max(maxCharacterHeight, i.height);
+			notes[0].chords.emplace_back(newNote);
 		}
 	}
-	Showrectangle imdebug("2", ccolor);
+	/*for (Rect& i : possible) {
+		Mat what = section(i);
+		imdebug("possible number", what);
+	}*/
+	Showrectangle imdebug("Showrectangle", ccolor);
 
-	
-	
+
 	mergeFret(maxCharacterWidth);
 	sort(notes[0].chords.begin(), notes[0].chords.end(), [](const easynote x, const easynote y) -> bool {
 		return x.pos < y.pos || (x.pos == y.pos && x.string < y.string);
 	});
-	
+
 	fillTimeAndPos(maxCharacterWidth);
 	notes.erase(notes.begin());
-	//imdebug("2", ccolor);
 }
 
 void measure::recTime(vector<Vec4i> rows) {
@@ -346,9 +356,11 @@ vector<note> measure::getNotes() {
 	return r;
 }
 
-measure::measure(Mat org, Mat img, vector<Vec4i> rows, int id) {
-	this->id = id;
-	this->org = org;
+measure::measure(Mat org, Mat img, vector<Vec4i> rows, int id)
+	:id(id), org(org)
+{
+	maxCharacterWidth = global->characterWidth / 2;
+	maxCharacterHeight = maxCharacterWidth + 1;
 	if (org.cols < global->colLenth / 5) {
 		this->id = -1;
 		return;

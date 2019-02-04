@@ -116,10 +116,9 @@ typedef struct key {
 }key;
 
 class measure {
-
 private:
-	int maxCharacterHeight = 0;
 	int maxCharacterWidth = 0;
+	int maxCharacterHeight = 0;
 	void recNum(cv::Mat section, vector<cv::Vec4i> rows);
 	void recTime(vector<cv::Vec4i> rows);
 	cv::Mat org;
@@ -150,10 +149,3 @@ private:
 	void interCheck(vector<int> &f);
 	void KClassify(vector<bool> &classifier);
 };
-
-/*
-class Denoiser {
-private:
-	double radius;
-};
-*/
