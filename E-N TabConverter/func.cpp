@@ -31,13 +31,6 @@ int go(string f,bool isCut) {
 	}
 	
 	Mat trimmed = trim(img);
-	/*Mat r = Morphology(255 - trimmed, trimmed.cols / 2, true, true);
-	Mat ccolor;
-	cvtColor(trimmed, ccolor, CV_GRAY2BGR);
-	vector<vector<Point>> cont;
-	findContours(r, cont, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
-	drawContours(ccolor, cont, -1, Scalar(255, 0, 0));*/
-
 	float screenCols = 1919 / 1.25f;				//1919, 最大显示宽度；1.25， win10 系统缩放比
 													//TODO：不知道怎么获取QAQ
 	if (trimmed.cols > screenCols) {
@@ -45,7 +38,6 @@ int go(string f,bool isCut) {
 		trimmed = perspect(trimmed, screenCols, (int) toRows);
 	}
 	vector<Mat> piece;
-	//imdebug("trimmed pic", trimmed);
 	
 	splitter piccut(trimmed);
 	piccut.start(piece);

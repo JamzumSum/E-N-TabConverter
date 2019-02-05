@@ -8,7 +8,7 @@ using namespace std;
 using namespace cv;
 
 #if _DEBUG
-#define Showrectangle if(0)
+#define Showrectangle if(1)
 #define Showline if(0)
 #define draw(func, img, from, to, color) Show##func func(img, from, to, color)
 #define imdebug(img, title) imshow((img), title); cv::waitKey()
@@ -510,11 +510,30 @@ void splitter::interCheck(vector<int> &f) {
 	delete[] pool;
 }
 
-splitter::splitter(Mat img) {
-	this->org = img;
+splitter::splitter(Mat img)
+	:org(img)
+{
+
 }
 
 void splitter::start(vector<Mat>& piece) {
+#if 1
+	Mat r = Morphology(255 - org, org.cols / 2, true, true);
+	r = Morphology(r, org.cols / 100, false, true);
+	Mat ccolor;
+	cvtColor(org, ccolor, CV_GRAY2BGR);
+	vector<vector<Point>> cont;
+	findContours(r, cont, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
+
+	size_t n = cont.size();
+	vector<Rect> region(n);
+	piece.resize(cont.size());
+
+	for (size_t k = 0; k < n; k++) region[k] = boundingRect(cont[k]);
+	sort(region.begin(), region.end(), [](const Rect x, const Rect y) -> bool {return x.y < y.y; });
+
+	for (size_t k = 0; k < n; k++) piece[k] = org(region[k]).clone();
+#else
 	try { split(); }
 	catch (err ex) {
 		switch (ex.id)
@@ -574,4 +593,5 @@ void splitter::start(vector<Mat>& piece) {
 	org(Range(toCut[n - 1].start + toCut[n - 1].length + 1, org.rows), Range(0, org.cols)).copyTo(piece[n]);
 
 	for (Mat& i: piece) i = trim(i);				//每个分割出来的行再剪去空白
+#endif
 }
