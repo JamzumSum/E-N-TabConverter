@@ -23,30 +23,31 @@
 |Cuckoo.h     |小节内部识别                  |
 |global.h     |全局变量声明                  |
 |GUI.h        |win32界面库                   |
-|myheader.h   |函数声明汇总                  |
-|swan.h       |xml输出模块                   |
+|Dodo.h       |图像处理函数声明                |
+|swan.h       |XML输出模块                   |
 |type.h       |类 自定义类型声明              |
 
 #### 源文件
 
 |源文件名      |简介                          |
 |:-----------:|------------------------------|
-|Dodo.cpp     |图像处理函数汇集                |
-|eagle.cpp    |机器学习函数汇集                |
-|framework.cpp|较大规模图像处理模块            |
+|Cuckoo.cpp   |图像处理类实现                  |
+|Dodo.cpp     |图像处理函数实现                |
+|eagle.cpp    |机器学习函数实现                |
+|framework.cpp|较大规模图像处理函数实现          |
 |frmain.cpp   |界面                           |
-|maincpp.cpp  |算法实现                       |
+|func.cpp     |算法实现                       |
 
 #### 杂项
 
-|文件（夹）    |简介                          |
-|:-----------:|------------------------------|
-|icon         |存放图标                       |
-|OpenCV       |OpenCV函数库                   |
+|文件（夹）         |简介                          |
+|:---------------:|------------------------------|
+|icon             |存放图标                     |
+|OpenCV           |OpenCV函数库                 |
 |sample_classified|已分类样本                 |
-|sample_picture|测试用图                      |
-|tData.csv    |机器学习训练数据                |
-|tinyxml2     |tinyxml2库                     |
+|sample_picture   |测试用图                      |
+|tData.csv        |机器学习训练数据                |
+|tinyxml2         |tinyxml2库                     |
 
 ### 引用
 
