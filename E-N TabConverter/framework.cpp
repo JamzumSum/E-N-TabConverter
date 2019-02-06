@@ -123,9 +123,6 @@ Mat Denoise(Mat img,vector<Vec4i> lines, double radius) {
 	mask = Morphology(255 - img, img.rows / 8, false, false);
 	r = mask ^ r;
 
-	r = Morphology(r, 2, true, true);
-	r = Morphology(r, 2, false, true);
-
 	threshold(r, r, 225, 255, THRESH_BINARY);
 
 	ShowDenoise imdebug("denoise(Morphology)", r);

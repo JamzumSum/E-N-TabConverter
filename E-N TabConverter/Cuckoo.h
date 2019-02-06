@@ -144,8 +144,4 @@ public:
 
 private:
 	cv::Mat org;
-	vector<space> collection;
-	void split();
-	void interCheck(vector<int> &f);
-	void KClassify(vector<bool> &classifier);
 };
