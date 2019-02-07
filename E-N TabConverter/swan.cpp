@@ -164,7 +164,7 @@ void saveDoc::saveMeasure(measure toSave) {
 	XMLElement* measure = doc.NewElement("measure");
 	part->InsertEndChild(measure);
 	char a[4];
-	_itoa_s(toSave.id, a, 10);
+	_itoa_s((int)toSave.id, a, 10);
 	measure->SetAttribute("number", a);
 
 	ele(attributes);

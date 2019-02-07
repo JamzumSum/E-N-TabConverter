@@ -10,12 +10,14 @@ using namespace cv;
 #if _DEBUG
 #define Showrectangle if(1)
 #define Showline if(0)
+#define Showdenoise if(0)
 #define draw(func, img, from, to, color) Show##func func(img, from, to, color)
 #define imdebug(img, title) imshow((img), title); cv::waitKey()
 #else 
 #define draw(func, img, from, to, color)
 #define Showrectangle /##/
 #define Showline /##/
+#define Showdenoise /##/
 #define imdebug(img, title)
 #endif
 
@@ -136,17 +138,18 @@ void measure::recNum(Mat section, vector<Vec4i> rows) {
 
 	for (Rect& i: region) {
 		//限定筛选
-		if (i.height < rows[1][1] - rows[0][1]					//网格限定
-			&& i.height < 5 * i.width
+		Mat number = section(i).clone();
+		if (i.height < 5 * i.width
 			&& (global->characterWidth ? (i.width > global->characterWidth / 2) : 1)
 		) {
-			if (i.height <= i.width) {
+			if (i.height <= rows[1][1] - rows[0][1]
+				&& i.height <= i.width
+			) {
 				//TODO: 形状异常
 				if(i.height > maxCharacterHeight / 2) possible.emplace_back(i);
 				continue;
 			}
 			easynote newNote;
-			Mat number = section(i).clone();
 			if (countBlack(number) > 0.8* i.area()) continue;
 
 			cvtColor(number, number, CV_GRAY2BGR);
@@ -177,15 +180,15 @@ void measure::recNum(Mat section, vector<Vec4i> rows) {
 			notes[0].chords.emplace_back(newNote);
 		}
 	}
-	/*for (Rect& i : possible) {
-		Mat what = section(i);
-		imdebug("possible number", what);
-	}*/
+	for (Rect& i : possible) {
+		//TODO: blocked, like 3--3
+
+	}
 	Showrectangle imdebug("Showrectangle", ccolor);
 
 
 	mergeFret(maxCharacterWidth);
-	sort(notes[0].chords.begin(), notes[0].chords.end(), [](const easynote x, const easynote y) -> bool {
+	std::sort(notes[0].chords.begin(), notes[0].chords.end(), [](const easynote x, const easynote y) -> bool {
 		return x.pos < y.pos || (x.pos == y.pos && x.string < y.string);
 	});
 
@@ -259,7 +262,7 @@ void measure::recTime(vector<Vec4i> rows) {
 			if (m == cont.end()) break;
 			else cont.erase(m);
 		};
-		sort(cont.begin(), cont.end(), [](vector<Point> x, vector<Point> y) ->bool {
+		std::sort(cont.begin(), cont.end(), [](vector<Point> x, vector<Point> y) ->bool {
 			return x[0].x < y[0].x;
 		});
 	};
@@ -356,13 +359,13 @@ vector<note> measure::getNotes() {
 	return r;
 }
 
-measure::measure(Mat org, Mat img, vector<Vec4i> rows, int id)
+measure::measure(Mat org, Mat img, vector<Vec4i> rows, size_t id)
 	:id(id), org(org)
 {
 	maxCharacterWidth = global->characterWidth / 2;
 	maxCharacterHeight = maxCharacterWidth + 1;
 	if (org.cols < global->colLenth / 5) {
-		this->id = -1;
+		this->id = 0;
 		return;
 	}
 	try {
@@ -384,12 +387,6 @@ measure::measure(Mat org, Mat img, vector<Vec4i> rows, int id)
 	}
 }
 
-splitter::splitter(Mat img)
-	:org(img)
-{
-
-}
-
 void splitter::start(vector<Mat>& piece) {
 	Mat r = Morphology(255 - org, org.cols / 2, true, true);
 	r = Morphology(r, org.cols / 100, false, true);
@@ -403,8 +400,39 @@ void splitter::start(vector<Mat>& piece) {
 	piece.resize(cont.size());
 
 	for (size_t k = 0; k < n; k++) region[k] = boundingRect(cont[k]);
-	sort(region.begin(), region.end(), [](const Rect x, const Rect y) -> bool {return x.y < y.y; });
+	std::sort(region.begin(), region.end(), [](const Rect x, const Rect y) -> bool {return x.y < y.y; });
 
 	for (size_t k = 0; k < n; k++) piece[k] = org(region[k]).clone();
 
+}
+
+Mat denoiser::denoise_morphology() {
+	Mat mask1, mask2, r;
+	auto fullfill = [](Mat& mask) {
+		vector<vector<Point>> cont;
+		findContours(mask, cont, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
+		size_t n = cont.size();
+		vector<Rect> region(n);
+		for (int i = 0; i < n; i++)  rectangle(mask, boundingRect(cont[i]), Scalar(255), -1);
+	};
+	mask1 = Morphology(255 - org, org.cols / 10, true, false);
+	fullfill(mask1);
+	mask2 = Morphology(255 - org, org.rows / 6, false, false);
+	fullfill(mask2);
+	r = mask1 | mask2 | org;
+	
+	Showdenoise imdebug("denoise(Morphology)", r);
+	return r;
+}
+
+Mat denoiser::denoise_inpaint(vector<Vec4i> lines, double radius) {
+	Mat r, mask = Mat(org.size(), CV_8UC1, Scalar::all(0));
+	for (Vec4i& i : lines) line(mask, Point(i[0], i[1]), Point(i[2], i[3]), Scalar(255));
+
+	inpaint(org, mask, r, radius, INPAINT_TELEA);
+	threshold(r, r, 200, 255, THRESH_BINARY);
+
+	Showdenoise imdebug("denoise(Inpaint)", r);
+
+	return r;
 }

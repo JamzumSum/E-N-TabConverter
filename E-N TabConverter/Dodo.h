@@ -14,7 +14,7 @@ Mat perspect(Mat img, int width, int height);
 bool isEmptyLine(Mat img, int y, double rate);
 bool isEmptyLine(Mat img, int y, size_t from, size_t to, double rate);
 Mat trim(Mat img, double threshold = 0.01);
-void findRow(Mat img, Mat &Outputimg, double rangeTheta, vector<Vec4i> &lines, vector<int> &thickness);
+void findRow(Mat img, double rangeTheta, vector<Vec4i> &lines, vector<int> &thickness);
 void findCol(Mat img, double rangeTheta, int upper,int lower, vector<int> thick , vector<Vec4i> &lines);
 unsigned whichLine(Rect character, vector<Vec4i> rows);
 void saveNums(string folder, vector<Mat> nums);
@@ -24,6 +24,4 @@ void savePic(string folder, Mat pic);
 extern int rec(Mat character, vector<int> &possible);
 extern void train(string save = "C:\\Users\\Administrator\\Desktop\\E-N TabConverter\\tData.csv");
 //framework.cpp
-extern void extractNum(vector<Vec4i> &pos, vector<Mat> &nums, vector<Mat> section, vector<Vec4i> rows,int &bottom,int range);
-extern Mat Denoise(Mat img, vector<Vec4i> lines, double radius);
 extern int cut(Mat img, vector<Vec4i> divideBy, int direction, vector<Mat> &container, bool includeAll);

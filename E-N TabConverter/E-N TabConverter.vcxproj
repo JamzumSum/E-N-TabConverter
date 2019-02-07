@@ -151,6 +151,7 @@
     <ClInclude Include="Cuckoo.h" />
     <ClInclude Include="Dodo.h" />
     <ClInclude Include="global.h" />
+    <ClInclude Include="music.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="swan.h" />
     <ClInclude Include="tools.h" />

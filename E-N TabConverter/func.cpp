@@ -23,7 +23,6 @@ extern notify<string> notification;
 
 int go(string f,bool isCut) {
 	bool flag = false;
-	vector<space> coll;
 	Mat img = threshold(f);
 	if (img.empty()) {
 		err ex = { 3,__LINE__,"Wrong format." };
@@ -46,22 +45,19 @@ int go(string f,bool isCut) {
 	notification = "过滤算法正常";
 	
 	global = new GlobalPool(cfgPath,trimmed.cols);
-	vector<measure> sections;
-	vector<Mat> timeValue;
-	vector<Mat> info;
-	vector<Mat> notes;
-	vector<Vec4i> pos;
-	vector<Mat> nums;
+	vector<measure> sections;					//按行存储
+	vector<Mat> info;							//其余信息
+	vector<Mat> notes;							//小节
+	
+
+	size_t n = piece.size();
 	Mat toOCR;
 
-	int k = 1;
-	size_t n = piece.size();
-
-	for (int i = 0; i < n; i++) {
-		if (piece[i].empty()) continue;
+	for (Mat& i: piece) {
+		if (i.empty()) continue;
 		vector<Vec4i> rows;
 		vector<int> thick;
-		findRow(piece[i],toOCR, CV_PI / 18, rows,thick);
+		findRow(i, CV_PI / 18, rows,thick);
 		if (rows.size() == 6) {
 			flag = true;
 
@@ -69,19 +65,21 @@ int go(string f,bool isCut) {
 			int max = min(rows[5][1], rows[5][3]);
 			int min = std::max(rows[0][1], rows[0][3]);
 
-			findCol(piece[i], CV_PI / 18 * 8, max, min, thick, lines);
-			vector<Mat> origin;
-			vector<Mat> section;
-			if (lines.size()) {
-				cut(toOCR, lines, 0, section, true);
-				cut(piece[i], lines, 0, origin, true);
-			}
-			global->rowLenth += piece[i].rows;
+			findCol(i, CV_PI / 18 * 8, max, min, thick, lines);				//
+			vector<Mat> origin;												//切割并存储
+			if (lines.size()) cut(i, lines, 0, origin, true);				//
+
+			vector<Mat> section(origin.size());								//
+			for (int j = 0; j < origin.size(); j++) {						//
+				denoiser den(origin[j]);									//去网格线
+				section[j] = den.denoise_morphology();						//
+			}																//
+
+			global->rowLenth += i.rows;
 			for (size_t j = 0; j < section.size(); j++) {
 				try {
-					measure newSec(origin[j], section[j], rows, (int)k);
-					if (SUCCEED(newSec.id)) k++;
-					sections.emplace_back(newSec);
+					measure newSec(origin[j], section[j], rows, sections.size() + 1);
+					if (newSec.id) sections.emplace_back(newSec);
 				}
 				catch (err ex) {
 					switch (ex.id){
@@ -92,15 +90,15 @@ int go(string f,bool isCut) {
 			}
 		}
 		else {
-			if(flag) notes.emplace_back(piece[i]);
-			else info.emplace_back(piece[i]);
+			if(flag) notes.emplace_back(i);
+			else info.emplace_back(i);
 		}
-		progress = progress + 49 / (int)n;
+		progress = progress + 79 / (int)n;
 	}
 	piece.clear();
 
 	notification = "扫描完成，准备写入文件";
-	progress = 50;
+	progress = 80;
 	delete global;
 	char name[256] = "";
 	fname(f.c_str(),name);
@@ -118,7 +116,7 @@ int go(string f,bool isCut) {
 			default: break;
 			}
 		}
-		progress = progress + 50 / (int)sections.size();
+		progress = progress + 20 / (int)sections.size();
 	}
 	string fn = name;
 	fn = fn + ".xml";
