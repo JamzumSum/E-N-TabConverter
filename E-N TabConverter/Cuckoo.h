@@ -32,7 +32,7 @@ public:
 	unsigned int number = 1;						//Ð¡½ÚÊý
 	Time time;
 	key key;
-	measure(cv::Mat org, cv::Mat img, vector<cv::Vec4i> rows, size_t id);
+	measure(cv::Mat origin, vector<cv::Vec4i> rows, size_t id);
 	vector<note> getNotes();
 };
 

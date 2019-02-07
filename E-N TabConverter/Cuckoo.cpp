@@ -44,17 +44,17 @@ static int count(Mat img, Vec4i range, int delta) {
 	return sum;
 }
 
-void measure::recNum(Mat section, vector<Vec4i> rows) {
+void measure::recNum(Mat denoised, vector<Vec4i> rows) {
 	/*
 	* 函数：measure::recNum
 	* 功能：从传入图像中提取数字等
 	* 参数：
-		section，Mat，传入图像
+		denoised，Mat，传入图像
 		rows，Vec4i，传入的网格信息（谱线）
 	*/
 	vector<vector<Point>> cont;
 	vector<Rect> region, possible;
-	Mat inv = 255 - section;
+	Mat inv = 255 - denoised;
 	Mat ccolor;
 	auto mergeFret = [this](int t) {
 		auto n = notes[0].chords.end();
@@ -118,7 +118,7 @@ void measure::recNum(Mat section, vector<Vec4i> rows) {
 		}
 		return sum;
 	};
-	Showrectangle cvtColor(section, ccolor, CV_GRAY2BGR);
+	Showrectangle cvtColor(denoised, ccolor, CV_GRAY2BGR);
 
 	notes.resize(1);
 
@@ -128,8 +128,8 @@ void measure::recNum(Mat section, vector<Vec4i> rows) {
 		if (tmp.area() > 9
 			&& tmp.height > 3
 			&& tmp.width > 3
-			&& tmp.height < 0.8 * section.rows
-			&& tmp.width < 0.8* section.cols
+			&& tmp.height < 0.8 * denoised.rows
+			&& tmp.width < 0.8* denoised.cols
 			) {
 			region.emplace_back(tmp);
 		}
@@ -138,7 +138,7 @@ void measure::recNum(Mat section, vector<Vec4i> rows) {
 
 	for (Rect& i: region) {
 		//限定筛选
-		Mat number = section(i).clone();
+		Mat number = denoised(i).clone();
 		if (i.height < 5 * i.width
 			&& (global->characterWidth ? (i.width > global->characterWidth / 2) : 1)
 		) {
@@ -182,7 +182,7 @@ void measure::recNum(Mat section, vector<Vec4i> rows) {
 	}
 	for (Rect& i : possible) {
 		//TODO: blocked, like 3--3
-
+		Mat what = denoised;
 	}
 	Showrectangle imdebug("Showrectangle", ccolor);
 
@@ -359,11 +359,13 @@ vector<note> measure::getNotes() {
 	return r;
 }
 
-measure::measure(Mat org, Mat img, vector<Vec4i> rows, size_t id)
-	:id(id), org(org)
+measure::measure(Mat origin, vector<Vec4i> rows, size_t id)
+	:id(id), org(origin)
 {
 	maxCharacterWidth = global->characterWidth / 2;
 	maxCharacterHeight = maxCharacterWidth + 1;
+	denoiser den(org);
+	Mat img = den.denoise_morphology();
 	if (org.cols < global->colLenth / 5) {
 		this->id = 0;
 		return;

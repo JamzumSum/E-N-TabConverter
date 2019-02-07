@@ -69,16 +69,11 @@ int go(string f,bool isCut) {
 			vector<Mat> origin;												//切割并存储
 			if (lines.size()) cut(i, lines, 0, origin, true);				//
 
-			vector<Mat> section(origin.size());								//
-			for (int j = 0; j < origin.size(); j++) {						//
-				denoiser den(origin[j]);									//去网格线
-				section[j] = den.denoise_morphology();						//
-			}																//
-
 			global->rowLenth += i.rows;
-			for (size_t j = 0; j < section.size(); j++) {
+
+			for (Mat& j: origin) {
 				try {
-					measure newSec(origin[j], section[j], rows, sections.size() + 1);
+					measure newSec(j, rows, sections.size() + 1);
 					if (newSec.id) sections.emplace_back(newSec);
 				}
 				catch (err ex) {
