@@ -7,12 +7,13 @@
 using namespace std;
 using namespace cv;
 
+#define find_in(vector, lambda) find_if(vector##.begin(), vector##.end(), lambda)
 #if _DEBUG
-#define Showrectangle if(1)
+#define Showrectangle if(0)
 #define Showline if(0)
 #define Showdenoise if(0)
 #define draw(func, img, from, to, color) Show##func func(img, from, to, color)
-#define imdebug(img, title) imshow((img), title); cv::waitKey()
+#define imdebug(title, img) imshow((title), img); cv::waitKey()
 #else 
 #define draw(func, img, from, to, color)
 #define Showrectangle /##/
@@ -57,38 +58,35 @@ void measure::recNum(Mat denoised, vector<Vec4i> rows) {
 	Mat inv = 255 - denoised;
 	Mat ccolor;
 	auto mergeFret = [this](int t) {
-		auto n = notes[0].chords.end();
-		auto m = notes[0].chords.end();
-		while (1) {
-			//合并相邻的fret version2
-		mfind:
-			m = find_if(notes[0].chords.begin(), notes[0].chords.end(), [this, t, &n](const easynote x) ->bool {
-				n = find_if(notes[0].chords.begin(), notes[0].chords.end(), [x, t](const easynote y) ->bool {
+		vector<easynote>::iterator m, n;
+		while (1) {										//合并相邻的fret version2
+
+			m = find_in(notes[0].chords, ([this, t, &n](const easynote x) ->bool {
+				n = find_in(notes[0].chords, ([x, t](const easynote y) ->bool {
 					return x.pos != y.pos
 						&& y.string == x.string
 						&& abs(x.pos - y.pos) <= 2 * t;
-				});
+				}));
 				return n != notes[0].chords.end();
-			});
+			}));
 			if (m == notes[0].chords.end()) break;
-			else {
-				if (m->pos > n->pos) swap(m, n);
-				if (m->fret > 1) {
-					for (int i : m->possible) {
-						if (i < 2) {
-							m->pos = (m->pos + n->pos) / 2;
-							m->fret = 10 * i + n->fret;
-							notes[0].chords.erase(n);
-							goto mfind;
-						}
+			
+			if (m->pos > n->pos) swap(m, n);
+			if (m->fret > 1) {
+				for (int i : m->possible) {
+					if (i < 2) {
+						m->pos = (m->pos + n->pos) / 2;
+						m->fret = 10 * i + n->fret;
+						notes[0].chords.erase(n);
+						continue;
 					}
-					err ex = { 0,__LINE__,"fret合并：不可置信条件. 检查模型" };
-					throw ex;
 				}
-				m->pos = (m->pos + n->pos) / 2;
-				m->fret = 10 + n->fret;
-				notes[0].chords.erase(n);
+				err ex = { 0,__LINE__,"fret合并：不可置信条件. 检查模型" };
+				throw ex;
 			}
+			m->pos = (m->pos + n->pos) / 2;
+			m->fret = 10 + n->fret;
+			notes[0].chords.erase(n);
 		}
 	};
 	auto fillTimeAndPos = [this](int t) {
@@ -182,8 +180,11 @@ void measure::recNum(Mat denoised, vector<Vec4i> rows) {
 	}
 	for (Rect& i : possible) {
 		//TODO: blocked, like 3--3
-		Mat what = denoised;
+		if (i.area() < 0.8* maxCharacterHeight* maxCharacterWidth) continue;
+		Mat what = denoised(i);
+		imdebug("what?", what);
 	}
+	possible.shrink_to_fit();
 	Showrectangle imdebug("Showrectangle", ccolor);
 
 
@@ -247,18 +248,18 @@ void measure::recTime(vector<Vec4i> rows) {
 	auto time_denoise = [&cont]() {
 		auto m = cont.end();
 		while (1) {
-			m = find_if(cont.begin(), cont.end(), [cont](vector<Point> x) ->bool {
+			m = find_in(cont, ([cont](vector<Point> x) ->bool {
 				auto l = [](Point m, Point n) ->bool {
 					return m.y < n.y;
 				};
 				int up = min_element(x.begin(), x.end(), l)->y;
 				int len = max_element(x.begin(), x.end(), l)->y - up;
-				return find_if(cont.begin(), cont.end(), [cont, x, l, up, len](vector<Point> y) ->bool {
+				return find_in(cont, ([cont, x, l, up, len](vector<Point> y) ->bool {
 					int max = max_element(y.begin(), y.end(), l)->y;
 					return max < up
 						&& max - min_element(y.begin(), y.end(), l)->y > len;
-				}) != cont.end();
-			});
+				})) != cont.end();
+			}));
 			if (m == cont.end()) break;
 			else cont.erase(m);
 		};
@@ -322,9 +323,9 @@ distribute:
 	for (int i = 0; i < TimeValue.size(); i++) {
 		int pos = TimeValue[i].pos;
 		for (;;) {
-			auto s = find_if(noValue.begin(), noValue.end(), [pos, t](const ChordSet* x)->bool {
+			auto s = find_in(noValue, ([pos, t](const ChordSet* x)->bool {
 				return abs(x->avrpos - pos) < t;
-			});
+			}));
 			if (s == noValue.end()) break;
 			for (easynote& j : (**s).chords) {
 				j.time = TimeValue[i].time;

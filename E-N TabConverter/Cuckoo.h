@@ -28,8 +28,7 @@ private:
 	cv::Mat org;
 	vector<ChordSet> notes;
 public:
-	size_t id = 0;
-	unsigned int number = 1;						//小节数
+	size_t id = 0;							//小节数
 	Time time;
 	key key;
 	measure(cv::Mat origin, vector<cv::Vec4i> rows, size_t id);
