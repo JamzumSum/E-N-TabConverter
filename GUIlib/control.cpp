@@ -19,7 +19,7 @@ Label::Label(form* parent, int x, int y, int w, int h, const TCHAR* Name)
 	this->feature |= SS_NOTIFY | BS_FLAT;
 }
 
-void Label::setFont(LPTSTR fontName, int size) {
+void Label::setFont(const TCHAR* fontName, int size) {
 	HFONT hFont = CreateFont(size, 0, 0, 0, FW_THIN, false, false, false,
 		CHINESEBIG5_CHARSET, OUT_CHARACTER_PRECIS,
 		CLIP_CHARACTER_PRECIS, DEFAULT_QUALITY,
@@ -59,6 +59,14 @@ Checkbox::Checkbox(form* parent, int x, int y, int w, int h, const TCHAR* Name)
 	Value.setContainer(this);
 	Value.setter(&Checkbox::setCheck);
 	Value.getter(&Checkbox::getCheck);
+}
+
+void Checkbox::setFont(const TCHAR* fontName, int size) {
+	HFONT hFont = CreateFont(size, 0, 0, 0, FW_THIN, false, false, false,
+		CHINESEBIG5_CHARSET, OUT_CHARACTER_PRECIS,
+		CLIP_CHARACTER_PRECIS, DEFAULT_QUALITY,
+		FF_MODERN, fontName);
+	SendMessage(this->Hwnd, WM_SETFONT, (WPARAM)hFont, TRUE);//发送设置字体消息
 }
 
 void Timer::setTimer(bool value) {

@@ -1,4 +1,8 @@
 #pragma once
+#pragma comment(linker,"/manifestdependency:\"type='win32' "\
+"name='Microsoft.Windows.Common-Controls' version='6.0.0.0' "\
+"processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
+
 #include <windows.h>
 #include <tchar.h>
 #include <string>
@@ -198,12 +202,12 @@ public:
 	Label(form* parent, int x, int y, int w, int h, const TCHAR* Name);
 	size_t create() {
 		control::create();
-		setFont((TCHAR*)_T("ËÎÌו"), 14);
+		setFont(_T("ËÎÌו"), 14);
 		return id;
 	}
 	void(*Event_On_Click)(Label*) = NULL;
 
-	void setFont(LPTSTR fontName, int size);
+	void setFont(const TCHAR* fontName, int size);
 };
 
 class Picture :public control {
@@ -314,9 +318,18 @@ private:
 		SendMessage(Hwnd, BM_SETCHECK, (int)value, 0);
 	}
 public:
+	//Property
 	Property<Checkbox, bool, readWrite> Value;
-	Checkbox(form* parent, int x, int y, int w, int h, const TCHAR* Name);
+	//Event
 	void(*Event_On_Check)(Checkbox*) = NULL;
+
+	Checkbox(form* parent, int x, int y, int w, int h, const TCHAR* Name);
+	void setFont(const TCHAR* fontName, int size);
+	size_t create() {
+		control::create();
+		setFont(_T("ËÎÌו"), 14);
+		return id;
+	}
 };
 
 class Timer : public control {
