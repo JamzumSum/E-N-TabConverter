@@ -12,16 +12,14 @@ using namespace cv;
 #define imdebug(img, title) imshow((img), (title)); cv::waitKey()
 
 GlobalPool *global = NULL;
-
-int TrainMode() {
-	train();
-	return 0;
-}
-
 extern notify<int> progress;
 extern notify<string> notification;
 
-int go(string f,bool isCut) {
+void TrainMode() {
+	train();
+}
+
+int go(string f, bool isCut) {
 	bool flag = false;
 	Mat img = threshold(f);
 	if (img.empty()) {

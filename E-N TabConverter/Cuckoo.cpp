@@ -73,16 +73,19 @@ void measure::recNum(Mat denoised, vector<Vec4i> rows) {
 			
 			if (m->pos > n->pos) swap(m, n);
 			if (m->fret > 1) {
+				bool flag = false;
 				for (int i : m->possible) {
 					if (i < 2) {
 						m->pos = (m->pos + n->pos) / 2;
 						m->fret = 10 * i + n->fret;
 						notes[0].chords.erase(n);
-						continue;
+						flag = true;
 					}
 				}
-				err ex = { 0,__LINE__,"fret合并：不可置信条件. 检查模型" };
-				throw ex;
+				if (!flag) {
+					err ex = {0, __LINE__, "fret合并：不可置信条件. 检查模型" };
+					throw ex;
+				}
 			}
 			m->pos = (m->pos + n->pos) / 2;
 			m->fret = 10 + n->fret;
@@ -132,28 +135,34 @@ void measure::recNum(Mat denoised, vector<Vec4i> rows) {
 			region.emplace_back(tmp);
 		}
 	}
-	cont.shrink_to_fit();
+	cont.clear();
 
 	for (Rect& i: region) {
 		//限定筛选
-		Mat number = denoised(i).clone();
+		
 		if (i.height < 5 * i.width
 			&& (global->characterWidth ? (i.width > global->characterWidth / 2) : 1)
 		) {
-			if (i.height <= rows[1][1] - rows[0][1]
-				&& i.height <= i.width
+			if (i.height > rows[1][1] - rows[0][1]
+				|| i.height < i.width
+				|| i.height > 2.5 * i.width
 			) {
 				//TODO: 形状异常
-				if(i.height > maxCharacterHeight / 2) possible.emplace_back(i);
-				continue;
+				if (i.height < maxCharacterHeight / 2) continue;
+				if (!whichLine(i, rows)) continue;
+				possible.emplace_back(i); continue;
 			}
 			easynote newNote;
+			Mat number = org(i).clone();
 			if (countBlack(number) > 0.8* i.area()) continue;
 
 			cvtColor(number, number, CV_GRAY2BGR);
 
-			number = perspect(number, 8, 10);
-			if (savepic) savePic(picFolder, number);										//保存数字样本
+			number = perspect(number, 8, 14);
+			if (savepic) {
+				savePic(picFolder, number);													//保存数字样本
+				continue;
+			}
 
 			newNote.string = whichLine(i, rows);											//几何关系判断string
 			if (!newNote.string) continue;
@@ -181,10 +190,10 @@ void measure::recNum(Mat denoised, vector<Vec4i> rows) {
 	for (Rect& i : possible) {
 		//TODO: blocked, like 3--3
 		if (i.area() < 0.8* maxCharacterHeight* maxCharacterWidth) continue;
-		Mat what = denoised(i);
+		Mat what = org(i);
 		imdebug("what?", what);
 	}
-	possible.shrink_to_fit();
+	possible.clear();
 	Showrectangle imdebug("Showrectangle", ccolor);
 
 
@@ -373,6 +382,10 @@ measure::measure(Mat origin, vector<Vec4i> rows, size_t id)
 	}
 	try {
 		recNum(img, rows);
+		if (savepic) {
+			id = 0;
+			return;
+		}
 		recTime(rows);
 	}
 	catch (err ex) {

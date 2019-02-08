@@ -11,11 +11,13 @@ using namespace std;
 #define IDI_WINDOW1 102
 #define IDB_BITMAP1 106
 
-int pix = 80;
+static int pix = 80;
 static string noti;
-char f[MAX_PATH];
-char prog[4];
-bool isCut = false;
+static char f[MAX_PATH];
+static char prog[4];
+static bool isCut = false;
+extern bool savepic;
+
 
 static form main(NULL, "form", "E-Land Chord Converter", 240, 240, 840, 528);
 static Button scan(&main, 5 * pix, 200, 112, 56, "Go!");
@@ -24,20 +26,27 @@ static Button history(&main, 8, 64, 112, 56, "History");
 static Button setting(&main, 8, 128, 112, 56, "Settings");
 static Button Exit(&main, 8, 400, 112, 56, "Exit");
 static Label info(&main, 4, 464, 560, 24, "Press \"Go\" to begin.");
-static Checkbox cut(&main, 760, 450, 56, 32, "Cut");
+static Checkbox save(&main, 760, 432, 56, 28, "save");
+static Checkbox cut(&main, 760, 456, 56, 28, "cut");
 
-extern int go(string f,bool);
-static string conc(string n, char p[4]);
-
+extern int go(string f, bool cut);
+extern void TrainMode();
 
 notify<int> progress([](int p) {
+	auto conc = [](string n, char p[4]) -> string {
+		return n + "------" + p + "%";
+	};
+
 	char num[4];
 	_itoa_s(p, num, 10);
 	strncpy_s(prog, num, 4);
 	info.name = (TCHAR*) conc(noti, prog).c_str();
 });
-
 notify<string> notification([](string n) {
+	auto conc = [](string n, char p[4]) -> string {
+		return n + "------" + p + "%";
+	};
+
 	noti = n;
 	info.name = (TCHAR*) conc(noti,prog).c_str();
 });
@@ -46,12 +55,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 	main.setIcon(MAKEINTRESOURCE(IDI_WINDOW1), MAKEINTRESOURCE(IDI_ICON1));
 	//main.bitmapName = MAKEINTRESOURCE(IDB_BITMAP1);
 	main.create();
-	main.Event_Window_Resize = [](form* me) {
+	main.Event_Window_Resize = [](form * me) {
 		pix = me->w / 12;
 		scan.move(5 * pix, 0);
 	};
-	
-	scan.Event_On_Click = [](Button* me) {
+
+	scan.Event_On_Click = [](Button * me) {
 		OPENFILENAME ofn;
 		memset(&ofn, 0, sizeof(ofn));
 		ofn.lStructSize = sizeof(ofn);
@@ -76,10 +85,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 				{
 				case 3:
 					//不支持的格式
-					info.name = (TCHAR*) ex.description.insert(0,"Failure: ").c_str();
+					info.name = (TCHAR*)ex.description.insert(0, "Failure: ").c_str();
 					return;
 				default:
-					info.name = (TCHAR*) ex.description.insert(0, "Error: ").c_str();
+					info.name = (TCHAR*)ex.description.insert(0, "Error: ").c_str();
 					break;
 				}
 			}
@@ -87,26 +96,30 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 			main.top();
 		}
 	};
-	main.Event_Load_Complete = [](form* me) {
+
+	setting.Event_On_Click = [](Button * me) {
+		notification = "Trian start. ";
+		TrainMode();
+		notification = "Train end. ";
+	};
+
+	main.Event_Load_Complete = [](form * me) {
 		pix = me->w / 12;
 	};
-	
 
-	home.Event_On_Click = [](Button* me) {
+	home.Event_On_Click = [](Button * me) {
 		scan.show();
 	};
-	Exit.Event_On_Click = [](Button* me) {
+	Exit.Event_On_Click = [](Button * me) {
 		window* p = me->parent();
 		((form*)p)->close();
 	};
-	cut.Event_On_Check = [](Checkbox* me) {
+	cut.Event_On_Check = [](Checkbox * me) {
 		isCut = me->Value;
 	};
-
+	save.Event_On_Check = [](Checkbox * me) {
+		savepic = me->Value;
+	};
 
 	main.run();
-}
-
-string conc(string n,char p[4]) {
-	return n + "------" + p + "%";
 }
