@@ -167,7 +167,8 @@ void measure::recNum(Mat denoised, vector<Vec4i> rows) {
 			newNote.string = whichLine(i, rows);											//几何关系判断string
 			if (!newNote.string) continue;
 			try {
-				newNote.fret = rec(number, newNote.possible);								//识别数字fret
+				newNote.fret = rec(number, newNote.possible, newNote.safety);				//识别数字fret
+				if (newNote.fret < 0) continue;												//较大的几率不是数字
 			}
 			catch (err ex) {
 				switch (ex.id) {
@@ -175,7 +176,6 @@ void measure::recNum(Mat denoised, vector<Vec4i> rows) {
 				default: throw ex; break;
 				}
 			}
-
 
 			draw(rectangle, ccolor, i.tl(), i.br(), Scalar(0, 0, 255));
 

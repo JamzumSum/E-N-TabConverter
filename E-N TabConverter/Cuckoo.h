@@ -11,6 +11,7 @@ typedef struct {
 	int pos;
 	unsigned string, fret;
 	vector<int> possible;
+	vector<float> safety;
 	Value time;
 }easynote;
 
