@@ -165,6 +165,7 @@
     <Image Include="..\icon\64.ico" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\icon\ml_csv2.bin" />
     <None Include="..\tData.csv" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

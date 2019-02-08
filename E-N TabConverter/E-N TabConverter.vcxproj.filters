@@ -87,5 +87,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\tData.csv" />
+    <None Include="..\icon\ml_csv2.bin">
+      <Filter>资源文件</Filter>
+    </None>
   </ItemGroup>
 </Project>
