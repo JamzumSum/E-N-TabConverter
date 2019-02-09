@@ -8,7 +8,7 @@ control::control(char t, LPTSTR clsname, window* parent, int x, int y, int w, in
 }
 
 Button::Button(form* parent, int x, int y, int w, int h, const TCHAR* Name) 
-	: control('b', (TCHAR*)_T("BUTTON"), parent, x, y, w, h) {
+	: control('b', (TCHAR*)_T("BUTTON"), parent, x, y, w, h){
 	this->name = (LPTSTR) Name;
 	this->feature |= BS_DEFPUSHBUTTON;
 }
@@ -17,14 +17,6 @@ Label::Label(form* parent, int x, int y, int w, int h, const TCHAR* Name)
 	: control('l', (TCHAR*)_T("STATIC"), parent, x, y, w, h) {
 	this->name = (LPTSTR) Name;
 	this->feature |= SS_NOTIFY | BS_FLAT;
-}
-
-void Label::setFont(const TCHAR* fontName, int size) {
-	HFONT hFont = CreateFont(size, 0, 0, 0, FW_THIN, false, false, false,
-		CHINESEBIG5_CHARSET, OUT_CHARACTER_PRECIS,
-		CLIP_CHARACTER_PRECIS, DEFAULT_QUALITY,
-		FF_MODERN, fontName);
-	SendMessage(this->Hwnd, WM_SETFONT, (WPARAM)hFont, TRUE);//发送设置字体消息
 }
 
 Picture::Picture(form* parent, int x, int y, int w, int h, const LPTSTR Name, const LPTSTR picPath) 
@@ -61,28 +53,20 @@ Checkbox::Checkbox(form* parent, int x, int y, int w, int h, const TCHAR* Name)
 	Value.getter(&Checkbox::getCheck);
 }
 
-void Checkbox::setFont(const TCHAR* fontName, int size) {
-	HFONT hFont = CreateFont(size, 0, 0, 0, FW_THIN, false, false, false,
-		CHINESEBIG5_CHARSET, OUT_CHARACTER_PRECIS,
-		CLIP_CHARACTER_PRECIS, DEFAULT_QUALITY,
-		FF_MODERN, fontName);
-	SendMessage(this->Hwnd, WM_SETFONT, (WPARAM)hFont, TRUE);//发送设置字体消息
-}
-
 void Timer::setTimer(bool value) {
 	if (value ^ this->value) this->value = value;
 	else return;
 	if (value) {
 		if (Event_Timer) {
 			assert(Event_Timer);
-			if (!SetTimer(parent()->hWnd(), id, Interval, NULL)) {
+			if (!SetTimer(parent->hWnd(), id, Interval, NULL)) {
 				MessageBox(NULL, _T("Fail to set timer"), (LPTSTR)(ULONG_PTR)GetLastError(), MB_OK);
 				this->value = false;
 			}
 		}
 	}
 	else {
-		KillTimer(parent()->hWnd(), id);
+		KillTimer(parent->hWnd(), id);
 	}
 }
 
@@ -95,8 +79,7 @@ void Timer::setInterval(UINT value) {
 	}
 }
 
-Timer::Timer(form* parent, UINT interval, void(*Event)(form*), bool enabled = false) 
-	: control('T', NULL, parent) {
+Timer::Timer(form* parent, UINT interval, void(*Event)(form*), bool enabled = false) {
 	this->Event_Timer = Event;
 	this->Interval = interval;
 	this->enabled.setContainer(this);

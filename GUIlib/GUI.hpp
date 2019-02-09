@@ -27,26 +27,47 @@ static HINSTANCE hi = GetModuleHandle(NULL);
 static windowSet fset;
 static LRESULT CALLBACK WinProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 static void popError();
+
 typedef void(*vvEvent)();
 
+class Text {
+private:
+	HWND& hwnd;
+	void setName(LPTSTR newName) {
+		if (hwnd) SetWindowText(hwnd, newName);
+		_tcscpy_s(Name, newName);
+	}
+	LPTSTR getName() {
+		GetWindowText(hwnd, Name, MAXSIZE);
+		return Name;
+	}
+protected:
+	TCHAR Name[MAXSIZE] = {};
+public:
+	Property<Text, LPTSTR, readWrite> name;
+	Text(HWND& hWnd) : hwnd(hWnd) {
+		name.setContainer(this);
+		name.setter(&Text::setName);
+		name.getter(&Text::getName);
+	}
+	void setFont(const TCHAR* fontName, int size) {
+		HFONT hFont = CreateFont(size, 0, 0, 0, FW_THIN, false, false, false,
+			CHINESEBIG5_CHARSET, OUT_CHARACTER_PRECIS,
+			CLIP_CHARACTER_PRECIS, DEFAULT_QUALITY,
+			FF_MODERN, fontName);
+		SendMessage(hwnd, WM_SETFONT, (WPARAM)hFont, TRUE);//发送设置字体消息
+	}
+};
 
-class window {
+class window: public Text {
+	//window, 表示可见控件
 protected:
 	HWND Hwnd = NULL;
 	window* Parent = NULL;
 	LPTSTR Classname = NULL;
 private:
-	TCHAR Name[MAXSIZE] = {};
 	HMENU Menu = NULL;
 	
-	void setName(LPTSTR newName) {
-		if (Hwnd) SetWindowText(Hwnd, newName);
-		_tcscpy_s(Name, newName);
-	}
-	LPTSTR getName() {
-		GetWindowText(Hwnd, Name, MAXSIZE);
-		return Name;
-	}
 	void setMenu(int ID) {
 		Menu = LoadMenu(hi, MAKEINTRESOURCE(ID));
 	}
@@ -62,7 +83,6 @@ public:
 	char type = 0;
 	size_t id = 0;				//生效的id > 0
 
-	Property<window, LPTSTR, readWrite> name;
 	Property<window, int, writeOnly> menu;
 
 	long feature = 0;
@@ -96,9 +116,7 @@ public:
 	virtual size_t create();
 };
 
-class form :public window {
-	
-
+class form: public window {
 private:
 	//窝已经尽量私有了QAQ
 	std::vector<LPTSTR> menuList;
@@ -164,6 +182,7 @@ public:
 	void paintLine(int x1, int y1, int x2, int y2);
 	void paintLine(int x1, int y1, int x2, int y2, RECT* rect);
 	control* getControl(HWND controlHwnd);
+	void forAllControl(void(*TODO)(control*));
 	//事件
 	void(*Event_On_Create)(form*) = NULL;
 	void(*Event_On_Unload)(form*) = NULL;
@@ -190,7 +209,7 @@ public:
 	}
 };
 
-class Button :public control {
+class Button :public control{
 public:
 	Button(form* parent, int x, int y, int w, int h, const TCHAR* Name);
 	void(*Event_On_Click)(Button*) = NULL;
@@ -200,14 +219,8 @@ class Label :public control {
 public:
 
 	Label(form* parent, int x, int y, int w, int h, const TCHAR* Name);
-	size_t create() {
-		control::create();
-		setFont(_T("宋体"), 14);
-		return id;
-	}
 	void(*Event_On_Click)(Label*) = NULL;
 
-	void setFont(const TCHAR* fontName, int size);
 };
 
 class Picture :public control {
@@ -324,16 +337,12 @@ public:
 	void(*Event_On_Check)(Checkbox*) = NULL;
 
 	Checkbox(form* parent, int x, int y, int w, int h, const TCHAR* Name);
-	void setFont(const TCHAR* fontName, int size);
-	size_t create() {
-		control::create();
-		setFont(_T("宋体"), 14);
-		return id;
-	}
 };
 
-class Timer : public control {
+class Timer {
 private:
+	size_t id = 0;
+	form* parent = NULL;
 	bool value = false;
 	void setTimer(bool value);
 	bool getTimer() {

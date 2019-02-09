@@ -8,8 +8,7 @@ void form::run() {
 	MSG msg;
 	memset(&msg, 0, sizeof(msg));
 
-	vector<window*> a = (vector<window*>)tab;
-	for (void* p : a) ((control*)p)->create();
+	forAllControl([](control * me) {me->create(); });
 	show();
 	
 	if (this->Event_Load_Complete) this->Event_Load_Complete(this);
@@ -154,12 +153,9 @@ size_t window::create() {
 }
 
 window::window(char type, LPTSTR classname, window* p, int x, int y, int w, int h)
-	: x(x), y(y), w(w), h(h), Parent(p), Classname(classname), type(type)
-{
-	name.setContainer(this);
+	: x(x), y(y), w(w), h(h), Parent(p), Classname(classname), type(type),
+		Text(Hwnd){
 	menu.setContainer(this);
-	name.setter(&window::setName);
-	name.getter(&window::getName);
 	menu.setter(&window::setMenu);
 }
 
@@ -175,6 +171,10 @@ form::form(form* parent, const TCHAR* clsName, const TCHAR* title, int x, int y,
 	this->feature = WS_OVERLAPPEDWINDOW;
 	this->name = (TCHAR*) title;
 	
+}
+
+void form::forAllControl(void(*todo)(control*)) {
+	for (window* i : (vector<window*>)tab) todo((control*)i);
 }
 
 bool form::regist() {

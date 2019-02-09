@@ -25,7 +25,7 @@ static Button home(&main, 8, 0, 112, 56, "Home");
 static Button history(&main, 8, 64, 112, 56, "History");
 static Button setting(&main, 8, 128, 112, 56, "Settings");
 static Button Exit(&main, 8, 400, 112, 56, "Exit");
-static Label info(&main, 4, 464, 560, 24, "Press \"Go\" to begin.");
+static Label info(&main, 8, 464, 560, 24, "Press \"Go\" to begin.");
 static Checkbox save(&main, 760, 432, 56, 28, "save");
 static Checkbox cut(&main, 760, 456, 56, 28, "cut");
 
@@ -58,6 +58,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 	main.Event_Window_Resize = [](form * me) {
 		pix = me->w / 12;
 		scan.move(5 * pix, 0);
+		me->forAllControl([](control* me) {
+			double t = round(me->w / (double)pix);
+			me->resize(int(t * pix), 0);
+		});
 	};
 
 	scan.Event_On_Click = [](Button * me) {
@@ -98,13 +102,18 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 	};
 
 	setting.Event_On_Click = [](Button * me) {
+		progress = 0;
 		notification = "Trian start. ";
 		TrainMode();
+		progress = 100;
 		notification = "Train end. ";
 	};
 
 	main.Event_Load_Complete = [](form * me) {
 		pix = me->w / 12;
+		me->forAllControl([](control * me) {
+			me->setFont("Î¢ÈíÑÅºÚ", 19); 
+		});
 	};
 
 	home.Event_On_Click = [](Button * me) {
