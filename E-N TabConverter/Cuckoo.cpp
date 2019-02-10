@@ -9,7 +9,7 @@ using namespace cv;
 
 #define find_in(vector, lambda) find_if(vector##.begin(), vector##.end(), lambda)
 #if _DEBUG
-#define Showrectangle if(1)
+#define Showrectangle if(0)
 #define Showline if(0)
 #define Showdenoise if(0)
 #define draw(func, img, from, to, color) Show##func func(img, from, to, color)
