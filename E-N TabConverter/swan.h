@@ -7,6 +7,6 @@ private:
 	tinyxml2::XMLDocument backup;
 public:
 	saveDoc(char* title, const char* composer, const char* lyricist, const char* artist, const char* tabber, const char* irights);
-	int save(const char* xmlPath);
+	int save(string xmlPath);
 	void saveMeasure(measure toSave);
 };

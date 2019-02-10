@@ -9,7 +9,7 @@ using namespace cv;
 using namespace std;
 
 //Dodo.cpp
-Mat threshold(string);
+Mat threshold(cv::Mat);
 Mat perspect(Mat img, int width, int height);
 bool isEmptyLine(Mat img, int y, double rate);
 bool isEmptyLine(Mat img, int y, size_t from, size_t to, double rate);

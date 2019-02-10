@@ -9,10 +9,6 @@
 
 using namespace std;
 
-#define judge(x, statement) [](auto x) ->bool {return statement; }
-#define dA(type, x, pool, p) always<type>(pool,judge(x,p))
-#define dE(type,x, pool, p) exist<type>(pool,judge(x,p))
-
 string GBKToUTF8(const char* strGBK) {
 	/*
 		函数名：GBKToUTF8
@@ -146,16 +142,6 @@ void ls(const char* lpPath, std::vector<std::string> &fileList){
 	FindClose(hFind);
 }
 
-template<typename va>
-bool exist(vector<va> pool, bool (*p)(va x)) {
-	return pool.end() != find_if(pool.begin(), pool.end(), p);
-}
-
-template<typename va>
-bool always(vector<va> pool, bool(*p)(va x)) {
-	return pool.end() == find_if(pool.begin(), pool.end(), !(p));
-}
-
 void makedir(string folder) {
 	if (_access(folder.c_str(), 0) == -1) {
 		system(("md " + folder).c_str());
@@ -164,4 +150,8 @@ void makedir(string folder) {
 
 bool isExist(string filepath) {
 	return _access(filepath.c_str(), 0) >= 0;
+}
+
+int prompt(void* hWnd, string text, string caption, unsigned flag) {
+	return MessageBox(hWnd ? *(HWND*)hWnd: NULL, text.c_str(), caption.c_str(), flag);
 }

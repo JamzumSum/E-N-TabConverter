@@ -96,7 +96,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 					break;
 				}
 			}
-			notification = "Success";
 			main.top();
 		}
 	};

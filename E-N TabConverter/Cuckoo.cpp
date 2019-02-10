@@ -9,7 +9,7 @@ using namespace cv;
 
 #define find_in(vector, lambda) find_if(vector##.begin(), vector##.end(), lambda)
 #if _DEBUG
-#define Showrectangle if(0)
+#define Showrectangle if(1)
 #define Showline if(0)
 #define Showdenoise if(0)
 #define draw(func, img, from, to, color) Show##func func(img, from, to, color)
@@ -191,7 +191,16 @@ void measure::recNum(Mat denoised, vector<Vec4i> rows) {
 		//TODO: blocked, like 3--3
 		if (i.area() < 0.8* maxCharacterHeight* maxCharacterWidth) continue;
 		Mat what = org(i);
-		imdebug("what?", what);
+		if (i.width <= maxCharacterWidth) {
+			//高度超标
+			int more = i.height - maxCharacterHeight;
+			Mat extra = Morphology(255 - what, more - 1, false, false);
+		}
+		else if (i.height <= maxCharacterHeight) {
+			//宽度超标
+			int more = i.width - maxCharacterWidth;
+			Mat extra = Morphology(255 - what, more - 1, true, false);
+		}
 	}
 	possible.clear();
 	Showrectangle imdebug("Showrectangle", ccolor);

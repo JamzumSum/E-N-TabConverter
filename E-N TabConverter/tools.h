@@ -15,3 +15,4 @@ bool FreeResFile(DWORD dwResName, LPCSTR lpResType, LPCSTR lpFilePathName);
 bool isExist(string filepath);
 string GBKToUTF8(const char* strGBK);
 void fname(const char* path, char* name);
+int prompt(void* hWnd, string text, string caption, unsigned flag);

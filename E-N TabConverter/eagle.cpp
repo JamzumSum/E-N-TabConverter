@@ -19,6 +19,7 @@ using namespace std;
 static cv::Ptr<cv::ml::KNearest> &load(string csv, Ptr<KNearest> &knn);
 
 int rec(Mat character, vector<int> &possible, vector<float>& safety) {
+	const float thresh = 60.0f;
 	Mat res, tmp, neighbour, dist;
 	//dist: wrong recgonization, 33.244, 47.31, 45.299
 	character.reshape(1, 1).convertTo(tmp, CV_32FC1, 1.0 / 255.0);
@@ -29,19 +30,20 @@ int rec(Mat character, vector<int> &possible, vector<float>& safety) {
 		throw ex;
 	}
 	knn->findNearest(tmp, 5, res, neighbour, dist);
-	if (dist.at<float>(0, 0) < 60.0f) return -1;
+
 	possible.clear();
 	safety.clear();
-	for (int j = 0; j < neighbour.rows; j++) {
-		float a = dist.at<float>(j, 0);
-		if (a < 60.0f) {
+	for (int j = 0; j < dist.cols ; j++) {
+		float a = dist.at<float>(0, j);
+		if (a < thresh) {
 			safety.emplace_back(a);
-			possible.emplace_back((int)neighbour.at<float>(j, 0));
+			possible.emplace_back((int)neighbour.at<float>(0, j));
 		}
+		else break;
 	}
 	sort(possible.begin(), possible.end());
 	possible.erase(unique(possible.begin(),possible.end()),possible.end());		//ШЅжи
-	return (int)res.at<float>(0, 0);
+	return possible.empty() ? -1 : (int)res.at<float>(0, 0);
 }
 
 void train(string save) {

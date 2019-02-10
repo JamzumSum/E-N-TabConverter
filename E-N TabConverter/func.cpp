@@ -12,6 +12,8 @@ using namespace cv;
 #define imdebug(img, title) imshow((img), (title)); cv::waitKey()
 
 GlobalPool *global = NULL;
+constexpr const char* PROJECT = "E-N TabConverter";
+
 extern notify<int> progress;
 extern notify<string> notification;
 
@@ -21,18 +23,20 @@ void TrainMode() {
 
 int go(string f, bool isCut) {
 	bool flag = false;
-	Mat img = threshold(f);
+	Mat img = imread(f.c_str(), 0);
+	Mat trimmed = threshold(img);
 	if (img.empty()) {
 		err ex = { 3,__LINE__,"Wrong format." };
 		throw ex;
 	}
 	
-	Mat trimmed = trim(img);
+	trimmed = trim(trimmed);
 	float screenCols = 1919 / 1.25f;				//1919, 最大显示宽度；1.25， win10 系统缩放比
 													//TODO：不知道怎么获取QAQ
 	if (trimmed.cols > screenCols) {
 		float toRows = screenCols / trimmed.cols * trimmed.rows;
 		trimmed = perspect(trimmed, screenCols, (int) toRows);
+		trimmed = threshold(trimmed);
 	}
 	vector<Mat> piece;
 	
@@ -95,7 +99,7 @@ int go(string f, bool isCut) {
 	delete global;
 	char name[256] = "";
 	fname(f.c_str(),name);
-	saveDoc finish(name,"unknown","unknown","unknown","E-N TabConverter","Internet");
+	saveDoc finish(name,"unknown","unknown","unknown",PROJECT,"Internet");
 	for (measure& i : sections) {
 		if(SUCCEED(i.id))
 		try { 
@@ -112,9 +116,14 @@ int go(string f, bool isCut) {
 		progress = progress + 20 / (int)sections.size();
 	}
 	string fn = name;
-	fn = fn + ".xml";
-	finish.save(fn.c_str());
+	fn += ".xml";
+	if (isExist(fn)) if (prompt(NULL, fn + " 已经存在，要替换吗？", PROJECT, 0x34) == 7) {
+		notification = "用户放弃了保存";
+		return 1;
+	}
+	finish.save(fn);
 	progress = 100;
+	notification = "Success";
 	destroyAllWindows();
 	return 0;
 }

@@ -8,8 +8,8 @@ using namespace std;
 #define picFolder "C:\\Users\\Administrator\\Desktop\\oh"
 
 typedef struct {
-	int pos;
-	unsigned string, fret;
+	int pos, fret;
+	unsigned string;
 	vector<int> possible;
 	vector<float> safety;
 	Value time;

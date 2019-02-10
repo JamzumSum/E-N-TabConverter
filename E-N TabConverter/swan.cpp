@@ -154,8 +154,8 @@ saveDoc::saveDoc(char* title, const char* composer, const char* lyricist, const 
 	root->InsertEndChild(part);
 	CopyNode(&backup, &doc);
 }
-int saveDoc::save(const char* xmlPath) {
-	return backup.SaveFile(xmlPath);
+int saveDoc::save(string xmlPath) {
+	return backup.SaveFile(xmlPath.c_str());
 }
 void saveDoc::saveMeasure(measure toSave) {
 	tinyxml2::XMLDocument doc;
