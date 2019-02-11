@@ -36,19 +36,37 @@ public:
 	vector<note> getNotes();
 };
 
-class splitter{
+class Splitter{
 private:
 	cv::Mat org;
 public:
-	splitter(cv::Mat img) : org(img) {}
+	Splitter(cv::Mat img) : org(img) {}
 	void start(vector<cv::Mat>& piece);
 };
 
-class denoiser {
+class Denoiser {
 private:
 	cv::Mat org;
 public: 
-	denoiser(cv::Mat img) : org(img) {}
+	Denoiser(cv::Mat img) : org(img) {}
 	cv::Mat denoise_morphology();
 	cv::Mat denoise_inpaint(vector<cv::Vec4i> lines, double radius);
+};
+
+class LineFinder {
+private:
+	cv::Mat img;
+	double range;
+	vector<int> thickness;
+	int upper, lower;
+
+	bool isDotLine(cv::Vec4i line);
+public:
+	LineFinder(cv::Mat img, double rangeRad) :img(img), range(rangeRad) {}
+	LineFinder(cv::Mat img, int rangeDeg) :img(img) {
+		range = double(rangeDeg) * CV_PI / 180.0;
+	}
+	void findRow(vector<cv::Vec4i>& lines);
+	void findCol(vector<cv::Vec4i>& lines);
+	vector<int> getThickness() { return thickness; }
 };

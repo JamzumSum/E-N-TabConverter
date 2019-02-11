@@ -40,7 +40,7 @@ int go(string f, bool isCut) {
 	}
 	vector<Mat> piece;
 	
-	splitter piccut(trimmed);
+	Splitter piccut(trimmed);
 	piccut.start(piece);
 	
 	progress = 1;
@@ -59,15 +59,13 @@ int go(string f, bool isCut) {
 		if (i.empty()) continue;
 		vector<Vec4i> rows;
 		vector<int> thick;
-		findRow(i, CV_PI / 18, rows,thick);
+		LineFinder finder(i, 10);
+		finder.findRow(rows);
 		if (rows.size() == 6) {
 			flag = true;
-
 			vector<Vec4i> lines;
-			int max = min(rows[5][1], rows[5][3]);
-			int min = std::max(rows[0][1], rows[0][3]);
 
-			findCol(i, CV_PI / 18 * 8, max, min, thick, lines);				//
+			finder.findCol(lines);											//
 			vector<Mat> origin;												//ÇÐ¸î²¢´æ´¢
 			if (lines.size()) cut(i, lines, 0, origin, true);				//
 
