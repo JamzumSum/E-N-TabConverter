@@ -18,8 +18,7 @@ using namespace std;
 
 static cv::Ptr<cv::ml::KNearest> &load(string csv, Ptr<KNearest> &knn);
 
-int rec(Mat character, vector<int> &possible, vector<float>& safety) {
-	const float thresh = 60.0f;
+int rec(Mat character, vector<int> &possible, vector<float>& safety, float thresh) {
 	Mat res, tmp, neighbour, dist;
 	//dist: wrong recgonization, 33.244, 47.31, 45.299
 	character.reshape(1, 1).convertTo(tmp, CV_32FC1, 1.0 / 255.0);

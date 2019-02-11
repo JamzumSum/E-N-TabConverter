@@ -7,13 +7,16 @@ using namespace std;
 
 #define picFolder "C:\\Users\\Administrator\\Desktop\\oh"
 
-typedef struct {
-	int pos, fret;
+class easynote {
+public:
+	int pos = 0, fret = 0;
 	unsigned string;
 	vector<int> possible;
 	vector<float> safety;
 	Value time;
-}easynote;
+
+	static easynote invalid() { easynote i; i.fret = -1; return i; }
+};
 
 typedef struct {
 	vector<easynote> chords;
@@ -26,6 +29,7 @@ private:
 	int maxCharacterHeight = 0;
 	void recNum(cv::Mat section, vector<cv::Vec4i> rows);
 	void recTime(vector<cv::Vec4i> rows);
+	easynote dealWithIt(cv::Mat it);
 	cv::Mat org;
 	vector<ChordSet> notes;
 public:

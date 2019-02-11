@@ -189,17 +189,8 @@ void measure::recNum(Mat denoised, vector<Vec4i> rows) {
 	for (Rect& i : possible) {
 		//TODO: blocked, like 3--3
 		if (i.area() < 0.8* maxCharacterHeight* maxCharacterWidth) continue;
-		Mat what = org(i);
-		if (i.width <= maxCharacterWidth) {
-			//高度超标
-			int more = i.height - maxCharacterHeight;
-			Mat extra = Morphology(255 - what, more - 1, false, false);
-		}
-		else if (i.height <= maxCharacterHeight) {
-			//宽度超标
-			int more = i.width - maxCharacterWidth;
-			Mat extra = Morphology(255 - what, more - 1, true, false);
-		}
+		easynote newNote = dealWithIt(org(i));
+		if (newNote.fret > 0) notes[0].chords.emplace_back(newNote);
 	}
 	possible.clear();
 	Showrectangle imdebug("Showrectangle", ccolor);
@@ -375,6 +366,94 @@ vector<note> measure::getNotes() {
 		}
 	}
 	return r;
+}
+
+easynote measure::dealWithIt(Mat img) {
+	auto tooWide_MORPH = [this, &img]() -> easynote {
+		int more = img.cols - maxCharacterWidth;
+		Mat mask = Morphology(255 - img, more - 1, true, false);
+		img |= mask;
+		vector<vector<Point>> cont;
+		vector<Rect> region;
+		findContours(img, cont, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
+		for (vector<Point>& i : cont) {								//convert contour to rect
+			Rect tmp = boundingRect(i);
+			if (tmp.area() > 9
+				&& tmp.height > 3
+				&& tmp.width > 3
+				) {
+				region.emplace_back(tmp);
+			}
+		}
+		cont.clear();
+		for (Rect& i : region) {
+			if (i.height < 2.5 * i.width
+				&& (global->characterWidth ? (i.width > global->characterWidth / 2) : 1)
+				&& i.height > i.width) {
+				easynote newNote;
+				newNote.fret = rec(img(i), newNote.possible, newNote.safety, 45.0f);
+				return newNote;
+			}
+		}
+		return easynote::invalid();
+	}; 
+	auto tooHigh_MORPH = [this, &img]() -> easynote {
+		int more = img.rows - maxCharacterHeight;
+		Mat mask = Morphology(255 - img, more - 1, true, false);
+		img |= mask;
+		vector<vector<Point>> cont;
+		vector<Rect> region;
+		findContours(img, cont, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
+		for (vector<Point>& i : cont) {								//convert contour to rect
+			Rect tmp = boundingRect(i);
+			if (tmp.area() > 9
+				&& tmp.height > 3
+				&& tmp.width > 3
+				) {
+				region.emplace_back(tmp);
+			}
+		}
+		cont.clear();
+		for (Rect& i : region) {
+			if (i.height < 2.5* i.width
+				&& (global->characterWidth ? (i.width > global->characterWidth / 2) : 1)
+				&& i.height > i.width) {
+				easynote newNote;
+				newNote.fret = rec(img(i), newNote.possible, newNote.safety, 45.0f);
+				return newNote;
+			}
+		}
+		return easynote::invalid();
+	};
+	auto tooWide_Rec = [this, &img]() -> easynote {
+		int trueWidth = int(float(img.rows) / maxCharacterHeight * maxCharacterWidth);
+		for (int i = 0; i < img.cols - trueWidth; i++) {
+			Mat test = img(Range::all(), Range(i, i + trueWidth));
+			easynote newNote;
+			newNote.fret = rec(test, newNote.possible, newNote.safety, 25.0f);
+			if (newNote.fret > 0) return newNote;
+		}
+		return easynote::invalid();
+	};
+	auto tooHigh_Rec = [this, &img]() -> easynote {
+		int trueHeight = int(float(img.rows) / maxCharacterHeight * maxCharacterWidth);
+		for (int i = 0; i < img.rows - trueHeight; i++) {
+			Mat test = img(Range(i, i + trueHeight), Range::all());
+			easynote newNote;
+			newNote.fret = rec(test, newNote.possible, newNote.safety, 25.0f);
+			if (newNote.fret > 0) return newNote;
+		}
+		return easynote::invalid();
+	};
+	if (img.cols > maxCharacterWidth&& img.rows < maxCharacterHeight) {
+		if (img.cols > 2 * maxCharacterWidth) return tooWide_Rec();
+		else return tooWide_MORPH();
+	}
+	else if (img.cols < maxCharacterWidth&& img.rows > maxCharacterHeight) {
+		if (img.rows > 2 * maxCharacterWidth) return tooHigh_Rec();
+		else return tooHigh_MORPH();
+	}
+	else return easynote::invalid();
 }
 
 measure::measure(Mat origin, vector<Vec4i> rows, size_t id)
