@@ -9,15 +9,15 @@
 
 using namespace std;
 
-string GBKToUTF8(const char* strGBK) {
+string GBKToUTF8(string strGBK) {
 	/*
 		函数名：GBKToUTF8
 		功能：将GBK编码转成UTF8，主要应对tinyxml编码处理的问题
 	*/
-	int len = MultiByteToWideChar(CP_ACP, 0, strGBK, -1, NULL, 0);
+	int len = MultiByteToWideChar(CP_ACP, 0, strGBK.c_str(), -1, NULL, 0);
 	wchar_t* wstr = new wchar_t[len + 1];
 	memset(wstr, 0, len + 1);
-	MultiByteToWideChar(CP_ACP, 0, strGBK, -1, wstr, len);
+	MultiByteToWideChar(CP_ACP, 0, strGBK.c_str(), -1, wstr, len);
 	len = WideCharToMultiByte(CP_UTF8, 0, wstr, -1, NULL, 0, NULL, NULL);
 	char* str = new char[len + 1];
 	memset(str, 0, len + 1);
@@ -41,44 +41,29 @@ string getPath() {
 	return path;
 }
 
-void fname(const char* path, char* name) {
+string fname(string path) {
 	/*
-		函数名：fname
-		功能：得到给定全路径指向的文件名
-		返回值： char* name
+	 * @brief 得到给定全路径指向的文件名，无扩展名
+	 * @param[in] path, string, fullpath
+	 * @retval string name
 	*/
-	int start, end;
-	int n = (int)strnlen_s(path, 260);
-	for (int i = n - 1; i >= 0; i--) {
-		if (path[i] == '.' || path[i] == '\\') {
-			end = i;
-			for (i = i - 1; i >= 0; i--) {
-				if (path[i] == '\\') {
-					break;
-				}
-			}
-			start = i + 1;
-			goto copy;
-		}
-	}
-	strncpy(name, path, n);
-	return;
-copy:
-	strncpy(name, &path[start], end - start);
-	return;
+	size_t pos = path.rfind('\\');
+	if (pos == string::npos) pos = 0;
+	size_t dot = path.rfind('.');
+	if (dot == string::npos) return path.substr(pos);
+	else return path.substr(pos + 1, dot - pos - 1);
 }
 
 bool FreeResFile(DWORD dwResName, LPCSTR lpResType, LPCSTR lpFilePathName){
 	/*
-		功能：释放资源文件
-		参数：
-			DWORD dwResName   资源ID，如IDR_ML_CSV1
-			LPCSTR lpResType 指定释放的资源的资源类型，如"ML_CSV"
-			LPCSTR lpFilePathName 释放路径（包含文件名）
-
-		返回值：成功则返回TRUE,失败返回FALSE
+	 * @brief 释放资源文件
+	 * @param[in]
+		DWORD  dwResName   资源ID，如IDR_ML_CSV1
+		LPCSTR lpResType 指定释放的资源的资源类型，如"ML_CSV"
+		LPCSTR lpFilePathName 释放路径（包含文件名）
+	 * @retval 成功则返回TRUE,失败返回FALSE
 	*/
-	HMODULE hInstance = ::GetModuleHandle(NULL);//得到自身实例句柄  
+	HMODULE hInstance = GetModuleHandle(NULL);//得到自身实例句柄  
 
 	HRSRC hResID = ::FindResource(hInstance, MAKEINTRESOURCE(dwResName), lpResType);//查找资源  
 	if (!hResID) return false;

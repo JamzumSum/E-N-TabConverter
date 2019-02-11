@@ -95,9 +95,8 @@ int go(string f, bool isCut) {
 	notification = "扫描完成，准备写入文件";
 	progress = 80;
 	delete global;
-	char name[256] = "";
-	fname(f.c_str(),name);
-	saveDoc finish(name,"unknown","unknown","unknown",PROJECT,"Internet");
+	string name = fname(f);
+	saveDoc finish(name, "unknown", "unknown", "unknown", PROJECT, "Internet");
 	for (measure& i : sections) {
 		if(SUCCEED(i.id))
 		try { 

@@ -52,7 +52,7 @@ static void CopyNode(tinyxml2::XMLDocument *desdoc, const tinyxml2::XMLDocument 
 	
 }
 
-saveDoc::saveDoc(char* title, const char* composer, const char* lyricist, const char* artist, const char* tabber, const char* irights)
+saveDoc::saveDoc(string title, const char* composer, const char* lyricist, const char* artist, const char* tabber, const char* irights)
 {
 	tinyxml2::XMLDocument doc;
 	doc.Parse("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"

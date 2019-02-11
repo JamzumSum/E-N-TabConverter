@@ -8,11 +8,10 @@ typedef unsigned long DWORD;
 typedef const char * LPCSTR;
 
 string getPath();
-void fname(const char* path, char* name);
 void makedir(string folder);
 void ls(const char* lpPath, vector<string> &fileList);
 bool FreeResFile(DWORD dwResName, LPCSTR lpResType, LPCSTR lpFilePathName);
 bool isExist(string filepath);
-string GBKToUTF8(const char* strGBK);
-void fname(const char* path, char* name);
+string GBKToUTF8(string strGBK);
+string fname(string path);
 int prompt(void* hWnd, string text, string caption, unsigned flag);
