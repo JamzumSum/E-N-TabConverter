@@ -173,7 +173,7 @@ form::form(form* parent, const TCHAR* clsName, const TCHAR* title, int x, int y,
 	
 }
 
-void form::forAllControl(void(*todo)(control*)) {
+void form::forAllControl(std::function<void(control*)> todo) {
 	for (window* i : (vector<window*>)tab) todo((control*)i);
 }
 

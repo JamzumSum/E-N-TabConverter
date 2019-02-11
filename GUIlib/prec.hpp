@@ -4,17 +4,14 @@
 #pragma warning(disable : 4312)
 #include <assert.h>
 #include <vector>
+#include <windows.h>
 class window;
 class form;
 class control;
 
-#define Dsetter(na,ty) void set##na(ty na){\
-this->##na = na;\
-}\
+#define Dsetter(na,ty) void set##na(ty na){ this->##na = na; }
 
-#define Dgetter(na,ty) ty get##na(){\
-return this->##na;\
-}
+#define Dgetter(na,ty) ty get##na(){ return this->##na; }
 
 #define Dgesetter(na,ty) ty na = NULL;\
 Dgetter(na,ty)\

@@ -1,5 +1,6 @@
 #pragma once                          
 #include <string>
+#include <functional>
 #include <assert.h>
 #include <vector>
 
@@ -13,7 +14,7 @@ template<typename va>
 class notify {
 private:
 	va v;
-	void (*Set)(va newNoti) = NULL;
+	std::function<void(va)> Set = NULL;
 public:
 	va operator = (const va newV) {
 		assert(Set);

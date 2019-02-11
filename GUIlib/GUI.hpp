@@ -3,11 +3,11 @@
 "name='Microsoft.Windows.Common-Controls' version='6.0.0.0' "\
 "processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 
-#include <windows.h>
 #include <tchar.h>
+#include <functional>
 #include <string>
 #include <algorithm>
-#include "prec.h"
+#include "prec.hpp"
 
 #define GWL_WNDPROC				(-4)
 #define GWL_USERDATA			(-21)
@@ -28,7 +28,7 @@ static windowSet fset;
 static LRESULT CALLBACK WinProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 static void popError();
 
-typedef void(*vvEvent)();
+typedef std::function<void(void)> vvEvent;
 
 class Text {
 private:
@@ -182,13 +182,13 @@ public:
 	void paintLine(int x1, int y1, int x2, int y2);
 	void paintLine(int x1, int y1, int x2, int y2, RECT* rect);
 	control* getControl(HWND controlHwnd);
-	void forAllControl(void(*TODO)(control*));
+	void forAllControl(std::function<void(control*)>);
 	//事件
-	void(*Event_On_Create)(form*) = NULL;
-	void(*Event_On_Unload)(form*) = NULL;
-	void(*Event_Load_Complete)(form*) = NULL;
-	void(*Event_Window_Resize)(form*) = NULL;
-	void(*Event_On_Paint)(form*) = NULL;
+	std::function<void(form*)> Event_On_Create = NULL;
+	std::function<void(form*)> Event_On_Unload = NULL;
+	std::function<void(form*)> Event_Load_Complete = NULL;
+	std::function<void(form*)> Event_Window_Resize = NULL;
+	std::function<void(form*)> Event_On_Paint = NULL;
 };
 
 class control :public window {				//继承类
@@ -212,7 +212,7 @@ public:
 class Button :public control{
 public:
 	Button(form* parent, int x, int y, int w, int h, const TCHAR* Name);
-	void(*Event_On_Click)(Button*) = NULL;
+	std::function<void(Button*)> Event_On_Click = NULL;
 };
 
 class Label :public control {
@@ -264,7 +264,7 @@ public:
 		return id;
 	}
 	
-	void(*Event_Text_Change)(Textbox*) = NULL;
+	std::function<void(Textbox*)> Event_Text_Change = NULL;
 };
 
 class ProgressBar :public control {
@@ -319,7 +319,7 @@ public:
 	//方法
 	Radio(form* parent, int x, int y, int w, int h, const LPTSTR Name, bool head = false);
 	//事件
-	void(*Event_On_Check)(Radio*) = NULL;
+	std::function<void(Radio*)> Event_On_Check = NULL;
 };
 
 class Checkbox :public control {
@@ -334,8 +334,8 @@ public:
 	//Property
 	Property<Checkbox, bool, readWrite> Value;
 	//Event
-	void(*Event_On_Check)(Checkbox*) = NULL;
-
+	std::function<void(Checkbox*)> Event_On_Check = NULL;
+	//Function
 	Checkbox(form* parent, int x, int y, int w, int h, const TCHAR* Name);
 };
 
@@ -354,7 +354,7 @@ private:
 	}
 public:
 	unsigned int Interval = 0;
-	void(*Event_Timer)(form*) = NULL;
+	std::function<void(form*)> Event_Timer = NULL;
 
 	Timer(form* parent, UINT interval, void(*Event)(form*), bool enabled);
 	~Timer() {
