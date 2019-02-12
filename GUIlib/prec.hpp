@@ -2,20 +2,16 @@
 #pragma warning(disable : 4302)
 #pragma warning(disable : 4311)
 #pragma warning(disable : 4312)
+
 #include <assert.h>
 #include <vector>
 #include <windows.h>
+
+#define MAXSIZE 1024
+static HINSTANCE hi = GetModuleHandle(NULL);
 class window;
 class form;
 class control;
-
-#define Dsetter(na,ty) void set##na(ty na){ this->##na = na; }
-
-#define Dgetter(na,ty) ty get##na(){ return this->##na; }
-
-#define Dgesetter(na,ty) ty na = NULL;\
-Dgetter(na,ty)\
-Dsetter(na,ty)
 
 enum permission {
 	readWrite, readOnly, writeOnly
@@ -66,7 +62,6 @@ public:
 	}
 };
 
-
 class windowSet {
 private:
 	std::vector<window*> pool;
@@ -90,3 +85,11 @@ public:
 		return pool[index];
 	}
 };
+
+static void popError() {
+	LPVOID lpMsgBuf;
+	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+		NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)& lpMsgBuf, 0, NULL);
+	MessageBox(NULL, (LPCTSTR)lpMsgBuf, NULL, MB_OK);
+	LocalFree(lpMsgBuf);
+}

@@ -1,6 +1,6 @@
 #pragma once
 #include "Dodo.h"
-#include "global.h"
+#include "global.hpp"
 #include "Cuckoo.h"
 #include "opencv.hpp"
 #include "swan.h"
@@ -35,7 +35,7 @@ int go(string f, bool isCut) {
 													//TODO：不知道怎么获取QAQ
 	if (trimmed.cols > screenCols) {
 		float toRows = screenCols / trimmed.cols * trimmed.rows;
-		trimmed = perspect(trimmed, screenCols, (int) toRows);
+		trimmed = perspect(trimmed, int(screenCols), int(toRows));
 		trimmed = threshold(trimmed);
 	}
 	vector<Mat> piece;

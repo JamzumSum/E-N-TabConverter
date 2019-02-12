@@ -1,6 +1,6 @@
 #include "Cuckoo.h"
 #include "Dodo.h"
-#include "global.h"
+#include "global.hpp"
 #include "imgproc.hpp"
 #include "opencv.hpp"
 
@@ -281,7 +281,7 @@ void measure::recTime(vector<Vec4i> rows) {
 	int predLen = predictLenth();
 	if (!predLen) return;
 
-	inv = 255 - Morphology(picValue, round(predLen * 0.3), false, true);
+	inv = 255 - Morphology(picValue, int(round(predLen * 0.3)), false, true);
 	findContours(inv, cont, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
 
 	time_denoise();						//去掉节拍记号再往下的乱七八糟的东西

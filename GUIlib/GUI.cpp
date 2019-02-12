@@ -155,8 +155,7 @@ size_t window::create() {
 window::window(char type, LPTSTR classname, window* p, int x, int y, int w, int h)
 	: x(x), y(y), w(w), h(h), Parent(p), Classname(classname), type(type),
 		Text(Hwnd){
-	menu.setContainer(this);
-	menu.setter(&window::setMenu);
+
 }
 
 form::~form() {
@@ -170,7 +169,6 @@ form::form(form* parent, const TCHAR* clsName, const TCHAR* title, int x, int y,
 	: window('f', (LPTSTR)clsName, parent, x, y, w, h) {
 	this->feature = WS_OVERLAPPEDWINDOW;
 	this->name = (TCHAR*) title;
-	
 }
 
 void form::forAllControl(std::function<void(control*)> todo) {

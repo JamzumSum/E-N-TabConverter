@@ -3,30 +3,18 @@
 "name='Microsoft.Windows.Common-Controls' version='6.0.0.0' "\
 "processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 
+#include "prec.hpp"
 #include <tchar.h>
 #include <functional>
 #include <string>
 #include <algorithm>
-#include "prec.hpp"
+#include <Commctrl.h>
 
-#define GWL_WNDPROC				(-4)
-#define GWL_USERDATA			(-21)
-#define CLR_DEFAULT             0xFF000000L
-#define PBS_SMOOTH              0x01
-#define PBM_SETRANGE            (WM_USER+1)
-#define PBM_SETPOS              (WM_USER+2)
-#define PBM_SETSTEP             (WM_USER+4)
-#define PBM_STEPIT              (WM_USER+5)
-#define PBM_GETPOS              (WM_USER+8)
-#define PBM_SETBARCOLOR         (WM_USER+9)
-
-#define MAXSIZE 1024
+#define GWL_WNDPROC -4
 #define ID_MENU 9001
 
-static HINSTANCE hi = GetModuleHandle(NULL);
 static windowSet fset;
 static LRESULT CALLBACK WinProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
-static void popError();
 
 typedef std::function<void(void)> vvEvent;
 
@@ -62,17 +50,12 @@ public:
 class window: public Text {
 	//window, 表示可见控件
 protected:
+	HMENU Menu = NULL;
 	HWND Hwnd = NULL;
 	window* Parent = NULL;
 	LPTSTR Classname = NULL;
 private:
-	HMENU Menu = NULL;
 	
-	void setMenu(int ID) {
-		Menu = LoadMenu(hi, MAKEINTRESOURCE(ID));
-	}
-	Dgetter(Menu, HMENU)
-
 public:
 
 	int x = 0;
@@ -82,8 +65,6 @@ public:
 
 	char type = 0;
 	size_t id = 0;				//生效的id > 0
-
-	Property<window, int, writeOnly> menu;
 
 	long feature = 0;
 
@@ -119,6 +100,11 @@ public:
 class form: public window {
 private:
 	//窝已经尽量私有了QAQ
+
+	void setMenu(int ID) {
+		Menu = LoadMenu(hi, MAKEINTRESOURCE(ID));
+	}
+
 	std::vector<LPTSTR> menuList;
 	std::vector<vvEvent> menuEventList;
 
@@ -219,8 +205,7 @@ class Label :public control {
 public:
 
 	Label(form* parent, int x, int y, int w, int h, const TCHAR* Name);
-	void(*Event_On_Click)(Label*) = NULL;
-
+	std::function<void(Label*)> Event_On_Click = NULL;
 };
 
 class Picture :public control {
@@ -369,11 +354,3 @@ public:
 	Property<Timer, bool, readWrite> enabled;
 	Property<Timer, UINT, readWrite> interval;
 };
-
-static void popError() {
-	LPVOID lpMsgBuf;
-	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-		NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)&lpMsgBuf, 0, NULL);
-	MessageBox(NULL, (LPCTSTR)lpMsgBuf, NULL, MB_OK);
-	LocalFree(lpMsgBuf);
-}

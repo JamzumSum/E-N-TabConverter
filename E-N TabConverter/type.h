@@ -25,8 +25,7 @@ public:
 	operator va() {
 		return v;
 	}
-	notify(void (*pSet)(va newV))
-	{
+	notify(void (*pSet)(va newV)){
 		Set = pSet;
 	}
 };

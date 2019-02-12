@@ -56,9 +56,6 @@
     <ClInclude Include="Dodo.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="global.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="swan.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -69,6 +66,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="music.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="global.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

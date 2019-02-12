@@ -4,9 +4,10 @@
 */
 #pragma once
 #include "type.h"
+#include <algorithm>
 #include <fstream>
 
-#pragma warning(disable : 4244)
+//#pragma warning(disable : 4244)
 
 inline  GlobalPool::GlobalPool(std::string path,int col) {
 	this->col = col;
@@ -35,8 +36,8 @@ inline  GlobalPool::GlobalPool(std::string path,int col) {
 		auto minele = min_element(tmp.begin(), tmp.end());
 		auto min2elel = (tmp.begin() == minele) ? tmp.begin() : min_element(tmp.begin(), minele);
 		auto min2eler = (minele + 1 == tmp.end()) ? min2elel : min_element(minele + 1, tmp.end());
-		mp2 = (*min2elel < *min2eler) ? min2elel - tmp.begin() : min2eler - tmp.begin();
-		mp = minele - tmp.begin();
+		mp2 = (*min2elel < *min2eler) ? int(min2elel - tmp.begin()) : int(min2eler - tmp.begin());
+		mp = int(minele - tmp.begin());
 	}
 	else if (cols.size() == 1) if (col == cols[0]) {
 		mp = mp2 = 0;
