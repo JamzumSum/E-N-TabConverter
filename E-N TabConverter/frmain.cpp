@@ -58,16 +58,16 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 	main.setIcon(MAKEINTRESOURCE(IDI_WINDOW1), MAKEINTRESOURCE(IDI_ICON1));
 	//main.bitmapName = MAKEINTRESOURCE(IDB_BITMAP1);
 	main.create();
-	main.Event_Window_Resize = [&scan, &pix](form * me) {
-		pix = me->w / 12;
+	main.Event_Window_Resize = [&scan, &pix, &main]() {
+		pix = main.w / 12;
 		scan.move(5 * pix, 0);
-		me->forAllControl([&pix](control* me) {
+		main.forAllControl([&pix, &main](control* me) {
 			double t = round(me->w / (double)pix);
 			me->resize(int(t * pix), 0);
 		});
 	};
 
-	scan.Event_On_Click = [&](Button * me) {
+	scan.Event_On_Click = [&]() {
 		OPENFILENAME ofn;
 		memset(&ofn, 0, sizeof(ofn));
 		ofn.lStructSize = sizeof(ofn);
@@ -103,7 +103,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 		}
 	};
 
-	setting.Event_On_Click = [](Button * me) {
+	setting.Event_On_Click = []() {
 		progress = 0;
 		notification = "Trian start. ";
 		TrainMode();
@@ -111,26 +111,25 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 		notification = "Train end. ";
 	};
 
-	main.Event_Load_Complete = [&pix](form * me) {
-		pix = me->w / 12;
-		me->forAllControl([](control * me) {
+	main.Event_Load_Complete = [&pix, &main]() {
+		pix = main.w / 12;
+		main.forAllControl([](control * me) {
 			me->setFont("Î¢ÈíÑÅºÚ", 19); 
 		});
 	};
 
-	home.Event_On_Click = [&scan](Button * me) {
+	home.Event_On_Click = [&scan]() {
 		scan.show();
 	};
-	Exit.Event_On_Click = [](Button * me) {
-		window* p = me->parent();
+	Exit.Event_On_Click = [&Exit]() {
+		window* p = Exit.parent();
 		((form*)p)->close();
 	};
-	cut.Event_On_Check = [&isCut](Checkbox * me) {
-		isCut = me->Value;
+	cut.Event_On_Click = [&isCut, &cut]() {
+		isCut = cut.Value;
 	};
-	save.Event_On_Check = [](Checkbox * me) {
-		savepic = me->Value;
+	save.Event_On_Click = [&save]() {
+		savepic = save.Value;
 	};
-
 	main.run();
 }
