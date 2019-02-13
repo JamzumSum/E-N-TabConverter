@@ -15,6 +15,7 @@ static Label* ForNoti;
 static string noti;
 static char prog[4];
 extern bool savepic;
+constexpr const char* PROJECT = "E-N TabConverter";
 
 extern int go(string f, bool cut);
 extern void TrainMode();
@@ -26,7 +27,7 @@ notify<int> progress([](int p) {
 	char num[4];
 	_itoa_s(p, num, 10);
 	strncpy_s(prog, num, 4);
-	ForNoti->name = (TCHAR*) conc(noti, prog).c_str();
+	ForNoti->name = conc(noti, prog).c_str();
 });
 notify<string> notification([](string n) {
 	auto conc = [](string n, char p[4]) -> string {
@@ -34,15 +35,15 @@ notify<string> notification([](string n) {
 	};
 
 	noti = n;
-	ForNoti->name = (TCHAR*) conc(noti, prog).c_str();
+	ForNoti->name = conc(noti, prog).c_str();
 });
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine, int iCmdShow) {
 	bool isCut = false;
 	int pix = 80;
-	char f[MAX_PATH];
+	char f[MAX_PATH] = {};
 
-	form main(NULL, "form", "E-Land Chord Converter", 240, 240, 840, 528);
+	form main(NULL, "form", PROJECT, 240, 240, 840, 528);
 	Button scan(&main, 5 * pix, 200, 112, 56, "Go!");
 	Button home(&main, 8, 0, 112, 56, "Home");
 	Button history(&main, 8, 64, 112, 56, "History");
@@ -69,20 +70,19 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 
 	scan.Event_On_Click = [&]() {
 		OPENFILENAME ofn;
-		memset(&ofn, 0, sizeof(ofn));
-		ofn.lStructSize = sizeof(ofn);
+		memset(&ofn, 0, sizeof(OPENFILENAME));
+		ofn.lStructSize = sizeof(OPENFILENAME);
 		ofn.hwndOwner = main.hWnd();
 		ofn.lpstrFile = f;
 		ofn.nMaxFile = MAX_PATH;
 		ofn.lpstrFilter = "Í¼Æ¬\0*.bmp;*.jpg;*.JPG;*.jpeg;*.png;*.gif\0\0";
 		ofn.nFilterIndex = 0;
 		ofn.lpstrTitle = "Ñ¡ÔñÀÖÆ×£º";
-		ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+		ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
 
-		info.name = (TCHAR*) "Then choose a tab.";
+		info.name = "Then choose a tab.";
 
-		if (GetOpenFileName(&ofn))
-		{
+		if (GetOpenFileName(&ofn)) {
 			info.name = f;
 			try {
 				go(string(f), isCut);
@@ -101,11 +101,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 			}
 			main.top();
 		}
+		else info.name = "Press \"Go\" to begin.";
 	};
 
 	setting.Event_On_Click = []() {
 		progress = 0;
-		notification = "Trian start. ";
+		notification = "Train start. ";
 		TrainMode();
 		progress = 100;
 		notification = "Train end. ";
@@ -121,9 +122,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 	home.Event_On_Click = [&scan]() {
 		scan.show();
 	};
-	Exit.Event_On_Click = [&Exit]() {
-		window* p = Exit.parent();
-		((form*)p)->close();
+	Exit.Event_On_Click = [&main]() {
+		main.close();
 	};
 	cut.Event_On_Click = [&isCut, &cut]() {
 		isCut = cut.Value;
