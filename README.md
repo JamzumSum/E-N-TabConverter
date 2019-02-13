@@ -21,10 +21,12 @@
 |头文件名      |简介                         |
 |:-----------:|-----------------------------|
 |Cuckoo.h     |小节内部识别                  |
-|global.h     |全局变量声明                  |
-|GUI.h        |win32界面库                   |
 |Dodo.h       |图像处理函数声明                |
+|global.h     |全局变量声明                  |
+|GUI.hpp      |win32界面库                   |
+|music.h      |与MUSICXML对应的类型定义       |
 |swan.h       |XML输出模块                   |
+|tool.h       |工具函数定义                   |
 |type.h       |类 自定义类型声明              |
 
 #### 源文件
@@ -37,6 +39,7 @@
 |framework.cpp|较大规模图像处理函数实现          |
 |frmain.cpp   |界面                           |
 |func.cpp     |算法实现                       |
+|tool.cpp     |工具函数                       |
 
 #### 杂项
 
@@ -51,7 +54,8 @@
 
 ### 引用
 
-  * [OpenCV](https://github.com/opencv/opencv)
-  * [tinyxml2](https://github.com/leethomason/tinyxml2)
+* [OpenCV](https://github.com/opencv/opencv)
+* [tinyxml2](https://github.com/leethomason/tinyxml2)
+* GUIlib
 
 Thanks sincerely.
