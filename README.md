@@ -3,7 +3,7 @@
 
 由我[原来的项目](https://github.com/EscapeLand/ELand-chordConverter)迁移而来，这次完全由我自己开发:P
 
-> 2019-2-15：emmm 最后一次release`咕咕咕`了。。。毕竟之前已经发了一个，现存的并没有大的改动
+> 2019-2-15：emmm 最后一次release`咕咕咕`了。。。毕竟之前已经发了一个，现存的并没有大的改动...			
 > 再维护恐怕要等到7月份了，毕竟咱没那个水平一边学习一边维护2333
 
 ## 目录
@@ -55,6 +55,6 @@
 
 * [OpenCV](https://github.com/opencv/opencv)
 * [tinyxml2](https://github.com/leethomason/tinyxml2)
-* [GUIlib](https://github.com/YuanWangZhe/E-N-TabConverter/tree/master/GUIlib)
+* [GUIlib](https://github.com/YuanWangZhe/E-N-TabConverter/blob/master/GUIlib/GUIlib.md)
 
 Thanks sincerely.
