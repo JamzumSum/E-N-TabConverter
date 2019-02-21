@@ -55,6 +55,6 @@
 
 * [OpenCV](https://github.com/opencv/opencv)
 * [tinyxml2](https://github.com/leethomason/tinyxml2)
-* [GUIlib](https://github.com/YuanWangZhe/E-N-TabConverter/blob/master/GUIlib/GUIlib.md)
+* [GUIlib](https://github.com/YuanWangZhe/GUIlib)
 
 Thanks sincerely.

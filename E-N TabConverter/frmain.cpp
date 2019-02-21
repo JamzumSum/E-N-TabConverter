@@ -3,7 +3,8 @@
 */
 #pragma once
 #include "type.h"
-#include "..\GUIlib\GUI.hpp"
+#include "GUI.hpp"
+#include <commdlg.h>
 
 using namespace std;
 

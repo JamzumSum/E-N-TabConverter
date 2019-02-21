@@ -70,7 +70,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>C:\Users\Administrator\Desktop\E-N TabConverter\tinyxml2;C:\Users\Administrator\Desktop\E-N TabConverter\OpenCV\opencv\build\include\opencv2;C:\Users\Administrator\Desktop\E-N TabConverter\OpenCV\opencv\build\include\opencv;C:\Users\Administrator\Desktop\E-N TabConverter\OpenCV\opencv\build\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)tinyxml2;$(SolutionDir)OpenCV\opencv\build\include\opencv2;$(SolutionDir)OpenCV\opencv\build\include\opencv;$(SolutionDir)OpenCV\opencv\build\include;$(SolutionDir)..\GUIlib\GUIlib;$(IncludePath)</IncludePath>
     <LibraryPath>C:\Users\Administrator\Desktop\E-N TabConverter\OpenCV\opencv\build\x64\vc15\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -78,7 +78,7 @@
     <LibraryPath>C:\Users\Administrator\Desktop\E-N TabConverter\OpenCV\opencv\build\x64\vc15\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>C:\Users\Administrator\Desktop\E-N TabConverter\tinyxml2;C:\Users\Administrator\Desktop\E-N TabConverter\OpenCV\opencv\build\include\opencv2;C:\Users\Administrator\Desktop\E-N TabConverter\OpenCV\opencv\build\include\opencv;C:\Users\Administrator\Desktop\E-N TabConverter\OpenCV\opencv\build\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)tinyxml2;$(SolutionDir)OpenCV\opencv\build\include\opencv2;$(SolutionDir)OpenCV\opencv\build\include\opencv;$(SolutionDir)OpenCV\opencv\build\include;$(SolutionDir)..\GUIlib\GUIlib;$(IncludePath)</IncludePath>
     <LibraryPath>C:\Users\Administrator\Desktop\E-N TabConverter\OpenCV\opencv\build\x64\vc15\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
