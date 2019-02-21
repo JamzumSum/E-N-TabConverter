@@ -4,27 +4,32 @@
 using namespace std;
 
 void form::run() {
-	//在此处挂起
-	MSG msg;
-	memset(&msg, 0, sizeof(msg));
+	auto loop = [this]() {
+		MSG msg;
+		memset(&msg, 0, sizeof(msg));
 
-	forAllControl([](control * me) {me->create(); });
-	show();
-	
-	if (this->Event_Load_Complete) this->Event_Load_Complete();
+		create();
+		forAllControl([](control * me) {me->create(); });
 
-	int loopret = 0;
-	while ((loopret = GetMessage(&msg, this->Hwnd, 0, 0)) > 0) {
-		if (loopret == -1) {
-			popError();
-			exit(1);
+		if (this->Event_Load_Complete) this->Event_Load_Complete();
+
+		show();
+
+		int loopret = 0;
+		while ((loopret = GetMessage(&msg, this->Hwnd, 0, 0)) > 0) {
+			if (loopret == -1) {
+				popError();
+				exit(1);
+			}
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
 		}
-		TranslateMessage(&msg);
-		DispatchMessage(&msg);
-	}
-	fset.remove(id);
-	window* w = fset.find(Classname);
-	if (!w) UnregisterClass(Classname, hi);
+		fset.remove(id);
+		window* w = fset.find(Classname);
+		if (!w) UnregisterClass(Classname, hi);
+	};
+	
+	msgLoop = thread(loop);
 }
 
 control* form::getControl(HWND controlHwnd) {
@@ -134,10 +139,13 @@ size_t window::create() {
 	}
 }
 
-window::window(char type, LPTSTR classname, window* p, int x, int y, int w, int h)
-	: x(x), y(y), w(w), h(h), Parent(p), Classname(classname), type(type),
+window::window(char type, const TCHAR* classname, window* p, int x, int y, int w, int h)
+	: Parent(p), Classname((LPTSTR)classname), type(type),
 		Text(Hwnd){
-
+	this->x = x < 0 ? Parent->w + x : x;
+	this->y = y < 0 ? Parent->h + y : y;
+	this->w = w < 0 ? Parent->w + w : w;
+	this->h = h < 0 ? Parent->h + h : h;
 }
 
 form::~form() {
@@ -193,6 +201,7 @@ size_t form::create() {
 		w = r.right - x;
 		h = r.bottom - y;
 	}
+	created = true;
 	if (this->Event_On_Create) this->Event_On_Create();
 	return id;
 }
@@ -251,5 +260,5 @@ void windowSet::add(window* which) {
 		which->id = r - pool.begin() + 1;
 		pool[which->id - 1] = which;
 	}
-	size++;
+	this->__size++;
 }

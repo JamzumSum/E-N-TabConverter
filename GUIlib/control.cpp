@@ -1,7 +1,7 @@
-#pragma once
+﻿#pragma once
 #include "stdafx.h"
 
-control::control(char t, LPTSTR clsname, window* parent, int x, int y, int w, int h)
+control::control(char t, const TCHAR* clsname, window* parent, int x, int y, int w, int h)
 	: window(t, clsname, parent, x, y, w, h) {
 	this->feature = this->feature | WS_CHILD | WS_VISIBLE;
 	push();
@@ -16,14 +16,13 @@ Button::Button(form* parent, int x, int y, int w, int h, const TCHAR* Name)
 Label::Label(form* parent, int x, int y, int w, int h, const TCHAR* Name) 
 	: control('l', (TCHAR*)_T("STATIC"), parent, x, y, w, h) {
 	this->name = (LPTSTR) Name;
-	this->feature |= SS_NOTIFY | BS_FLAT;
+	this->feature |= SS_NOTIFY | SS_LEFT;
 }
 
-Picture::Picture(form* parent, int x, int y, int w, int h, const LPTSTR Name, const LPTSTR picPath) 
-	: control('p', (TCHAR*)_T("STATIC"), parent, x, y, w, h) {
-	this->name = (LPTSTR)Name;				//x
-	this->path = (LPTSTR)picPath;
-	this->feature |= SS_NOTIFY | SS_BITMAP;
+Picture::Picture(form* parent, int x, int y, int w, int h, const TCHAR* picPath) 
+	: control('I', (TCHAR*)_T("STATIC"), parent, x, y, w, h) {
+	this->name  = picPath;
+	this->feature |= SS_NOTIFY | SS_BITMAP | SS_CENTERIMAGE;
 }
 
 ProgressBar::ProgressBar(form* parent, int x, int y, int w, int h, const LPTSTR Name) 
@@ -98,3 +97,25 @@ Textbox::Textbox(form* parent, int x, int y, int w, int h, const LPTSTR Name, bo
 	this->feature |= WS_BORDER | WS_GROUP | WS_TABSTOP | ES_WANTRETURN;
 	if (Multiline) this->feature |= ES_MULTILINE;
 }
+
+LRESULT Textbox::proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
+	Textbox* p = NULL;
+	form* t = (form*)fset.find(GetParent(hwnd));
+	if (!t) return 0;
+
+	p = (Textbox*)t->tab.find(hwnd);
+	if (!p) return 0;
+
+	switch (message) {
+	case WM_CHAR:
+	case WM_PASTE:
+	{
+		//WM_CHANGE
+		LRESULT r = CallWindowProc((WNDPROC)p->preProc, hwnd, message, wParam, lParam);
+		if (p->Event_Text_Change) p->Event_Text_Change();
+		return r;
+	}
+	default:
+		return CallWindowProc((WNDPROC)p->preProc, hwnd, message, wParam, lParam);
+	}
+};

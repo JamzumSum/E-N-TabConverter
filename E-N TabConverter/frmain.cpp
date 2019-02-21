@@ -58,7 +58,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 
 	main.setIcon(MAKEINTRESOURCE(IDI_WINDOW1), MAKEINTRESOURCE(IDI_ICON1));
 	//main.bitmapName = MAKEINTRESOURCE(IDB_BITMAP1);
-	main.create();
 	main.Event_Window_Resize = [&scan, &pix, &main]() {
 		pix = main.w / 12;
 		scan.move(5 * pix, 0);
@@ -132,4 +131,5 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 		savepic = save.Value;
 	};
 	main.run();
+	main.msgLoop.join();
 }

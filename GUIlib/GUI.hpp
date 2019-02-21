@@ -8,6 +8,7 @@
 #include <tchar.h>
 #include <string>
 #include <algorithm>
+#include <thread>
 #include <Commctrl.h>
 
 #define GWL_WNDPROC -4
@@ -67,7 +68,7 @@ public:
 
 	long feature = 0;
 
-	window(char type, LPTSTR classname, window* parent, int x = 0, int y = 0, int w = 0, int h = 0);
+	window(char type, const TCHAR* classname, window* parent, int x = 0, int y = 0, int w = 0, int h = 0);
 	void hide() {
 		ShowWindow(Hwnd, 0);
 	}
@@ -96,26 +97,53 @@ public:
 	virtual size_t create();
 };
 
+class menuX {
+	union menuid {
+		HMENU menu = NULL;
+		UINT id;
+	};
+private:
+	menuid id;
+	vvEvent On_Click = NULL;
+	std::string name;
+public:
+	menuX() {}
+	menuX(HWND owner, bool pop) {
+		id.menu = pop ? CreatePopupMenu() : CreateMenu();
+		SetMenu(owner, id.menu);
+	}
+	menuX(menuX parent, std::string name) : name(name) {
+		id.menu = CreateMenu();
+		AppendMenu(parent, MF_POPUP, (LONG)id.menu, name.c_str());
+	}
+	menuX(menuX parent, std::string name, UINT id, vvEvent click) : name(name), On_Click(click) {
+		this->id.id = id;
+		AppendMenu(parent, MF_STRING, id, name.c_str());
+	}
+	operator HMENU() {
+		return id.menu;
+	}
+	operator UINT() {
+		return id.id;
+	}
+	operator std::string() {
+		return name;
+	}
+	auto operator() () {
+		assert(On_Click);
+		return On_Click();
+	}
+};
+
 class form: public window {
 private:
 	//窝已经尽量私有了QAQ
-
-	void setMenu(int ID) {
-		Menu = LoadMenu(hi, MAKEINTRESOURCE(ID));
-	}
-
-	std::vector<LPTSTR> menuList;
-	std::vector<vvEvent> menuEventList;
-
-	HMENU RBmenu = NULL;
 	LPTSTR icon = IDI_APPLICATION;
 	LPTSTR smallIcon = IDI_APPLICATION;
+	bool created = false;
+	std::vector<menuX> menuleaves;
 
 	bool regist();
-	void Menulist_pushback(vvEvent Event_Menu_Click, size_t ID) {
-		this->menuList.push_back(MAKEINTRESOURCE(ID));
-		this->menuEventList.push_back(Event_Menu_Click);
-	}
 	//===================================================================================================
 	//===================================================================================================
 	//===================================================================================================
@@ -125,30 +153,41 @@ public:
 		int x = CW_USEDEFAULT, int y = CW_USEDEFAULT, int w = CW_USEDEFAULT, int h = CW_USEDEFAULT);
 	~form();
 	//属性
+	std::thread msgLoop;
+	menuX rootMenu = menuX(Hwnd, false);
+	menuX RBmenu;
 	windowSet tab;
 	
 	int brush = 0;
 	HDC hdc = NULL;
 	LPTSTR bitmapName = NULL;
-	//方法
-
+	//message queqe
 	LRESULT CALLBACK winproc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
+	//icon
 	void setIcon(LPTSTR smallIconName, LPTSTR iconName = NULL) {
+		assert(!created);
 		if (iconName) this->icon = iconName;
 		smallIcon = smallIconName;
 	}
-	void pushMenu(vvEvent Event_Menu_Click, LPTSTR menu) {
-		if (!this->RBmenu) RBmenu = CreatePopupMenu();
-		if (AppendMenu(this->RBmenu, MF_STRING, ID_MENU + this->menuList.size(), menu)) {
-			Menulist_pushback(Event_Menu_Click, ID_MENU + this->menuList.size());
+	//menu
+	menuX createMenu(menuX parent, std::string name, vvEvent Event_Menu_Click = NULL) {
+		static UINT id = 1001;
+		if (Event_Menu_Click) {
+			menuX newm(parent, name, id++, Event_Menu_Click);
+			menuleaves.emplace_back(newm);
+			return newm;
 		}
+		else return menuX(parent, name);
 	}
 	void Event_Menu_Click(WORD ID) {
-		auto r = find_if(menuList.begin(), menuList.end(), [ID](LPTSTR x) ->bool {return (WORD)(ULONG_PTR)x == ID; });
-		assert(r != menuList.end());
-		menuEventList[r - menuList.begin()]();
-		//for (size_t i = 0; i < menuList.size(); i++) if ((WORD)(ULONG_PTR)menuList[i] == ID) menuEventList[i]();
+		auto r = find_if(menuleaves.begin(), menuleaves.end(), [ID](menuX x) ->bool {return (UINT)x == ID; });
+		assert(r != menuleaves.end());
+		(*r)();
 	}
+	void enableRBmenu() {
+		RBmenu = menuX(Hwnd, true);
+	}
+	//form operation
 	void minimum() {
 		ShowWindow(Hwnd, SW_SHOWMINNOACTIVE);
 	}
@@ -163,6 +202,7 @@ public:
 	}
 
 	size_t create();
+	const bool isCreated() { return created; }
 	void run();
 	void paintLine(int x1, int y1, int x2, int y2);
 	void paintLine(int x1, int y1, int x2, int y2, RECT* rect);
@@ -183,14 +223,19 @@ public:
 	//属性
 	std::string tag;
 	//方法
-	control(char type, LPTSTR clsname, window* parent, int x = 0, int y = 0, int w = 0, int h = 0);
+	control(char type, const TCHAR* clsname, window* parent, int x = 0, int y = 0, int w = 0, int h = 0);
 	form* parent() {
-		return (form*)Parent;
+		return (form*)window::Parent;
 	}
 	void push() {
 		form* t = parent();
 		assert(t);
 		t->tab.add(this);
+	}
+	size_t create() {
+		assert(parent()->isCreated());
+		window::create();
+		return id;
 	}
 };
 
@@ -208,35 +253,14 @@ public:
 class Picture: public control, public Clickable {
 	//.bmp only
 public:
-	LPTSTR path = NULL;
-	Picture(form* parent, int x, int y, int w, int h, const LPTSTR Name, const LPTSTR picPath);
+	Picture(form* parent, int x, int y, int w, int h, const TCHAR* picPath);
 };
 
 class Textbox :public control {
 private:
 	long preProc = NULL;
 	bool multiline = true;
-	static LRESULT proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
-		Textbox * p = NULL;
-		form* t = (form*)fset.find(GetParent(hwnd));
-		if (!t) return 0;
-
-		p = (Textbox*)t->tab.find(hwnd);
-		if (!p) return 0;
-
-		switch (message) {
-		case WM_CHAR:
-		case WM_PASTE:
-		{
-			//WM_CHANGE
-			LRESULT r = CallWindowProc((WNDPROC)p->preProc, hwnd, message, wParam, lParam);
-			if (p->Event_Text_Change) p->Event_Text_Change();
-			return r;
-		}
-		default:
-			return CallWindowProc((WNDPROC)p->preProc, hwnd, message, wParam, lParam);
-		}
-	};
+	static LRESULT proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 public:
 	Textbox(form* parent, int x, int y, int w, int h, const LPTSTR Name, bool Multiline = true);
 	size_t create() {
@@ -277,7 +301,7 @@ public:
 		setPos(0);
 	}
 	void full() {
-		setPos((int)SendMessage(Hwnd, PBM_GETPOS, 0, 0));
+		setPos((int)SendMessage(Hwnd, PBM_GETRANGE, false, NULL));
 	}
 	void setColor(ULONG color = CLR_DEFAULT) {
 		//back to default if void

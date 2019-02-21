@@ -65,7 +65,7 @@ public:
 class windowSet {
 private:
 	std::vector<window*> pool;
-	size_t size = 0;
+	size_t __size = 0;
 public:
 	window* find(HWND hWnd);
 	window* find(LPTSTR clsname = NULL);
@@ -75,7 +75,13 @@ public:
 	void remove(size_t id) {
 		assert(id);
 		pool[id - 1] = NULL;
-		size--;
+		__size--;
+	}
+	bool empty() {
+		return pool.empty();
+	}
+	size_t size() {
+		return __size;
 	}
 	void add(window* which);
 	operator std::vector<window*>& () {
