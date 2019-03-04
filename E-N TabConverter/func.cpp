@@ -1,4 +1,5 @@
 #pragma once
+#include "stdafx.h"
 #include "Dodo.h"
 #include "global.hpp"
 #include "Cuckoo.h"
@@ -25,10 +26,7 @@ int go(string f, bool isCut) {
 	bool flag = false;
 	Mat img = imread(f.c_str(), 0);
 	Mat trimmed = threshold(img);
-	if (img.empty()) {
-		err ex = { 3,__LINE__,"Wrong format." };
-		throw ex;
-	}
+	if (img.empty()) raiseErr("Wrong format.", 3);
 	
 	trimmed = trim(trimmed);
 	float screenCols = 1919 / 1.25f;				//1919, 最大显示宽度；1.25， win10 系统缩放比
@@ -76,7 +74,7 @@ int go(string f, bool isCut) {
 					measure newSec(j, rows, sections.size() + 1);
 					if (newSec.id) sections.emplace_back(newSec);
 				}
-				catch (err ex) {
+				catch (Err ex) {
 					switch (ex.id){
 					case 1:
 					default: throw ex; break;
@@ -102,7 +100,7 @@ int go(string f, bool isCut) {
 		try { 
 			finish.saveMeasure(i); 
 		}
-		catch (err ex) {
+		catch (Err ex) {
 			switch (ex.id)
 			{
 			case 3: break;				//unexpected timeValue

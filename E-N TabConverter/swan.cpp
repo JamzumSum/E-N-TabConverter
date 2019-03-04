@@ -1,4 +1,5 @@
-﻿#include "swan.h"
+﻿#include "stdafx.h"
+#include "swan.h"
 #include "type.h"
 #include "tools.h"
 
@@ -414,8 +415,7 @@ keepnote:
 			notes[i]->InsertEndChild(doc.NewText("64th"));
 			break;
 		default:
-			err ex = {2,__LINE__,"timeValue: unexpected value in switch."};
-			throw ex;
+			raiseErr("timeValue: unexpected value in switch.", 2);
 			break;
 		}
 		notes[i]->InsertEndChild(types[i]);

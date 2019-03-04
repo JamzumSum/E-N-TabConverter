@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include "cv.h"
 #include "Dodo.h"
 #include "imgproc.hpp"

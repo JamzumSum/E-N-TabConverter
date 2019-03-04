@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include "Cuckoo.h"
 #include "Dodo.h"
 #include "global.hpp"
@@ -81,10 +82,7 @@ void measure::recNum(Mat denoised, vector<Vec4i> rows) {
 						flag = true;
 					}
 				}
-				if (!flag) {
-					err ex = {0, __LINE__, "fret合并：不可置信条件. 检查模型" };
-					throw ex;
-				}
+				if (!flag) raiseErr("fret合并：不可置信条件. 检查模型", 0);
 			}
 			m->pos = (m->pos + n->pos) / 2;
 			m->fret = 10 + n->fret;
@@ -169,11 +167,8 @@ void measure::recNum(Mat denoised, vector<Vec4i> rows) {
 				newNote.fret = rec(number, newNote.possible, newNote.safety);				//识别数字fret
 				if (newNote.fret < 0) continue;												//较大的几率不是数字
 			}
-			catch (err ex) {
-				switch (ex.id) {
-				case 5:
-				default: throw ex; break;
-				}
+			catch (runtime_error ex) {
+				throw ex;
 			}
 
 			draw(rectangle, ccolor, i.tl(), i.br(), Scalar(0, 0, 255));
@@ -230,10 +225,7 @@ void measure::recTime(vector<Vec4i> rows) {
 				findContours(inv, cont, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
 				if (tr < 2) {
 					for (int i = 0; i < picValue.rows; i++) {
-						if (!isEmptyLine(picValue, i, 0.04)) {
-							err ex = { 6,__LINE__,"未扫描到纵向结构" };
-							throw ex;
-						}
+						if (!isEmptyLine(picValue, i, 0.04)) raiseErr("未扫描到纵向结构", 6);
 					}
 					return 0;
 				}
@@ -342,10 +334,7 @@ distribute:
 			noValue.erase(s);
 		}
 	}
-	if (!noValue.empty()) {
-		err ex = { 1,__LINE__,"有未分配时值的乐符" };
-		throw ex;
-	}
+	if (!noValue.empty()) raiseErr("有未分配时值的乐符", 1);
 }
 
 vector<note> measure::getNotes() {
@@ -475,15 +464,15 @@ measure::measure(Mat origin, vector<Vec4i> rows, size_t id)
 		}
 		recTime(rows);
 	}
-	catch (err ex) {
+	catch (Err ex) {
 		switch (ex.id)
 		{
 		case 0: break;									//包含不合理数据
 		case 1:											//timeValue越界
-			imdebug(ex.description, org);
+			imdebug(ex.what(), org);
 			break;
 		case 6:											//没有竖直结构用以判断时值
-			imdebug(ex.description, org);
+			imdebug(ex.what(), org);
 			break;
 		default: throw ex; break;
 		}

@@ -70,7 +70,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(SolutionDir)tinyxml2;$(SolutionDir)OpenCV\opencv\build\include\opencv2;$(SolutionDir)OpenCV\opencv\build\include\opencv;$(SolutionDir)OpenCV\opencv\build\include;$(SolutionDir)..\GUIlib\GUIlib;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)E-N TabConverter;$(SolutionDir)tinyxml2;$(SolutionDir)OpenCV\opencv\build\include\opencv2;$(SolutionDir)OpenCV\opencv\build\include\opencv;$(SolutionDir)OpenCV\opencv\build\include;$(SolutionDir)..\GUIlib\GUIlib;$(IncludePath)</IncludePath>
     <LibraryPath>C:\Users\Administrator\Desktop\E-N TabConverter\OpenCV\opencv\build\x64\vc15\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -78,7 +78,7 @@
     <LibraryPath>C:\Users\Administrator\Desktop\E-N TabConverter\OpenCV\opencv\build\x64\vc15\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>$(SolutionDir)tinyxml2;$(SolutionDir)OpenCV\opencv\build\include\opencv2;$(SolutionDir)OpenCV\opencv\build\include\opencv;$(SolutionDir)OpenCV\opencv\build\include;$(SolutionDir)..\GUIlib\GUIlib;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)E-N TabConverter;$(SolutionDir)tinyxml2;$(SolutionDir)OpenCV\opencv\build\include\opencv2;$(SolutionDir)OpenCV\opencv\build\include\opencv;$(SolutionDir)OpenCV\opencv\build\include;$(SolutionDir)..\GUIlib\GUIlib;$(IncludePath)</IncludePath>
     <LibraryPath>C:\Users\Administrator\Desktop\E-N TabConverter\OpenCV\opencv\build\x64\vc15\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -87,6 +87,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
+      <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
     <Link>
       <AdditionalDependencies>opencv_world401d.lib;C:\Users\Administrator\Desktop\E-N TabConverter\x64\Debug\GUIlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -99,6 +100,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalOptions>/D_CRT_SECURE_NO_WARNINGS %(AdditionalOptions)</AdditionalOptions>
+      <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
     <Link>
       <AdditionalDependencies>opencv_world401d.lib;C:\Users\Administrator\Desktop\E-N TabConverter\x64\Debug\GUIlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -153,6 +155,7 @@
     <ClInclude Include="global.hpp" />
     <ClInclude Include="music.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="stdafx.h" />
     <ClInclude Include="swan.h" />
     <ClInclude Include="tools.h" />
     <ClInclude Include="type.h" />

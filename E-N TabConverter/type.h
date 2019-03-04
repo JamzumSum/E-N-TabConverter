@@ -1,14 +1,17 @@
 #pragma once                          
-#include <string>
+#include "stdafx.h"
 #include <functional>
-#include <assert.h>
-#include <vector>
 
-typedef struct err {
+class Err: public std::runtime_error {
+#define raiseErr(description, id) throw Err(description, id, __LINE__)
+public:
 	int id;
 	int line;
-	std::string description;
-}err;
+
+	Err(std::string desc, int id, int line) : runtime_error(desc), line(line) {
+		this->id = id;
+	}
+};
 
 template<typename va>
 class notify {
@@ -47,11 +50,6 @@ public:
 		studyRate = newVa;
 	}
 
-	//GlobalUnit(int init) {
-	//	value = init;
-	//	initialed = true;
-	//}
-	//GlobalUnit() {}
 };
 
 class GlobalPool {

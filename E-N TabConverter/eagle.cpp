@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include "ml.hpp"
 #include "tools.h"
 #include "opencv.hpp"
@@ -6,8 +7,6 @@
 #include <string>
 
 #define IDR_ML_CSV1 103
-#define samplePath "C:\\Users\\Administrator\\Desktop\\E-N TabConverter\\sample_classified\\"
-#define defaultCSV "C:\\Users\\Administrator\\Desktop\\E-N TabConverter\\tData.csv"
 
 typedef unsigned long       DWORD;
 typedef _Null_terminated_ const char *LPCSTR;
@@ -24,10 +23,8 @@ int rec(Mat character, vector<int> &possible, vector<float>& safety, float thres
 	character.reshape(1, 1).convertTo(tmp, CV_32FC1, 1.0 / 255.0);
 	static Ptr<KNearest> knn = KNearest::create();
 	knn = load(defaultCSV, knn);
-	if (!knn->isTrained()) {
-		err ex = {5,__LINE__,"knnÍøÂç¶ÁÈ¡Ê§°Ü"};
-		throw ex;
-	}
+	if (!knn->isTrained()) throw runtime_error("knnÍøÂç¶ÁÈ¡Ê§°Ü");
+	
 	knn->findNearest(tmp, 5, res, neighbour, dist);
 
 	possible.clear();

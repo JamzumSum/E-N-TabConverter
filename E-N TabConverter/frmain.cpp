@@ -2,6 +2,7 @@
 	frmain.cpp 控制程序的GUI
 */
 #pragma once
+#include "stdafx.h"
 #include "type.h"
 #include "GUI.hpp"
 #include <commdlg.h>
@@ -87,15 +88,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 			try {
 				go(string(f), isCut);
 			}
-			catch (err ex) {
+			catch (Err ex) {
 				switch (ex.id)
 				{
 				case 3:
 					//不支持的格式
-					info.name = (TCHAR*)ex.description.insert(0, "Failure: ").c_str();
+					info.name = ex.what();
 					return;
 				default:
-					info.name = (TCHAR*)ex.description.insert(0, "Error: ").c_str();
+					info.name = ex.what();
 					break;
 				}
 			}

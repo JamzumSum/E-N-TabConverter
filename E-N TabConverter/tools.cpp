@@ -1,6 +1,7 @@
 ﻿/*
 	与图像处理无关的过程
 */
+#include "stdafx.h"
 #include <algorithm>
 #include <Windows.h>
 #include "tools.h"
