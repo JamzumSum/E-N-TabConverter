@@ -17,8 +17,5 @@ unsigned whichLine(Rect character, vector<Vec4i> rows);
 void saveNums(string folder, vector<Mat> nums);
 Mat Morphology(Mat img, int len, bool horizontal, bool open);
 void savePic(string folder, Mat pic);
-//eagle.cpp
-extern int rec(Mat character, vector<int>& possible, vector<float>& safety, float threshold = 60.0f);
-extern void train(string save = "C:\\Users\\Administrator\\Desktop\\E-N TabConverter\\tData.csv");
 //framework.cpp
 extern int cut(Mat img, vector<Vec4i> divideBy, int direction, vector<Mat> &container, bool includeAll);

@@ -1,6 +1,7 @@
 #pragma once
 #include "stdafx.h"
 #include "Dodo.h"
+#include "eagle.h"
 #include "global.hpp"
 #include "Cuckoo.h"
 #include "opencv.hpp"
@@ -19,7 +20,7 @@ extern notify<int> progress;
 extern notify<string> notification;
 
 void TrainMode() {
-	train();
+	NumReader::train(defaultCSV);
 }
 
 int go(string f, bool isCut) {

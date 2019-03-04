@@ -1,11 +1,8 @@
 #pragma once
-#include <vector>
 #include "cv.h" 
 #include "music.h"
 
 using namespace std;
-
-#define picFolder "C:\\Users\\Administrator\\Desktop\\oh"
 
 class easynote {
 public:

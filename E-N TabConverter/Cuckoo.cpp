@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "Cuckoo.h"
+#include "eagle.h"
 #include "Dodo.h"
 #include "global.hpp"
 #include "imgproc.hpp"
@@ -23,6 +24,7 @@ using namespace cv;
 #endif
 
 bool savepic = 0;
+static NumReader reader(defaultCSV);
 extern notify<string> notification;
 
 static int count(Mat img, Vec4i range, int delta) {
@@ -164,7 +166,7 @@ void measure::recNum(Mat denoised, vector<Vec4i> rows) {
 			newNote.string = whichLine(i, rows);											//几何关系判断string
 			if (!newNote.string) continue;
 			try {
-				newNote.fret = rec(number, newNote.possible, newNote.safety);				//识别数字fret
+				newNote.fret = reader.rec(number, newNote.possible, newNote.safety);				//识别数字fret
 				if (newNote.fret < 0) continue;												//较大的几率不是数字
 			}
 			catch (runtime_error ex) {
@@ -380,7 +382,7 @@ easynote measure::dealWithIt(Mat img) {
 				&& (global->characterWidth ? (i.width > global->characterWidth / 2) : 1)
 				&& i.height > i.width) {
 				easynote newNote;
-				newNote.fret = rec(img(i), newNote.possible, newNote.safety, 45.0f);
+				newNote.fret = reader.rec(img(i), newNote.possible, newNote.safety, 45.0f);
 				return newNote;
 			}
 		}
@@ -408,7 +410,7 @@ easynote measure::dealWithIt(Mat img) {
 				&& (global->characterWidth ? (i.width > global->characterWidth / 2) : 1)
 				&& i.height > i.width) {
 				easynote newNote;
-				newNote.fret = rec(img(i), newNote.possible, newNote.safety, 45.0f);
+				newNote.fret = reader.rec(img(i), newNote.possible, newNote.safety, 45.0f);
 				return newNote;
 			}
 		}
@@ -419,7 +421,7 @@ easynote measure::dealWithIt(Mat img) {
 		for (int i = 0; i < img.cols - trueWidth; i++) {
 			Mat test = img(Range::all(), Range(i, i + trueWidth));
 			easynote newNote;
-			newNote.fret = rec(test, newNote.possible, newNote.safety, 25.0f);
+			newNote.fret = reader.rec(test, newNote.possible, newNote.safety, 25.0f);
 			if (newNote.fret > 0) return newNote;
 		}
 		return easynote::invalid();
@@ -429,7 +431,7 @@ easynote measure::dealWithIt(Mat img) {
 		for (int i = 0; i < img.rows - trueHeight; i++) {
 			Mat test = img(Range(i, i + trueHeight), Range::all());
 			easynote newNote;
-			newNote.fret = rec(test, newNote.possible, newNote.safety, 25.0f);
+			newNote.fret = reader.rec(test, newNote.possible, newNote.safety, 25.0f);
 			if (newNote.fret > 0) return newNote;
 		}
 		return easynote::invalid();
