@@ -1,28 +1,17 @@
 #include "stdafx.h"
-#include "ml.hpp"
+#include "eagle.h"
 #include "tools.h"
-#include "opencv.hpp"
 #include "type.h"
 #include <fstream>
-#include <string>
 
 #define IDR_ML_CSV1 103
 
-typedef unsigned long       DWORD;
-typedef _Null_terminated_ const char *LPCSTR;
-
-using namespace cv;
-using namespace cv::ml;
-using namespace std;
-
-static cv::Ptr<cv::ml::KNearest> &load(string csv, Ptr<KNearest> &knn);
-
-int rec(Mat character, vector<int> &possible, vector<float>& safety, float thresh) {
+int NumReader::rec(Mat character, vector<int> &possible, vector<float>& safety, float thresh) {
 	Mat res, tmp, neighbour, dist;
 	//dist: wrong recgonization, 33.244, 47.31, 45.299
 	character.reshape(1, 1).convertTo(tmp, CV_32FC1, 1.0 / 255.0);
 	static Ptr<KNearest> knn = KNearest::create();
-	knn = load(defaultCSV, knn);
+	load(defaultCSV);
 	if (!knn->isTrained()) throw runtime_error("knn网络读取失败");
 	
 	knn->findNearest(tmp, 5, res, neighbour, dist);
@@ -42,7 +31,7 @@ int rec(Mat character, vector<int> &possible, vector<float>& safety, float thres
 	return possible.empty() ? -1 : (int)res.at<float>(0, 0);
 }
 
-void train(string save) {
+void NumReader::train(string save) {
 	//trainData 个数*大小
 	//Labels 个数*10
 	Mat trainData, Label ,CSV;
@@ -69,10 +58,9 @@ void train(string save) {
 	file.close();
 }
 
-Ptr<KNearest> &load(string csv, Ptr<KNearest> &knn) {
-	if (knn->isTrained()) {
-		return knn;											//避免重复
-	}
+void NumReader::load(string csv) {
+	if (knn->isTrained()) return;											//避免重复
+	
 	if(!isExist(csv)) FreeResFile(IDR_ML_CSV1, (char*)"ML_CSV", (char*)defaultCSV);
 
 	Ptr<TrainData> trainData = TrainData::loadFromCSV(csv, 0, 0, -1);
@@ -86,6 +74,5 @@ Ptr<KNearest> &load(string csv, Ptr<KNearest> &knn) {
 	Mat Label;
 	trainData->getResponses().convertTo(Label,CV_32S);
 	knn->train(trainData->getSamples(),ROW_SAMPLE,Label);
-	return knn;
 }
 

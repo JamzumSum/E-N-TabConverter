@@ -152,6 +152,7 @@
     <ClInclude Include="..\tinyxml2\tinyxml2.h" />
     <ClInclude Include="Cuckoo.h" />
     <ClInclude Include="Dodo.h" />
+    <ClInclude Include="eagle.h" />
     <ClInclude Include="global.hpp" />
     <ClInclude Include="music.h" />
     <ClInclude Include="resource.h" />
