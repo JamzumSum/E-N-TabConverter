@@ -2,7 +2,7 @@
 #include "Cuckoo.h"
 #include "eagle.h"
 #include "Dodo.h"
-#include "global.hpp"
+#include "global.h"
 #include "imgproc.hpp"
 #include "opencv.hpp"
 
@@ -25,7 +25,6 @@ using namespace cv;
 
 bool savepic = 0;
 static NumReader reader(defaultCSV);
-extern notify<string> notification;
 
 static int count(Mat img, Vec4i range, int delta) {
 	bool lock = false;

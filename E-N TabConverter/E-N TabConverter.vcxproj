@@ -145,6 +145,7 @@
     <ClCompile Include="framework.cpp" />
     <ClCompile Include="frmain.cpp" />
     <ClCompile Include="func.cpp" />
+    <ClCompile Include="global.cpp" />
     <ClCompile Include="swan.cpp" />
     <ClCompile Include="tools.cpp" />
   </ItemGroup>
@@ -153,7 +154,7 @@
     <ClInclude Include="Cuckoo.h" />
     <ClInclude Include="Dodo.h" />
     <ClInclude Include="eagle.h" />
-    <ClInclude Include="global.hpp" />
+    <ClInclude Include="global.h" />
     <ClInclude Include="music.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />

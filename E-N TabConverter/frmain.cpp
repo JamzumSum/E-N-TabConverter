@@ -13,37 +13,20 @@ using namespace std;
 #define IDI_WINDOW1 102
 #define IDB_BITMAP1 106
 
-static Label* ForNoti;
-static string noti;
 static char prog[4];
 extern bool savepic;
 constexpr const char* PROJECT = "E-N TabConverter";
 
-extern int go(string f, bool cut);
+extern int go(string f, bool cut, function<void(string)>, function<void(int)>);
 extern void TrainMode();
-
-notify<int> progress([](int p) {
-	auto conc = [](string n, char p[4]) -> string {
-		return n + "------" + p + "%";
-	};
-	char num[4];
-	_itoa_s(p, num, 10);
-	strncpy_s(prog, num, 4);
-	ForNoti->name = conc(noti, prog).c_str();
-});
-notify<string> notification([](string n) {
-	auto conc = [](string n, char p[4]) -> string {
-		return n + "------" + p + "%";
-	};
-
-	noti = n;
-	ForNoti->name = conc(noti, prog).c_str();
-});
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine, int iCmdShow) {
 	bool isCut = false;
 	int pix = 80;
 	char f[MAX_PATH] = {};
+	auto conc = [](string n, char p[4]) -> string {
+		return n + "------" + p + "%";
+	};
 
 	form main(NULL, "form", PROJECT, 240, 240, 840, 528);
 	Button scan(&main, 5 * pix, 200, 112, 56, "Go!");
@@ -55,8 +38,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 	Checkbox save(&main, 760, 432, 56, 28, "save");
 	Checkbox cut(&main, 760, 456, 56, 28, "cut");
 	//control declare end
-
-	ForNoti = &info;		//register notification control
 
 	main.setIcon(MAKEINTRESOURCE(IDI_WINDOW1), MAKEINTRESOURCE(IDI_ICON1));
 	//main.bitmapName = MAKEINTRESOURCE(IDB_BITMAP1);
@@ -86,7 +67,17 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 		if (GetOpenFileName(&ofn)) {
 			info.name = f;
 			try {
-				go(string(f), isCut);
+				string noti;
+				char prog[4];
+				go(string(f), isCut, 
+				[&noti, &prog, &conc, &info](string n) {
+					noti = n;
+					info.name = conc(noti, prog).c_str();
+				}, 
+				[&noti, &prog, &conc, &info](int p) {
+					_itoa_s(p, prog, 10);
+					info.name = conc(noti, prog).c_str();
+				});
 			}
 			catch (Err ex) {
 				switch (ex.id)
@@ -105,12 +96,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 		else info.name = "Press \"Go\" to begin.";
 	};
 
-	setting.Event_On_Click = []() {
-		progress = 0;
-		notification = "Train start. ";
+	setting.Event_On_Click = [&info]() {
+		info.name = "Train start. ";
 		TrainMode();
-		progress = 100;
-		notification = "Train end. ";
+		info.name = "Train end. ";
 	};
 
 	main.Event_Load_Complete = [&pix, &main]() {

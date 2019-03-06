@@ -2,11 +2,13 @@
 #include "stdafx.h"
 #include "Dodo.h"
 #include "eagle.h"
-#include "global.hpp"
+#include "global.h"
 #include "Cuckoo.h"
 #include "opencv.hpp"
 #include "swan.h"
 #include "tools.h"
+#include <thread>
+#include <functional>
 
 using namespace std;
 using namespace cv;
@@ -16,14 +18,12 @@ using namespace cv;
 GlobalPool *global = NULL;
 constexpr const char* PROJECT = "E-N TabConverter";
 
-extern notify<int> progress;
-extern notify<string> notification;
-
 void TrainMode() {
 	NumReader::train(defaultCSV);
 }
 
-int go(string f, bool isCut) {
+int go(string f, bool isCut, function<void(string)> notify, function<void(int)> progress) {
+	int prog = 0;
 	bool flag = false;
 	Mat img = imread(f.c_str(), 0);
 	Mat trimmed = threshold(img);
@@ -42,8 +42,8 @@ int go(string f, bool isCut) {
 	Splitter piccut(trimmed);
 	piccut.start(piece);
 	
-	progress = 1;
-	notification = "过滤算法正常";
+	progress(1);
+	notify("过滤算法正常");
 	
 	global = new GlobalPool(cfgPath,trimmed.cols);
 	vector<measure> sections;					//按行存储
@@ -87,12 +87,13 @@ int go(string f, bool isCut) {
 			if(flag) notes.emplace_back(i);
 			else info.emplace_back(i);
 		}
-		progress = progress + 79 / (int)n;
+		prog += 80 / int(n);
+		progress(prog);
 	}
 	piece.clear();
 
-	notification = "扫描完成，准备写入文件";
-	progress = 80;
+	notify("扫描完成，准备写入文件");
+	progress((prog = 80));
 	delete global;
 	string name = fname(f);
 	saveDoc finish(name, "unknown", "unknown", "unknown", PROJECT, "Internet");
@@ -109,17 +110,18 @@ int go(string f, bool isCut) {
 			default: break;
 			}
 		}
-		progress = progress + 20 / (int)sections.size();
+		prog += 20 / (int)sections.size();
+		progress(prog);
 	}
 	string fn = name;
 	fn += ".xml";
 	if (isExist(fn)) if (prompt(NULL, fn + " 已经存在，要替换吗？", PROJECT, 0x34) == 7) {
-		notification = "用户放弃了保存";
+		notify("用户放弃了保存");
 		return 1;
 	}
 	finish.save(fn);
-	progress = 100;
-	notification = "Success";
+	progress(100);
+	notify("Success");
 	destroyAllWindows();
 	return 0;
 }
