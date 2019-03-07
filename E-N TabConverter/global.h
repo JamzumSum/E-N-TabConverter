@@ -27,7 +27,7 @@ public:
 
 };
 
-static class GlobalPool {
+class GlobalPool {
 #define getkey(key) global.get(#key)
 
 private:
@@ -41,4 +41,4 @@ public:
 	void setCol(int);
 	GlobalPool(std::string = "global.xml");
 
-}global(cfgPath);
+};

@@ -60,7 +60,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 		ofn.lpstrFilter = "Í¼Æ¬\0*.bmp;*.jpg;*.JPG;*.jpeg;*.png;*.gif\0\0";
 		ofn.nFilterIndex = 0;
 		ofn.lpstrTitle = "Ñ¡ÔñÀÖÆ×£º";
-		ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
+		ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;		// | OFN_NOCHANGEDIR
 
 		info.text = "Then choose a tab.";
 

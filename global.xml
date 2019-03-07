@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <GLOBALPOOL>
-    <rowLenth col="899">138</rowLenth>
+    <rowLenth col="899">480577</rowLenth>
     <rowLenth col="1535">160</rowLenth>
+    <characterWidth col="899">47933</characterWidth>
+    <colLenth col="899">1013766</colLenth>
+    <lineThickness col="899">1</lineThickness>
+    <valueSignalLen col="899">92679</valueSignalLen>
+    <characterWidth col="1535">10</characterWidth>
+    <colLenth col="1535">151</colLenth>
+    <lineThickness col="1535">2</lineThickness>
+    <rowLenth col="1535">160</rowLenth>
+    <valueSignalLen col="1535">25</valueSignalLen>
 </GLOBALPOOL>

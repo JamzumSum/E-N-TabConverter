@@ -16,6 +16,7 @@ using namespace cv;
 #define imdebug(img, title) imshow((img), (title)); cv::waitKey()
 
 constexpr const char* PROJECT = "E-N TabConverter";
+GlobalPool global(cfgPath);
 
 void TrainMode() {
 	NumReader::train(defaultCSV);

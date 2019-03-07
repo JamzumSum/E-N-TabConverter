@@ -25,6 +25,7 @@ using namespace cv;
 
 bool savepic = 0;
 static NumReader reader(defaultCSV);
+extern GlobalPool global;
 
 static int count(Mat img, Vec4i range, int delta) {
 	bool lock = false;
