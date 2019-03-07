@@ -9,8 +9,12 @@
 int NumReader::rec(Mat character, vector<int> &possible, vector<float>& safety, float thresh) {
 	Mat res, tmp, neighbour, dist;
 	//dist: wrong recgonization, 33.244, 47.31, 45.299
-	character.reshape(1, 1).convertTo(tmp, CV_32FC1, 1.0 / 255.0);
-	static Ptr<KNearest> knn = KNearest::create();
+	try {
+		character.reshape(1, 1).convertTo(tmp, CV_32FC1, 1.0 / 255.0);
+	}
+	catch (exception ex) {
+		return -1;
+	}
 	load(defaultCSV);
 	if (!knn->isTrained()) throw runtime_error("knnÍøÂç¶ÁÈ¡Ê§°Ü");
 	

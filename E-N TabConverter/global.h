@@ -1,9 +1,7 @@
 #pragma once
-#include "type.h"
-#include "swan.h"
+#include "tinyxml2.h"
 #include <map>
-#include <algorithm>
-#include <fstream>
+#include <string>
 
 class GlobalUnit {
 private:
@@ -18,28 +16,29 @@ public:
 		return value;
 	}
 
+	constexpr GlobalUnit(int init) : value(init) {
+		initialed = true;
+	}
+
+	constexpr GlobalUnit() {}
 	void setStudyRate(float newVa) {
 		studyRate = newVa;
 	}
 
 };
 
-class GlobalPool {
+static class GlobalPool {
+#define getkey(key) global.get(#key)
+
 private:
+	std::map<std::string, GlobalUnit> table;
 	std::string path;
 	int col;								//乐谱宽度
 public:
-	GlobalUnit lineThickness;				//线粗细
-	GlobalUnit rowLenth;					//六线宽度
-	GlobalUnit colLenth;					//小节宽度
-	GlobalUnit valueSignalLen;
-	GlobalUnit characterWidth;				//字符宽度
+	GlobalUnit& get(std::string key);
+	int predictValue(int, std::map<int, int>);
+	void save();
+	void setCol(int);
+	GlobalPool(std::string = "global.xml");
 
-
-	GlobalPool(std::string, int);
-	~GlobalPool();
-
-};
-
-
-extern GlobalPool* global;
+}global(cfgPath);

@@ -15,13 +15,11 @@ using namespace cv;
 
 #define imdebug(img, title) imshow((img), (title)); cv::waitKey()
 
-GlobalPool *global = NULL;
 constexpr const char* PROJECT = "E-N TabConverter";
 
 void TrainMode() {
 	NumReader::train(defaultCSV);
 }
-
 int go(string f, bool isCut, function<void(string)> notify, function<void(int)> progress) {
 	int prog = 0;
 	bool flag = false;
@@ -45,7 +43,7 @@ int go(string f, bool isCut, function<void(string)> notify, function<void(int)> 
 	progress(1);
 	notify("过滤算法正常");
 	
-	global = new GlobalPool(cfgPath,trimmed.cols);
+	global.setCol(trimmed.cols);
 	vector<measure> sections;					//按行存储
 	vector<Mat> info;							//其余信息
 	vector<Mat> notes;							//小节
@@ -68,7 +66,7 @@ int go(string f, bool isCut, function<void(string)> notify, function<void(int)> 
 			vector<Mat> origin;												//切割并存储
 			if (lines.size()) cut(i, lines, 0, origin, true);				//
 
-			global->rowLenth += i.rows;
+			getkey(rowLenth) += i.rows;
 
 			for (Mat& j: origin) {
 				try {
@@ -94,7 +92,7 @@ int go(string f, bool isCut, function<void(string)> notify, function<void(int)> 
 
 	notify("扫描完成，准备写入文件");
 	progress((prog = 80));
-	delete global;
+	global.save();
 	string name = fname(f);
 	saveDoc finish(name, "unknown", "unknown", "unknown", PROJECT, "Internet");
 	for (measure& i : sections) {

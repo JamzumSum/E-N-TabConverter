@@ -1,120 +1,107 @@
 #include "stdafx.h"
 #include "global.h"
 
-GlobalPool::GlobalPool(std::string path, int col) {
-	this->col = col;
-	this->path = path;
-	std::fstream fso;
-	fso.open(path, std::ios::in);
-	if (fso.fail()) return;					//文件不存在
+using namespace std;
 
-	int buffer;
-
-	GlobalUnit* const pu[5] = { &lineThickness ,&rowLenth ,&colLenth ,&valueSignalLen ,&characterWidth };
-
-	std::vector<int> cols;
-	int mp = -1, mp2 = -1;
-
-	for (;;) {
-		fso >> buffer;
-		if (buffer) cols.push_back(buffer);
-		else break;
-	}
-	if (cols.size() > 1) {
-		std::vector<int> tmp(cols);
-		for (int& i : tmp) {
-			i = abs(i - col);
-		}
-		auto minele = min_element(tmp.begin(), tmp.end());
-		auto min2elel = (tmp.begin() == minele) ? tmp.begin() : min_element(tmp.begin(), minele);
-		auto min2eler = (minele + 1 == tmp.end()) ? min2elel : min_element(minele + 1, tmp.end());
-		mp2 = (*min2elel < *min2eler) ? int(min2elel - tmp.begin()) : int(min2eler - tmp.begin());
-		mp = int(minele - tmp.begin());
-	}
-	else if (cols.size() == 1) if (col == cols[0]) {
-		mp = mp2 = 0;
-	}
-
-
-	for (int j = 0; j < 5; j++) {
-		std::vector<int> vals;
-		for (int i = 0; i < cols.size(); i++) {
-			fso >> buffer;
-			vals.push_back(buffer);
-		}
-
-		if (mp == -1 && mp2 == -1) continue;		//少于两个点无法预测
-		else if (mp == 0 && mp2 == 0) (*(pu[j])) += vals[mp];
-		else  (*(pu[j])) += (col - cols[mp2]) * (vals[mp2] - vals[mp]) / (cols[mp2] - cols[mp]) + vals[mp2];
-	}
-	fso.close();
+GlobalUnit& GlobalPool::get(string key) {
+	return table[key];
 }
 
-GlobalPool::~GlobalPool() {
-	std::fstream fso;
-	std::vector<int> cols, vals[5];
-	GlobalUnit* const pu[5] = { &lineThickness ,&rowLenth ,&colLenth ,&valueSignalLen ,&characterWidth };
-	int buffer = 0;
-	int pos = 0;
-	fso.open(path, std::ios::in);
+GlobalPool::GlobalPool(string path): path(path) {
+	
+}
 
-	if (fso.fail()) {
-		cols.push_back(col);
-		for (int i = 0; i < 5; i++) {
-			vals[i].push_back(*pu[i]);
-		}
-		goto gblwrite;								//直接跳到写
+/*
+ * @retval -1 when error, else predicted value. 
+*/
+int GlobalPool::predictValue(int col, map<int, int> col2value) {
+	if (col2value.size() < 2) return -1;
+
+	float avrx = 0, avry = 0, avrxy = 0, avrx2 = 0;
+	for (auto i : col2value) {
+		avrx += i.first;
+		avry += i.second;
+		avry += i.first * i.second;
+		avrx2 += i.first * i.first;
+	}
+	
+	float n = (float)col2value.size();
+	avrx /= n;
+	avry /= n;
+	avrxy /= n;
+	avrx2 /= n;
+	float k = (avrxy - avrx * avry) / (avrx2 - avrx * avrx);
+	return (int) round(avry + k * (col - avrx));
+}
+
+void GlobalPool::setCol(int col) {
+	/* like this...
+		<GLOBAL POOL>
+			<rowlength col = 1980>5</rowlength>
+			<rowlength col = 3160>7</rowlength>
+			<collength col = 1980>3</collength>
+			<collength col = 3160>5</collength>
+		</GLOBAL POOL>
+	*/
+	using namespace tinyxml2;
+
+	this->col = col;
+	XMLDocument doc;
+	XMLElement* root;
+	XMLError errXml = doc.LoadFile(path.c_str());
+
+	//then get root
+	if (XML_SUCCESS == errXml) root = doc.RootElement();
+	else return;
+	
+
+	map<string, map<int, int>> all;
+	for (XMLElement* elmkey = root->FirstChildElement(); elmkey; elmkey = elmkey->NextSiblingElement()) {
+		all[elmkey->Name()][elmkey->IntAttribute("col")] = atoi(elmkey->GetText());
+	}
+	//all data in `all` yet. 
+
+	for (auto i : all) {
+		int p = predictValue(col, i.second);
+		table[i.first] = p > 0 ? GlobalUnit(p) : GlobalUnit();
 	}
 
-	for (;;) {
-		fso >> buffer;
-		if (buffer) {
-			if (col < buffer) {
-				if (!pos) {
-					pos = (int)cols.size() + 1;
-					cols.push_back(col);
-				}
-				cols.push_back(buffer);
-			}
-			else if (col == buffer) {
-				pos = -((int)cols.size()) - 1;
-				cols.push_back(buffer);
-			}
-			else cols.push_back(buffer);
+}
+
+void GlobalPool::save() {
+	using namespace tinyxml2;
+
+	XMLDocument doc;
+	XMLElement* root;
+	XMLError errXml = doc.LoadFile(path.c_str());
+
+	//then get root
+	if (XML_SUCCESS == errXml) {
+		root = doc.RootElement();
+	}
+	else {
+		XMLDeclaration* declaration = doc.NewDeclaration();
+		doc.InsertFirstChild(declaration);
+		root = doc.NewElement("GLOBALPOOL");
+		doc.InsertEndChild(root);
+	}
+
+	//search for: <key col = this.col>
+	for (auto i : table) {
+		XMLElement* elmkey;
+		for (elmkey = root->FirstChildElement(i.first.c_str()); elmkey; elmkey = root->NextSiblingElement(i.first.c_str())) {
+			if (elmkey->IntAttribute("col") == this->col) break;
+		}
+		if (elmkey) {
+			elmkey->SetText(int(i.second));
 		}
 		else {
-			if (!pos) {
-				pos = (int)cols.size() + 1;
-				cols.push_back(col);
-			}
-			break;
+			elmkey = doc.NewElement(i.first.c_str());
+			elmkey->SetAttribute("col", this->col);
+			elmkey->SetText(int(i.second));
+			root->InsertEndChild(elmkey);
 		}
 	}
-	for (int j = 0; j < 5; j++) {
-		for (int i = 0; i < (int)cols.size() - ((pos > 0) ? 1 : 0); i++) {
-			fso >> buffer;
-			vals[j].push_back(buffer);
-		}
-		if (pos > 0) {
-			if (pos - 1 == vals[j].size()) vals[j].push_back(*pu[j]);
-			else vals[j].insert(vals[j].begin() + pos - 1, *pu[j]);
-		}
-		else {
-			vals[j].at(-pos - 1) = *pu[j];
-		}
-	}
-	fso.close();
 
-gblwrite:
-	fso.open(path, std::ios::out | std::ios::trunc);			//输出，直接截断
-
-	for (int i : cols) fso << i << '\t';
-	fso << 0 << std::endl;
-	for (int j = 0; j < 5; j++) {
-		for (int i = 0; i < (int)vals[j].size() - 1; i++) {
-			fso << vals[j].at(i) << '\t';
-		}
-		fso << vals[j].at(vals[j].size() - 1) << std::endl;
-	}
-	fso.close();
+	doc.SaveFile(path.c_str());
 }

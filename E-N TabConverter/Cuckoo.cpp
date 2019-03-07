@@ -29,7 +29,7 @@ static NumReader reader(defaultCSV);
 static int count(Mat img, Vec4i range, int delta) {
 	bool lock = false;
 	int sum = 0, x = range[delta > 0 ? 2 : 0] + delta;
-	//int blocksize = 2 * (int)max(1.0, round(global->col / 1000.0)) + 1;
+	//int blocksize = 2 * (int)max(1.0, round(getkey(col / 1000.0)) + 1;
 	for (int y = (range[1] + range[3]) / 2; y <= range[3]; y++)
 	{
 		uchar *ptr1 = img.ptr<uchar>(y);
@@ -139,7 +139,7 @@ void measure::recNum(Mat denoised, vector<Vec4i> rows) {
 		//ÏÞ¶¨É¸Ñ¡
 		
 		if (i.height < 5 * i.width
-			&& (global->characterWidth ? (i.width > global->characterWidth / 2) : 1)
+			&& (getkey(characterWidth) ? (i.width > getkey(characterWidth) / 2) : 1)
 		) {
 			if (i.height > rows[1][1] - rows[0][1]
 				|| i.height < i.width
@@ -175,7 +175,7 @@ void measure::recNum(Mat denoised, vector<Vec4i> rows) {
 			draw(rectangle, ccolor, i.tl(), i.br(), Scalar(0, 0, 255));
 
 			newNote.pos = i.width / 2 + i.x;
-			global->characterWidth += i.width;
+			getkey(characterWidth) += i.width;
 
 			maxCharacterWidth = max(maxCharacterWidth, i.width);
 			maxCharacterHeight = max(maxCharacterHeight, i.height);
@@ -214,7 +214,7 @@ void measure::recTime(vector<Vec4i> rows) {
 	vector<timeComb> TimeValue;
 	auto predictLenth = [&inv, &picValue, &cont, this]() -> int {
 		int predLen = 0;
-		if (org.rows < global->rowLenth * 2 && org.rows > global->rowLenth / 2) {
+		if (org.rows < getkey(rowLenth) * 2 && org.rows > getkey(rowLenth) / 2) {
 			inv = 255 - Morphology(picValue, picValue.rows / 3, false, true);
 			findContours(inv, cont, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
 
@@ -239,10 +239,10 @@ void measure::recTime(vector<Vec4i> rows) {
 				}
 				predLen = max((int)predLen, temp[1] - temp[0]);
 			}
-			global->valueSignalLen += predLen;
+			getkey(valueSignalLen) += predLen;
 		}
 		else {
-			predLen = global->valueSignalLen;
+			predLen = getkey(valueSignalLen);
 		}
 		return predLen;
 	};
@@ -378,7 +378,7 @@ easynote measure::dealWithIt(Mat img) {
 		cont.clear();
 		for (Rect& i : region) {
 			if (i.height < 2.5 * i.width
-				&& (global->characterWidth ? (i.width > global->characterWidth / 2) : 1)
+				&& (getkey(characterWidth) ? (i.width > getkey(characterWidth) / 2) : 1)
 				&& i.height > i.width) {
 				easynote newNote;
 				newNote.fret = reader.rec(img(i), newNote.possible, newNote.safety, 45.0f);
@@ -406,7 +406,7 @@ easynote measure::dealWithIt(Mat img) {
 		cont.clear();
 		for (Rect& i : region) {
 			if (i.height < 2.5* i.width
-				&& (global->characterWidth ? (i.width > global->characterWidth / 2) : 1)
+				&& (getkey(characterWidth) ? (i.width > getkey(characterWidth) / 2) : 1)
 				&& i.height > i.width) {
 				easynote newNote;
 				newNote.fret = reader.rec(img(i), newNote.possible, newNote.safety, 45.0f);
@@ -449,11 +449,11 @@ easynote measure::dealWithIt(Mat img) {
 measure::measure(Mat origin, vector<Vec4i> rows, size_t id)
 	:id(id), org(origin)
 {
-	maxCharacterWidth = global->characterWidth / 2;
+	maxCharacterWidth = getkey(characterWidth) / 2;
 	maxCharacterHeight = maxCharacterWidth + 1;
 	Denoiser den(org);
 	Mat img = den.denoise_morphology();
-	if (org.cols < global->colLenth / 5) {
+	if (org.cols < getkey(colLenth) / 5) {
 		this->id = 0;
 		return;
 	}
@@ -586,7 +586,7 @@ void LineFinder::findRow(vector<Vec4i>& lines) {
 		}
 		else thickness.push_back(1);
 	}
-	for (int i : thickness) global->lineThickness += i;
+	for (int i : thickness) getkey(lineThickness) += i;
 	upper = std::min(lines[5][1], lines[5][3]);
 	lower = std::max(lines[0][1], lines[0][3]);
 #if 0
@@ -639,8 +639,8 @@ void LineFinder::findCol(vector<Vec4i> & lines) {
 		}
 	}
 	for (size_t i = 1; i < lines.size(); i++) {
-		if (lines[i][0] - lines[i - 1][0] >= max(16, global->colLenth / 5)) {
-			global->colLenth += lines[i][0] - lines[i - 1][0];
+		if (lines[i][0] - lines[i - 1][0] >= max(16, getkey(colLenth) / 5)) {
+			getkey(colLenth) += lines[i][0] - lines[i - 1][0];
 		}
 	}
 #if 0

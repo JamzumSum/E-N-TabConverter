@@ -62,21 +62,21 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 		ofn.lpstrTitle = "选择乐谱：";
 		ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
 
-		info.name = "Then choose a tab.";
+		info.text = "Then choose a tab.";
 
 		if (GetOpenFileName(&ofn)) {
-			info.name = f;
+			info.text = f;
 			try {
 				string noti;
 				char prog[4];
 				go(string(f), isCut, 
 				[&noti, &prog, &conc, &info](string n) {
 					noti = n;
-					info.name = conc(noti, prog).c_str();
+					info.text = conc(noti, prog).c_str();
 				}, 
 				[&noti, &prog, &conc, &info](int p) {
 					_itoa_s(p, prog, 10);
-					info.name = conc(noti, prog).c_str();
+					info.text = conc(noti, prog).c_str();
 				});
 			}
 			catch (Err ex) {
@@ -84,22 +84,22 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 				{
 				case 3:
 					//不支持的格式
-					info.name = ex.what();
+					info.text = ex.what();
 					return;
 				default:
-					info.name = ex.what();
+					info.text = ex.what();
 					break;
 				}
 			}
 			main.top();
 		}
-		else info.name = "Press \"Go\" to begin.";
+		else info.text = "Press \"Go\" to begin.";
 	};
 
 	setting.Event_On_Click = [&info]() {
-		info.name = "Train start. ";
+		info.text = "Train start. ";
 		TrainMode();
-		info.name = "Train end. ";
+		info.text = "Train end. ";
 	};
 
 	main.Event_Load_Complete = [&pix, &main]() {
