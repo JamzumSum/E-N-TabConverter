@@ -1,6 +1,6 @@
 #pragma once
 #include "tinyxml2.h"
-#include "Cuckoo.h"
+#include "../Cuckoo/Cuckoo.h"
 
 class saveDoc {
 private:

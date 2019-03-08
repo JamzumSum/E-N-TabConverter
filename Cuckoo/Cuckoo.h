@@ -1,8 +1,17 @@
 #pragma once
 #include "cv.h" 
-#include "music.h"
+#include "../E-N TabConverter/music.h"
+#include "../E-N TabConverter/global.h"
+
+#if _DEBUG
+#define imdebug(title, img) imshow((title), img); cv::waitKey()
+#else
+#define imdebug(title, img)
+#endif
 
 using namespace std;
+
+extern GlobalPool global;
 
 class easynote {
 public:
@@ -20,51 +29,54 @@ typedef struct {
 	int avrpos;
 }ChordSet;
 
-class measure {
+class ImageProcess {
+protected:
+	cv::Mat org;
+public:
+	ImageProcess(cv::Mat origin) : org(origin) {
+
+	}
+};
+
+class measure: ImageProcess {
 private:
 	int maxCharacterWidth = 0;
 	int maxCharacterHeight = 0;
 	void recNum(cv::Mat section, vector<cv::Vec4i> rows);
 	void recTime(vector<cv::Vec4i> rows);
 	easynote dealWithIt(cv::Mat it);
-	cv::Mat org;
 	vector<ChordSet> notes;
 public:
 	size_t id = 0;							//Ð¡½ÚÊý
 	Time time;
 	key key;
-	measure(cv::Mat origin, vector<cv::Vec4i> rows, size_t id);
+	measure(cv::Mat img, vector<cv::Vec4i> rows, size_t id);
 	vector<note> getNotes();
 };
 
-class Splitter{
-private:
-	cv::Mat org;
+class Splitter: public ImageProcess{
 public:
-	Splitter(cv::Mat img) : org(img) {}
+	Splitter(cv::Mat img) : ImageProcess(img) {}
 	void start(vector<cv::Mat>& piece);
 };
 
-class Denoiser {
-private:
-	cv::Mat org;
+class Denoiser : public ImageProcess {
 public: 
-	Denoiser(cv::Mat img) : org(img) {}
+	Denoiser(cv::Mat img) : ImageProcess(img) {}
 	cv::Mat denoise_morphology();
 	cv::Mat denoise_inpaint(vector<cv::Vec4i> lines, double radius);
 };
 
-class LineFinder {
+class LineFinder: public ImageProcess{
 private:
-	cv::Mat img;
 	double range;
 	vector<int> thickness;
 	int upper, lower;
 
 	bool isDotLine(cv::Vec4i line);
 public:
-	LineFinder(cv::Mat img, double rangeRad) :img(img), range(rangeRad) {}
-	LineFinder(cv::Mat img, int rangeDeg) :img(img) {
+	LineFinder(cv::Mat img, double rangeRad) :ImageProcess(img), range(rangeRad) {}
+	LineFinder(cv::Mat img, int rangeDeg) :ImageProcess(img) {
 		range = double(rangeDeg) * CV_PI / 180.0;
 	}
 	void findRow(vector<cv::Vec4i>& lines);

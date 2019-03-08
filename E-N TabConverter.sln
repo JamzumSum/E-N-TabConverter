@@ -4,8 +4,14 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 16.0.28407.52
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "E-N TabConverter", "E-N TabConverter\E-N TabConverter.vcxproj", "{05E38F6C-4947-4E51-A338-C9E9EC51D207}"
+	ProjectSection(ProjectDependencies) = postProject
+		{04091B98-EE09-4853-A935-256752439725} = {04091B98-EE09-4853-A935-256752439725}
+		{F00608DE-6193-466E-9F03-C6F1023ECAA3} = {F00608DE-6193-466E-9F03-C6F1023ECAA3}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GUIlib", "..\GUIlib\GUIlib\GUIlib.vcxproj", "{04091B98-EE09-4853-A935-256752439725}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Cuckoo", "Cuckoo\Cuckoo.vcxproj", "{F00608DE-6193-466E-9F03-C6F1023ECAA3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -31,6 +37,14 @@ Global
 		{04091B98-EE09-4853-A935-256752439725}.Release|x64.Build.0 = Release|x64
 		{04091B98-EE09-4853-A935-256752439725}.Release|x86.ActiveCfg = Release|Win32
 		{04091B98-EE09-4853-A935-256752439725}.Release|x86.Build.0 = Release|Win32
+		{F00608DE-6193-466E-9F03-C6F1023ECAA3}.Debug|x64.ActiveCfg = Debug|x64
+		{F00608DE-6193-466E-9F03-C6F1023ECAA3}.Debug|x64.Build.0 = Debug|x64
+		{F00608DE-6193-466E-9F03-C6F1023ECAA3}.Debug|x86.ActiveCfg = Debug|Win32
+		{F00608DE-6193-466E-9F03-C6F1023ECAA3}.Debug|x86.Build.0 = Debug|Win32
+		{F00608DE-6193-466E-9F03-C6F1023ECAA3}.Release|x64.ActiveCfg = Release|x64
+		{F00608DE-6193-466E-9F03-C6F1023ECAA3}.Release|x64.Build.0 = Release|x64
+		{F00608DE-6193-466E-9F03-C6F1023ECAA3}.Release|x86.ActiveCfg = Release|Win32
+		{F00608DE-6193-466E-9F03-C6F1023ECAA3}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

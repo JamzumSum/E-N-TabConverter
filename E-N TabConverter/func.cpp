@@ -1,9 +1,8 @@
-#pragma once
 #include "stdafx.h"
-#include "Dodo.h"
+#include "../Cuckoo/Dodo.h"
 #include "eagle.h"
 #include "global.h"
-#include "Cuckoo.h"
+#include "../Cuckoo/Cuckoo.h"
 #include "opencv.hpp"
 #include "swan.h"
 #include "tools.h"
@@ -12,8 +11,6 @@
 
 using namespace std;
 using namespace cv;
-
-#define imdebug(img, title) imshow((img), (title)); cv::waitKey()
 
 constexpr const char* PROJECT = "E-N TabConverter";
 GlobalPool global(cfgPath);
