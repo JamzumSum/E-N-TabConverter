@@ -21,7 +21,7 @@ int GlobalPool::predictValue(int col, map<int, int> col2value) {
 	for (auto i : col2value) {
 		avrx += i.first;
 		avry += i.second;
-		avry += i.first * i.second;
+		avrxy += i.first * i.second;
 		avrx2 += i.first * i.first;
 	}
 	
@@ -88,7 +88,7 @@ void GlobalPool::save() {
 
 	//search for: <key col = this.col>
 	for (auto i : table) {
-		XMLElement* elmkey;
+		XMLElement* elmkey = NULL;
 		for (elmkey = root->FirstChildElement(i.first.c_str()); elmkey; elmkey = root->NextSiblingElement(i.first.c_str())) {
 			if (elmkey->IntAttribute("col") == this->col) break;
 		}
