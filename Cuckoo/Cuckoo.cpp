@@ -195,16 +195,11 @@ void measure::recNum(Mat denoised, vector<Vec4i> rows) {
 }
 
 void measure::recTime(vector<Vec4i> rows) {
-	typedef struct {
-		value time = whole;
-		bool dot = false;
-		int pos = 0;
-	}timeComb;
+	map<int, Value> TimeValue;
 	int t = maxCharacterWidth;
 	Mat picValue = org(Range(max(rows[5][1], rows[5][3]) + maxCharacterHeight / 2, org.rows), Range::all()).clone();
 	Mat inv;
 	vector<vector<Point>> cont;
-	vector<timeComb> TimeValue;
 	auto predictLenth = [&inv, &picValue, &cont, this]() -> int {
 		int predLen = 0;
 		if (org.rows < getkey(rowLenth) * 2 && org.rows > getkey(rowLenth) / 2) {
@@ -283,24 +278,22 @@ void measure::recTime(vector<Vec4i> rows) {
 		if (tmp[3] - tmp[1] <= predLen / 2 && !sum1 && !sum2) {
 			sum1--; sum2--;
 		}
-		timeComb newc;
+		Value newc = time.beat_type / (int)pow(2, max(sum1, !sum3 && sum2 ? sum2 - 1 : sum2));;
 		newc.dot = !sum3 && sum2;
-		newc.time = time.beat_type / (int)pow(2, max(sum1, !sum3 && sum2 ? sum2 - 1 : sum2));
-		newc.pos = (tmp[0] + tmp[2]) / 2;
-		TimeValue.emplace_back(newc);
+		TimeValue[(tmp[0] + tmp[2]) / 2] = newc;
 	}
 	assert(!TimeValue.empty());
-	Value kk = TimeValue[0].time;
+	Value kk = TimeValue[0];
 	for (unsigned i = 1; i < TimeValue.size(); i++) {
-		if (TimeValue[i].time != kk) goto distribute;
+		if (TimeValue[i] != kk) goto distribute;
 	}
-	kk = time.beat_type * (time.beats / (float)TimeValue.size());		//防止4个全音符或者2个四分音符之类的情况
-	for (timeComb& i : TimeValue) i.time = kk;
+	kk = time.beat_type * (time.beats / (int)TimeValue.size());		//防止4个全音符或者2个四分音符之类的情况
+	for (auto &i : TimeValue) i.second = kk;
 
 distribute:
 	if (TimeValue.size() == 1 && notes.size() == 1) {
 		//全音符
-		kk = time.beat_type * (float)time.beats;
+		kk = time.beat_type * time.beats;
 		for (easynote& i : notes[0].chords) i.time = kk;
 		return;
 	}
@@ -310,16 +303,15 @@ distribute:
 	vector<ChordSet*> noValue;
 	for (ChordSet& i : notes) noValue.emplace_back(&i);
 
-	for (int i = 0; i < TimeValue.size(); i++) {
-		int pos = TimeValue[i].pos;
+	for (auto &i: TimeValue) {
+		int pos = i.first;
 		for (;;) {
 			auto s = find_in(noValue, ([pos, t](const ChordSet * x)->bool {
 				return abs(x->avrpos - pos) < t;
 			}));
 			if (s == noValue.end()) break;
 			for (easynote& j : (**s).chords) {
-				j.time = TimeValue[i].time;
-				j.time.dot = TimeValue[i].dot;
+				j.time = i.second;
 			}
 			noValue.erase(s);
 		}
@@ -327,21 +319,23 @@ distribute:
 	if (!noValue.empty()) raiseErr("有未分配时值的乐符", 1);
 }
 
-vector<note> measure::getNotes() {
-	vector<note> r;
+MusicMeasure measure::getNotes() {
+	MusicMeasure r;
+	r.time = this->time;
+	r.key = this->key;
 	for (ChordSet& i : notes) {
 		if (i.chords.empty()) continue;
 		note newn;
 		newn.chord = false;  newn.timeValue = i.chords[0].time;
 		newn.notation.technical.string = i.chords[0].string;
 		newn.notation.technical.fret = i.chords[0].fret;
-		r.emplace_back(newn);
+		r.notes.emplace_back(newn);
 		newn.chord = true;
 		for (unsigned j = 1; j < i.chords.size(); j++) {
 			newn.timeValue = i.chords[j].time;
 			newn.notation.technical.string = i.chords[j].string;
 			newn.notation.technical.fret = i.chords[j].fret;
-			r.emplace_back(newn);
+			r.notes.emplace_back(newn);
 		}
 	}
 	return r;
@@ -435,17 +429,22 @@ easynote measure::dealWithIt(Mat img) {
 	else return easynote::invalid();
 }
 
-measure::measure(Mat origin, vector<Vec4i> rows, size_t id)
+measure::measure(Mat origin, size_t id)
 	:id(id), ImageProcess(origin)
 {
 	maxCharacterWidth = getkey(characterWidth) / 2;
 	maxCharacterHeight = maxCharacterWidth + 1;
-	Denoiser den(org);
-	Mat img = den.denoise_morphology();
+	
 	if (org.cols < getkey(colLenth) / 5) {
 		this->id = 0;
 		return;
 	}
+	
+}
+
+void measure::start(vector<Vec4i> rows, vector<note>& ret) {
+	Denoiser den(org);
+	Mat img = den.denoise_morphology();
 	try {
 		recNum(img, rows);
 		if (savepic) {

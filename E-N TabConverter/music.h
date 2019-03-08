@@ -1,61 +1,49 @@
 #pragma once
-
-enum value {
-	zero = 0,
-	whole = 1,
-	half = 2,
-	quarter = 4,
-	eighth = 8,
-	sixteenth = 16,
-	thirty_second = 32
-};
+#include <vector>
 
 class Value {
 private:
-	int v = whole;
+	float v = 1;
+	Value(const float init) {
+		v = init;
+	}
 public:
 	bool dot = false;
-	Value(const value init) :v(init) {}
+	Value(const int init)  {
+		v = 1.0f / init;
+	}
 	Value() {}
-	Value operator= (const value x) {
-		v = x;
+	Value operator= (const int x) {
+		v = 1.0f / x;
 		return x;
 	}
-	Value operator+(const value x) {
-		if (!v) v = x;
-		else if (!x) return *this;
-		else return value(v * x / (v + x));
+	Value operator+(const int x) {
+		return Value(v + 1.0f / x);
 	}
-	Value operator+= (const value x) {
-		if (!v) v = x;
-		else if (!x) return *this;
-		else v = v * x / (v + x);
+	Value operator+= (const int x) {
+		v += 1.0f / x;
 		return *this;
 	}
-	Value operator-(const value x) {
-		if (x == v) return zero;
-		if (!v) return x;
-		if (!x) return (value)v;
-		else return value(x * v / abs(x - v));
+	Value operator-(const int x) {
+		return Value(abs(v - 1.0f / x));
 	}
-	Value operator*(const float x) {
-		assert(x);
-		return (value)(int)(v / x);
+	Value operator*(const int x) {
+		return Value(v * x);
 	}
 	Value operator/(const int x) {
-		return (value)(v * x);
+		return Value(v / x);
 	}
-	bool operator<(const value x) {
-		return x < this->v;
+	bool operator<(const int x) {
+		return v < 1.0f / x;
 	}
-	bool operator>(const value x) {
-		return x > this->v;
+	bool operator>(const int x) {
+		return v > 1.0f / x;
 	}
-	bool operator==(const value x) {
-		return x == this->v;
+	bool operator==(const int x) {
+		return x == int(round(1 / v));
 	}
-	operator value() {
-		return (value)v;
+	operator int() {
+		return int(round(1 / v));
 	}
 };
 
@@ -87,12 +75,18 @@ public:
 	}
 };
 
-typedef struct Time {
+typedef struct{
 	int beats = 4;								//每小节拍数
-	Value beat_type = quarter;					//几分音符算作一拍
+	Value beat_type = 4;					//几分音符算作一拍
 }Time;
 
-typedef struct key {
+typedef struct{
 	int fifth = 0;								//音调升降
 	char* mode = (char*)"major";				//1-标准音主序列
 }key;
+
+typedef struct  {
+	std::vector<note> notes;
+	Time time;
+	key key;
+}MusicMeasure;

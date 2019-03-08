@@ -50,8 +50,9 @@ public:
 	size_t id = 0;							//Ð¡½ÚÊý
 	Time time;
 	key key;
-	measure(cv::Mat img, vector<cv::Vec4i> rows, size_t id);
-	vector<note> getNotes();
+	measure(cv::Mat img, size_t id);
+	MusicMeasure getNotes();
+	void start(vector<cv::Vec4i> rows, vector<note>& OutputArray);
 };
 
 class Splitter: public ImageProcess{

@@ -170,7 +170,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\icon\ml_csv2.bin" />
-    <None Include="..\tData.csv" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

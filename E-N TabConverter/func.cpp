@@ -67,8 +67,9 @@ int go(string f, bool isCut, function<void(string)> notify, function<void(int)> 
 			getkey(rowLenth) += i.rows;
 
 			for (Mat& j: origin) {
+				measure newSec(j, sections.size() + 1);
 				try {
-					measure newSec(j, rows, sections.size() + 1);
+					newSec.start(rows, );
 					if (newSec.id) sections.emplace_back(newSec);
 				}
 				catch (Err ex) {
