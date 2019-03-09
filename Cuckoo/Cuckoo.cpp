@@ -3,6 +3,7 @@
 #include "Dodo.h"
 #include "../E-N TabConverter/eagle.h"
 
+using namespace std;
 using namespace cv;
 
 #define find_in(vector, lambda) find_if(vector##.begin(), vector##.end(), lambda)
@@ -24,7 +25,7 @@ static int count(Mat img, Rect range, int delta) {
 	bool lock = false;
 	int sum = 0, x = range.x + (delta > 0 ? range.width : 0) + delta;
 	//int blocksize = 2 * (int)max(1.0, round(getkey(col / 1000.0)) + 1;
-	for (int y = range.height / 2; y <= range.height; y++)
+	for (int y = range.height / 2; y < range.height; y++)
 	{
 		uchar* ptr1 = img.ptr<uchar>(y);
 		if (!ptr1[x]) {

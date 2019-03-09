@@ -9,23 +9,21 @@
 #define imdebug(title, img)
 #endif
 
-using namespace std;
-
 extern GlobalPool global;
 
 class easynote {
 public:
 	int pos = 0, fret = 0;
 	unsigned string;
-	vector<int> possible;
-	vector<float> safety;
+	std::vector<int> possible;
+	std::vector<float> safety;
 	Value time;
 
 	static easynote invalid() { easynote i; i.fret = -1; return i; }
 };
 
 typedef struct {
-	vector<easynote> chords;
+	std::vector<easynote> chords;
 	int avrpos;
 }ChordSet;
 
@@ -42,36 +40,36 @@ class measure: ImageProcess {
 private:
 	int maxCharacterWidth = 0;
 	int maxCharacterHeight = 0;
-	void recNum(cv::Mat section, vector<cv::Vec4i> rows);
-	void recTime(vector<cv::Vec4i> rows);
+	void recNum(cv::Mat section, std::vector<cv::Vec4i> rows);
+	void recTime(std::vector<cv::Vec4i> rows);
 	easynote dealWithIt(cv::Mat it);
-	vector<ChordSet> notes;
+	std::vector<ChordSet> notes;
 public:
 	size_t id = 0;							//Ð¡½ÚÊý
 	Time time;
 	key key;
 	measure(cv::Mat img, size_t id);
 	MusicMeasure getNotes();
-	void start(vector<cv::Vec4i> rows);
+	void start(std::vector<cv::Vec4i> rows);
 };
 
 class Splitter: public ImageProcess{
 public:
 	Splitter(cv::Mat img) : ImageProcess(img) {}
-	void start(vector<cv::Mat>& piece);
+	void start(std::vector<cv::Mat>& piece);
 };
 
 class Denoiser : public ImageProcess {
 public: 
 	Denoiser(cv::Mat img) : ImageProcess(img) {}
 	cv::Mat denoise_morphology();
-	cv::Mat denoise_inpaint(vector<cv::Vec4i> lines, double radius);
+	cv::Mat denoise_inpaint(std::vector<cv::Vec4i> lines, double radius);
 };
 
 class LineFinder: public ImageProcess{
 private:
 	double range;
-	vector<int> thickness;
+	std::vector<int> thickness;
 	int upper, lower;
 
 	bool isDotLine(cv::Vec4i line);
@@ -80,7 +78,7 @@ public:
 	LineFinder(cv::Mat img, int rangeDeg) :ImageProcess(img) {
 		range = double(rangeDeg) * CV_PI / 180.0;
 	}
-	void findRow(vector<cv::Vec4i>& lines);
-	void findCol(vector<cv::Vec4i>& lines);
-	vector<int> getThickness() { return thickness; }
+	void findRow(std::vector<cv::Vec4i>& lines);
+	void findCol(std::vector<cv::Vec4i>& lines);
+	std::vector<int> getThickness() { return thickness; }
 };
