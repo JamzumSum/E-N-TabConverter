@@ -68,9 +68,10 @@ int go(string f, bool isCut, function<void(string)> notify, function<void(int)> 
 
 			for (Mat& j: origin) {
 				measure newSec(j, sections.size() + 1);
+				if (!newSec.id) continue;
 				try {
-					newSec.start(rows, );
-					if (newSec.id) sections.emplace_back(newSec);
+					newSec.start(rows);
+					sections.emplace_back(newSec);
 				}
 				catch (Err ex) {
 					switch (ex.id){
@@ -97,7 +98,7 @@ int go(string f, bool isCut, function<void(string)> notify, function<void(int)> 
 	for (measure& i : sections) {
 		if(SUCCEED(i.id))
 		try { 
-			finish.saveMeasure(i); 
+			finish.saveMeasure(i.getNotes()); 
 		}
 		catch (Err ex) {
 			switch (ex.id)

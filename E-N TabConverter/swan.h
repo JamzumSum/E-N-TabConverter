@@ -1,6 +1,6 @@
 #pragma once
 #include "tinyxml2.h"
-#include "../Cuckoo/Cuckoo.h"
+#include "music.h"
 
 class saveDoc {
 private:
@@ -8,5 +8,5 @@ private:
 public:
 	saveDoc(string title, const char* composer, const char* lyricist, const char* artist, const char* tabber, const char* irights);
 	int save(string xmlPath);
-	void saveMeasure(measure toSave);
+	void saveMeasure(MusicMeasure toSave);
 };

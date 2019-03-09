@@ -86,6 +86,7 @@ typedef struct{
 }key;
 
 typedef struct  {
+	size_t id;
 	std::vector<note> notes;
 	Time time;
 	key key;

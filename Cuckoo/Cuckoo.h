@@ -52,7 +52,7 @@ public:
 	key key;
 	measure(cv::Mat img, size_t id);
 	MusicMeasure getNotes();
-	void start(vector<cv::Vec4i> rows, vector<note>& OutputArray);
+	void start(vector<cv::Vec4i> rows);
 };
 
 class Splitter: public ImageProcess{

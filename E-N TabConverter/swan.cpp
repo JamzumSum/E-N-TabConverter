@@ -158,15 +158,13 @@ saveDoc::saveDoc(string title, const char* composer, const char* lyricist, const
 int saveDoc::save(string xmlPath) {
 	return backup.SaveFile(xmlPath.c_str());
 }
-void saveDoc::saveMeasure(measure toSave) {
+void saveDoc::saveMeasure(MusicMeasure toSave) {
 	tinyxml2::XMLDocument doc;
 	CopyNode(&doc,&backup);
 	XMLElement* part = doc.FirstChildElement("score-partwise")->FirstChildElement("part");
 	XMLElement* measure = doc.NewElement("measure");
 	part->InsertEndChild(measure);
-	char a[4];
-	_itoa_s((int)toSave.id, a, 10);
-	measure->SetAttribute("number", a);
+	measure->SetAttribute("number", int(toSave.id));
 
 	ele(attributes);
 	XMLElement* divisions = doc.NewElement("divisions");
@@ -178,6 +176,7 @@ void saveDoc::saveMeasure(measure toSave) {
 	XMLElement* fifths = doc.NewElement("fifths");
 	XMLElement* mode = doc.NewElement("mode");
 	
+	char a[5];
 	_itoa_s(toSave.key.fifth, a, 10);
 	XMLText* fifthsText = doc.NewText(a);
 	XMLText* modeText = doc.NewText(toSave.key.mode);
@@ -296,7 +295,7 @@ void saveDoc::saveMeasure(measure toSave) {
 	int sta = 1;
 keepnote:
 
-	vector<note> srcnotes = toSave.getNotes();
+	vector<note>& srcnotes = toSave.notes;
 	size_t n = srcnotes.size();
 	XMLElement** notes = new XMLElement*[n];
 	XMLElement** pitchs = new XMLElement*[n];

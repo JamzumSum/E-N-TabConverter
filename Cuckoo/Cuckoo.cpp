@@ -19,11 +19,12 @@ using namespace cv;
 bool savepic = 0;
 static NumReader reader(defaultCSV);
 
-static int count(Mat img, Vec4i range, int delta) {
+static int count(Mat img, Rect range, int delta) {
+	Mat roi = img(range);
 	bool lock = false;
-	int sum = 0, x = range[delta > 0 ? 2 : 0] + delta;
+	int sum = 0, x = range.x + (delta > 0 ? range.width : 0) + delta;
 	//int blocksize = 2 * (int)max(1.0, round(getkey(col / 1000.0)) + 1;
-	for (int y = (range[1] + range[3]) / 2; y <= range[3]; y++)
+	for (int y = range.height / 2; y <= range.height; y++)
 	{
 		uchar* ptr1 = img.ptr<uchar>(y);
 		if (!ptr1[x]) {
@@ -214,6 +215,7 @@ void measure::recTime(vector<Vec4i> rows) {
 					for (int i = 0; i < picValue.rows; i++) {
 						if (!isEmptyLine(picValue, i, 0.04)) raiseErr("未扫描到纵向结构", 6);
 					}
+					//是空白图
 					return 0;
 				}
 			}
@@ -229,27 +231,23 @@ void measure::recTime(vector<Vec4i> rows) {
 		}
 		return predLen;
 	};
-	auto time_denoise = [&cont]() {
-		auto m = cont.end();
+	auto time_denoise = [&cont]() -> vector<Rect>{
+		vector<Rect> region(cont.size());
+		std::transform(cont.begin(), cont.end(), region.begin(), [](vector<Point> x) {return boundingRect(x); });
 		while (1) {
-			m = find_in(cont, ([cont](vector<Point> x) ->bool {
-				auto l = [](Point m, Point n) ->bool {
-					return m.y < n.y;
-				};
-				int up = min_element(x.begin(), x.end(), l)->y;
-				int len = max_element(x.begin(), x.end(), l)->y - up;
-				return find_in(cont, ([cont, x, l, up, len](vector<Point> y) ->bool {
-					int max = max_element(y.begin(), y.end(), l)->y;
-					return max < up
-						&& max - min_element(y.begin(), y.end(), l)->y > len;
-				})) != cont.end();
+			auto m = find_in(region, ([&region](Rect x) ->bool {
+				return any_of(region.begin(), region.end(), [&](Rect y) ->bool {
+					return y.br().y < x.y
+						&& y.height > x.height;
+				});
 			}));
-			if (m == cont.end()) break;
-			else cont.erase(m);
+			if (m == region.end()) break;
+			else region.erase(m);
 		};
-		std::sort(cont.begin(), cont.end(), [](vector<Point> x, vector<Point> y) ->bool {
-			return x[0].x < y[0].x;
+		std::sort(region.begin(), region.end(), [](Rect x, Rect y) ->bool {
+			return x.x < y.x;
 		});
+		return region;
 	};
 	//==========================================local and lambda=================================================
 	//==========================================local and lambda=================================================
@@ -260,27 +258,19 @@ void measure::recTime(vector<Vec4i> rows) {
 	inv = 255 - Morphology(picValue, int(round(predLen * 0.3)), false, true);
 	findContours(inv, cont, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
 
-	time_denoise();						//去掉节拍记号再往下的乱七八糟的东西
+	vector<Rect> region = time_denoise();						//去掉节拍记号再往下的乱七八糟的东西
 
-	for (int i = 0; i < cont.size(); i++) {
-		Vec4i tmp = { picValue.cols,picValue.rows,0,0 };
-		for (int j = 0; j < cont[i].size(); j++) {
-			tmp[0] = min(tmp[0], cont[i][j].x);
-			tmp[2] = max(tmp[2], cont[i][j].x);
-			tmp[1] = min(tmp[1], cont[i][j].y);
-			tmp[3] = max(tmp[3], cont[i][j].y);
-		}
-
+	for (Rect &i: region) {
 		int sum1 = 0, sum2 = 0, sum3 = 0;
-		sum1 = count(picValue, tmp, -2);
-		sum2 = count(picValue, tmp, 2);
-		sum3 = count(picValue, tmp, 1);
-		if (tmp[3] - tmp[1] <= predLen / 2 && !sum1 && !sum2) {
+		sum1 = count(picValue, i, -2);
+		sum2 = count(picValue, i, 2);
+		sum3 = count(picValue, i, 1);
+		if (i.height <= predLen / 2 && !sum1 && !sum2) {
 			sum1--; sum2--;
 		}
 		Value newc = time.beat_type / (int)pow(2, max(sum1, !sum3 && sum2 ? sum2 - 1 : sum2));;
 		newc.dot = !sum3 && sum2;
-		TimeValue[(tmp[0] + tmp[2]) / 2] = newc;
+		TimeValue[i.x + i.width / 2] = newc;
 	}
 	assert(!TimeValue.empty());
 	Value kk = TimeValue[0];
@@ -323,6 +313,7 @@ MusicMeasure measure::getNotes() {
 	MusicMeasure r;
 	r.time = this->time;
 	r.key = this->key;
+	r.id = this->id;
 	for (ChordSet& i : notes) {
 		if (i.chords.empty()) continue;
 		note newn;
@@ -442,7 +433,7 @@ measure::measure(Mat origin, size_t id)
 	
 }
 
-void measure::start(vector<Vec4i> rows, vector<note>& ret) {
+void measure::start(vector<Vec4i> rows) {
 	Denoiser den(org);
 	Mat img = den.denoise_morphology();
 	try {
