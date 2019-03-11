@@ -1,16 +1,17 @@
 # E-N-TabConverter
 ## 将图片形式的六线谱转换为MusicXML
 
-由我[原来的项目](https://github.com/EscapeLand/ELand-chordConverter)迁移而来，这次完全由我自己开发:P
+项目原址[在这里](https://github.com/EscapeLand/ELand-chordConverter)，本来是大一闹着玩的项目，延续至今真是@#￥%……
 
-> 2019-2-15：emmm 最后一次release`咕咕咕`了。。。毕竟之前已经发了一个，现存的并没有大的改动...			
-> 再维护恐怕要等到7月份了，毕竟咱没那个水平一边学习一边维护2333
+> 2019-3-11: 对我来说工作量有点偏大了，我只能说着眼于我自己关注的部分。。。<br>
+  至于其他的，包括某些隐蔽的BUG在内我可能都很难顾及...
 
 ## 目录
 
   * [简介](#背景及原理)
   * [文件列表](#文件列表)
-
+  * [引用](#引用)
+  
 ### 背景及原理
 
   篇幅有点长，移步[wiki](https://github.com/YuanWangZhe/E-N-TabConverter/wiki/原理)
@@ -21,7 +22,7 @@
 
 |头文件名      |简介                         |
 |:-----------:|-----------------------------|
-|Cuckoo.h     |小节内部识别                  |
+|Cuckoo.h     |图像处理类声明                  |
 |Dodo.h       |图像处理函数声明                |
 |global.h     |全局变量声明                  |
 |music.h      |与MUSICXML对应的类型定义       |
