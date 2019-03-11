@@ -3,10 +3,8 @@
 #include "eagle.h"
 #include "global.h"
 #include "../Cuckoo/Cuckoo.h"
-#include "opencv.hpp"
 #include "swan.h"
 #include "tools.h"
-#include <thread>
 #include <functional>
 
 using namespace std;
@@ -19,7 +17,7 @@ void TrainMode() {
 	NumReader::train(defaultCSV);
 }
 int go(string f, bool isCut, function<void(string)> notify, function<void(int)> progress) {
-	int prog = 0;
+	atomic_int prog = 0;
 	bool flag = false;
 	Mat img = imread(f.c_str(), 0);
 	Mat trimmed = threshold(img);
@@ -42,22 +40,17 @@ int go(string f, bool isCut, function<void(string)> notify, function<void(int)> 
 	notify("过滤算法正常");
 	
 	global.setCol(trimmed.cols);
+	size_t n = piece.size();
 	vector<measure> sections;					//按行存储
 	vector<Mat> info;							//其余信息
-	vector<Mat> notes;							//小节
 	
-
-	size_t n = piece.size();
-	Mat toOCR;
-
+	
 	for (Mat& i: piece) {
-		if (i.empty()) continue;
 		vector<Vec4i> rows;
 		vector<int> thick;
 		LineFinder finder(i, 10);
 		finder.findRow(rows);
 		if (rows.size() == 6) {
-			flag = true;
 			vector<Vec4i> lines;
 
 			finder.findCol(lines);											//
@@ -66,30 +59,42 @@ int go(string f, bool isCut, function<void(string)> notify, function<void(int)> 
 
 			getkey(rowLenth) += i.rows;
 
-			for (Mat& j: origin) {
+			/*atomic_int cnt = int(origin.size());
+			auto measureStart = [&cnt, &rows](measure& x) {
+				x.start(rows);
+				cnt--;
+			};*/
+			for (Mat j : origin) {
 				measure newSec(j, sections.size() + 1);
-				if (!newSec.id) continue;
+				if (newSec.id) sections.emplace_back(newSec); 
+				else {
+					//cnt--; 
+					continue;
+				};
 				try {
-					newSec.start(rows);
-					sections.emplace_back(newSec);
+					thread t(&measure::start, newSec, rows);
+					t.join();
 				}
 				catch (Err ex) {
-					switch (ex.id){
+					//cnt--;
+					switch (ex.id) {
 					case 1:
 					default: throw ex; break;
 					}
 				}
+				
 			}
+			//while (cnt > 0) this_thread::yield();
 		}
 		else {
-			if(flag) notes.emplace_back(i);
-			else info.emplace_back(i);
+			info.emplace_back(i);
 		}
 		prog += 80 / int(n);
 		progress(prog);
 	}
-	piece.clear();
+	piece.clear(); piece.shrink_to_fit();
 
+	//sort(sections.begin(), sections.end());
 	notify("扫描完成，准备写入文件");
 	progress((prog = 80));
 	global.save();
@@ -120,6 +125,6 @@ int go(string f, bool isCut, function<void(string)> notify, function<void(int)> 
 	finish.save(fn);
 	progress(100);
 	notify("Success");
-	destroyAllWindows();
+	cv::destroyAllWindows();
 	return 0;
 }

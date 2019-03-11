@@ -2,6 +2,7 @@
 #include "cv.h" 
 #include "../E-N TabConverter/music.h"
 #include "../E-N TabConverter/global.h"
+#include <atomic>
 
 #if _DEBUG
 #define imdebug(title, img) imshow((title), img); cv::waitKey()
@@ -23,8 +24,8 @@ public:
 };
 
 typedef struct {
-	std::vector<easynote> chords;
 	int avrpos;
+	std::vector<easynote> chords;
 }ChordSet;
 
 class ImageProcess {
@@ -32,7 +33,7 @@ protected:
 	cv::Mat org;
 public:
 	ImageProcess(cv::Mat origin) : org(origin) {
-
+		assert(org.empty() != true);
 	}
 };
 

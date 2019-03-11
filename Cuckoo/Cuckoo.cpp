@@ -193,6 +193,7 @@ void measure::recNum(Mat denoised, vector<Vec4i> rows) {
 	});
 
 	fillTimeAndPos(maxCharacterWidth);
+	//assert(notes.size() > 1);
 	notes.erase(notes.begin());
 }
 
@@ -422,7 +423,7 @@ easynote measure::dealWithIt(Mat img) {
 }
 
 measure::measure(Mat origin, size_t id)
-	:id(id), ImageProcess(origin)
+	: id(id), ImageProcess(origin)
 {
 	maxCharacterWidth = getkey(characterWidth) / 2;
 	maxCharacterHeight = maxCharacterWidth + 1;
@@ -431,7 +432,6 @@ measure::measure(Mat origin, size_t id)
 		this->id = 0;
 		return;
 	}
-	
 }
 
 void measure::start(vector<Vec4i> rows) {

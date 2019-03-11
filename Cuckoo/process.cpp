@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "Cuckoo.h"
 #include "Dodo.h"
+#include <atomic>
 #include "../E-N TabConverter/global.h"
 
 using namespace cv;
@@ -12,7 +13,29 @@ using namespace cv;
 #endif
 
 void Splitter::start(vector<Mat>& piece) {
-	Mat r = Morphology(255 - org, org.cols / 2, true, true);
+	auto hMORPH = [this](Mat& r, short threadNum) {
+		//terriblly slow... so multi-thread...
+		atomic_int cnt = threadNum;
+		int y = 0;
+		int step = org.rows / threadNum;
+		Mat hkernel = getStructuringElement(MORPH_RECT, Size(max(org.cols / 2, 1), 1));
+		auto forthread = [&](const int y, const int len) {
+			Rect roi(0, y, org.cols, len);
+			morphologyEx(255 - org(roi), r(roi), MORPH_CLOSE, hkernel);
+			cnt--;
+		};
+		for (short i = 1; i < threadNum; i++) {
+			thread t(forthread, y, step);
+			t.detach();
+			y += step;
+		}
+		thread t(forthread, y, org.rows - y);
+		t.join();
+		while (cnt > 0) this_thread::yield();
+	};
+	
+	Mat r(org.rows, org.cols, org.type());
+	hMORPH(r, 4);
 	r = Morphology(r, org.cols / 100, false, true);
 	Mat ccolor;
 	cvtColor(org, ccolor, CV_GRAY2BGR);
@@ -21,13 +44,15 @@ void Splitter::start(vector<Mat>& piece) {
 
 	size_t n = cont.size();
 	vector<Rect> region(n);
-	piece.resize(cont.size());
+	piece.resize(n);
 
-	for (size_t k = 0; k < n; k++) region[k] = boundingRect(cont[k]);
+	std::transform(cont.begin(), cont.end(), region.begin(), [](vector<Point> x) -> Rect {return boundingRect(x); });
 	std::sort(region.begin(), region.end(), [](const Rect x, const Rect y) -> bool {return x.y < y.y; });
 
-	for (size_t k = 0; k < n; k++) piece[k] = org(region[k]).clone();
+	std::transform(region.begin(), region.end(), piece.begin(), [this](Rect x) -> Mat {return org(x).clone(); });
 
+	remove_if(piece.begin(), piece.end(), [](Mat & x) -> bool {return x.empty(); });
+	piece.shrink_to_fit();
 }
 
 Mat Denoiser::denoise_morphology() {

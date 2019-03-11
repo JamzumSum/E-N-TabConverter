@@ -5,6 +5,8 @@
 #include <string>
 #include <cassert>
 #include <vector>
+#include <thread>
+#include <atomic>
 
 #define cfgPath "C:\\Users\\Administrator\\Desktop\\E-N TabConverter\\global.xml"
 #define samplePath "C:\\Users\\Administrator\\Desktop\\E-N TabConverter\\sample_classified\\"
