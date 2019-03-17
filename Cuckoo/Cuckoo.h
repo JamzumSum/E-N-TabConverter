@@ -83,3 +83,4 @@ public:
 	void findCol(std::vector<cv::Vec4i>& lines);
 	std::vector<int> getThickness() { return thickness; }
 };
+

@@ -263,3 +263,4 @@ __pycache__/
 
 # icons 
 icon/
+*.diagsession

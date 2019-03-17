@@ -65,12 +65,12 @@ void NumReader::train(string save) {
 void NumReader::load(string csv) {
 	if (knn->isTrained()) return;											//±‹√‚÷ÿ∏¥
 	
-	if(!isExist(csv)) FreeResFile(IDR_ML_CSV1, (char*)"ML_CSV", (char*)defaultCSV);
+	if(!isExist(csv)) FreeResFile(IDR_ML_CSV1, "ML_CSV", defaultCSV);
 
 	Ptr<TrainData> trainData = TrainData::loadFromCSV(csv, 0, 0, -1);
 
 	if (trainData.empty()) {
-		FreeResFile(IDR_ML_CSV1, (char*)"ML_CSV", (char*)defaultCSV);
+		FreeResFile(IDR_ML_CSV1, "ML_CSV", defaultCSV);
 		Ptr<TrainData> trainData = TrainData::loadFromCSV(csv, 0, 0, -1);
 	}
 	knn->setDefaultK(5);

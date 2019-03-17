@@ -10,7 +10,7 @@
 using namespace std;
 using namespace cv;
 
-constexpr const char* PROJECT = "E-N TabConverter";
+const char* const PROJECT = "E-N TabConverter";
 GlobalPool global(cfgPath);
 
 void TrainMode() {

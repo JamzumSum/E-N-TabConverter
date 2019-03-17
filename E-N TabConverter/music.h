@@ -8,13 +8,24 @@ private:
 		v = init;
 	}
 public:
+	enum predef {
+		none = 0,
+		whole = 1,
+		half = 2,
+		quarter = 4
+	};
+
 	bool dot = false;
 	Value(const int init)  {
 		v = 1.0f / init;
 	}
 	Value() {}
-	Value operator= (const int x) {
+	const Value operator= (const int x) {
 		v = 1.0f / x;
+		return x;
+	}
+	const Value operator= (const Value x) {
+		v = x.v;
 		return x;
 	}
 	Value operator+(const int x) {
@@ -27,10 +38,10 @@ public:
 	Value operator-(const int x) {
 		return Value(abs(v - 1.0f / x));
 	}
-	Value operator*(const int x) {
+	const Value operator*(const int x) {
 		return Value(v * x);
 	}
-	Value operator/(const int x) {
+	const Value operator/(const int x) {
 		return Value(v / x);
 	}
 	bool operator<(const int x) {
@@ -76,13 +87,13 @@ public:
 };
 
 typedef struct{
-	int beats = 4;								//每小节拍数
-	Value beat_type = 4;					//几分音符算作一拍
+	int beats = 4;											//每小节拍数
+	Value beat_type = 4;									//几分音符算作一拍
 }Time;
 
 typedef struct{
-	int fifth = 0;								//音调升降
-	char* mode = (char*)"major";				//1-标准音主序列
+	int fifth = 0;											//音调升降
+	std::string mode = "major";									//1-标准音主序列
 }key;
 
 typedef struct  {

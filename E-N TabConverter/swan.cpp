@@ -179,7 +179,7 @@ void saveDoc::saveMeasure(MusicMeasure toSave) {
 	char a[5];
 	_itoa_s(toSave.key.fifth, a, 10);
 	XMLText* fifthsText = doc.NewText(a);
-	XMLText* modeText = doc.NewText(toSave.key.mode);
+	XMLText* modeText = doc.NewText(toSave.key.mode.c_str());
 	fifths->InsertEndChild(fifthsText);
 	mode->InsertEndChild(modeText);
 	key->InsertEndChild(fifths);

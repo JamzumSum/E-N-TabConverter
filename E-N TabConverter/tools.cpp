@@ -55,7 +55,7 @@ string fname(string path) {
 	else return path.substr(pos + 1, dot - pos - 1);
 }
 
-bool FreeResFile(DWORD dwResName, LPCSTR lpResType, LPCSTR lpFilePathName){
+bool FreeResFile(DWORD dwResName, const TCHAR* lpResType, const string lpFilePathName){
 	/*
 	 * @brief 释放资源文件
 	 * @param[in]
@@ -76,7 +76,7 @@ bool FreeResFile(DWORD dwResName, LPCSTR lpResType, LPCSTR lpFilePathName){
 		return false;
 	}
 	DWORD dwResSize = ::SizeofResource(hInstance, hResID);//得到待释放资源文件大小  
-	HANDLE hResFile = CreateFile(lpFilePathName, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);//创建文件  
+	HANDLE hResFile = CreateFile(lpFilePathName.c_str(), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);//创建文件  
 
 	if (INVALID_HANDLE_VALUE == hResFile)
 	{
