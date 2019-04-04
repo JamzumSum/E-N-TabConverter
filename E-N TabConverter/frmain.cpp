@@ -4,7 +4,9 @@
 #pragma once
 #include "stdafx.h"
 #include "type.h"
+#include "control.hpp"
 #include "GUI.hpp"
+#include "design.hpp"
 #include <commdlg.h>
 
 using namespace std;
@@ -21,15 +23,16 @@ extern int go(string f, bool cut, function<void(string)>, function<void(int)>);
 extern void TrainMode();
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine, int iCmdShow) {
+	using namespace GUI;
+
 	bool isCut = false;
-	int pix = 80;
 	char f[MAX_PATH] = {};
 	auto conc = [](string n, char p[4]) -> string {
 		return n + "------" + p + "%";
 	};
 
-	form main(NULL, "form", PROJECT, 240, 240, 840, 528);
-	Button scan(&main, 5 * pix, 200, 112, 56, "Go!");
+	Form main(NULL, "form", PROJECT, 240, 240, 840, 528);
+	Button scan(&main, 400, 200, 112, 56, "Go!");
 	Button home(&main, 8, 0, 112, 56, "Home");
 	Button history(&main, 8, 64, 112, 56, "History");
 	Button setting(&main, 8, 128, 112, 56, "Settings");
@@ -41,20 +44,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 
 	main.setIcon(MAKEINTRESOURCE(IDI_WINDOW1), MAKEINTRESOURCE(IDI_ICON1));
 	//main.bitmapName = MAKEINTRESOURCE(IDB_BITMAP1);
-	main.Event_Window_Resize = [&scan, &pix, &main]() {
-		pix = main.w / 12;
-		scan.move(5 * pix, 0);
-		main.forAllControl([&pix, &main](control* me) {
-			double t = round(me->w / (double)pix);
-			me->resize(int(t * pix), 0);
-		});
+	main.Event_Window_Resize = [&scan, &main]() {
+		Design::grid(main);
 	};
 
 	scan.Event_On_Click = [&]() {
 		OPENFILENAME ofn;
 		memset(&ofn, 0, sizeof(OPENFILENAME));
 		ofn.lStructSize = sizeof(OPENFILENAME);
-		ofn.hwndOwner = main.hWnd();
+		ofn.hwndOwner = main.hWnd;
 		ofn.lpstrFile = f;
 		ofn.nMaxFile = MAX_PATH;
 		ofn.lpstrFilter = "Í¼Æ¬\0*.bmp;*.jpg;*.JPG;*.jpeg;*.png;*.gif\0\0";
@@ -102,11 +100,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 		info.text = "Train end. ";
 	};
 
-	main.Event_Load_Complete = [&pix, &main]() {
-		pix = main.w / 12;
-		main.forAllControl([](control * me) {
-			me->setFont("Î¢ÈíÑÅºÚ", 19); 
-		});
+	main.Event_Load_Complete = [&main]() {
+		Design::grid(main);
+		Design::ApplyFont(main, "Î¢ÈíÑÅºÚ", 19);
 	};
 
 	home.Event_On_Click = [&scan]() {
@@ -122,5 +118,5 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 		savepic = save.Value;
 	};
 	main.run();
-	main.msgLoop.join();
+	main.join();
 }
