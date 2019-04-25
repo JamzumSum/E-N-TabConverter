@@ -18,7 +18,7 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
@@ -90,7 +90,6 @@
     <ClCompile Include="..\tinyxml2\tinyxml2.cpp" />
     <ClCompile Include="eagle.cpp" />
     <ClCompile Include="framework.cpp" />
-    <ClCompile Include="frmain.cpp" />
     <ClCompile Include="func.cpp" />
     <ClCompile Include="global.cpp" />
     <ClCompile Include="swan.cpp" />

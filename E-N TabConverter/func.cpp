@@ -10,7 +10,6 @@
 using namespace std;
 using namespace cv;
 
-const char* const PROJECT = "E-N TabConverter";
 GlobalPool global(cfgPath);
 
 void TrainMode() {
@@ -24,7 +23,7 @@ int go(string f, bool isCut, function<void(string)> notify, function<void(int)> 
 	if (img.empty()) raiseErr("Wrong format.", 3);
 	
 	trimmed = trim(trimmed);
-	float screenCols = 1919 / 1.25f;				//1919, 最大显示宽度；1.25， win10 系统缩放比
+	float screenCols = 1920 / 1.25f;				//1920, 最大显示宽度；1.25， win10 系统缩放比
 													//TODO：不知道怎么获取QAQ
 	if (trimmed.cols > screenCols) {
 		float toRows = screenCols / trimmed.cols * trimmed.rows;

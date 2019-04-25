@@ -12,3 +12,4 @@ const std::string cfgPath = "C:\\Users\\Administrator\\Desktop\\E-N TabConverter
 const std::string samplePath = "C:\\Users\\Administrator\\Desktop\\E-N TabConverter\\sample_classified\\";
 const std::string defaultCSV = "C:\\Users\\Administrator\\Desktop\\E-N TabConverter\\tData.csv";
 const std::string picFolder = "C:\\Users\\Administrator\\Desktop\\oh";
+const char* const PROJECT = "E-N TabConverter";

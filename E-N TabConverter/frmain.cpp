@@ -31,21 +31,23 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 		return n + "------" + p + "%";
 	};
 
-	Form main(NULL, "form", PROJECT, 240, 240, 840, 528);
-	Button scan(&main, 400, 200, 112, 56, "Go!");
-	Button home(&main, 8, 0, 112, 56, "Home");
-	Button history(&main, 8, 64, 112, 56, "History");
-	Button setting(&main, 8, 128, 112, 56, "Settings");
-	Button Exit(&main, 8, 400, 112, 56, "Exit");
-	Label info(&main, 8, 464, 560, 24, "Press \"Go\" to begin.");
-	Checkbox save(&main, 760, 432, 56, 28, "save");
-	Checkbox cut(&main, 760, 456, 56, 28, "cut");
+	Form main("form", PROJECT, 240, 240, 840, 528);
+	Vertical v1(main);
+	Button scan(main, 400, 200, 112, 56, "Go!");
+	Button home(v1, 8, 0, 112, 56, "Home");
+	Button history(v1, 8, 64, 112, 56, "History");
+	Button setting(v1, 8, 128, 112, 56, "Settings");
+	Button Exit(main, 8, 400, 112, 56, "Exit");
+	Label info(main, 8, 464, 560, 24, "Press \"Go\" to begin.");
+	Checkbox save(main, 760, 432, 56, 28, "save");
+	Checkbox cut(main, 760, 456, 56, 28, "cut");
 	//control declare end
 
 	main.setIcon(MAKEINTRESOURCE(IDI_WINDOW1), MAKEINTRESOURCE(IDI_ICON1));
 	//main.bitmapName = MAKEINTRESOURCE(IDB_BITMAP1);
-	main.Event_Window_Resize = [&scan, &main]() {
-		Design::grid(main);
+	main.Event_Window_Resize = [&scan, &main, &v1]() {
+		//Design::grid(main);
+		v1.regulate();
 	};
 
 	scan.Event_On_Click = [&]() {
@@ -100,9 +102,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 		info.text = "Train end. ";
 	};
 
-	main.Event_Load_Complete = [&main]() {
-		Design::grid(main);
+	main.Event_Load_Complete = [&main, &v1]() {
+		//Design::grid(main);
 		Design::ApplyFont(main, "Î¢ÈíÑÅºÚ", 19);
+		v1.Space = 8;
 	};
 
 	home.Event_On_Click = [&scan]() {
