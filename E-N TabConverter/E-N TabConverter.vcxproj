@@ -43,12 +43,12 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(SolutionDir)E-N TabConverter;$(SolutionDir)tinyxml2;$(SolutionDir)OpenCV\opencv\build\include\opencv2;$(SolutionDir)OpenCV\opencv\build\include\opencv;$(SolutionDir)OpenCV\opencv\build\include;$(SolutionDir)..\GUIlib\GUIlib;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)$(IntDir);C:\Users\Administrator\Desktop\E-N TabConverter\OpenCV\opencv\build\x64\vc15\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)E-N TabConverter;$(SolutionDir)tinyxml2;$(SolutionDir)OpenCV\opencv\build\include\opencv2;$(SolutionDir)OpenCV\opencv\build\include\opencv;$(SolutionDir)OpenCV\opencv\build\include;$(SolutionDir);$(IncludePath)</IncludePath>
+    <LibraryPath>$(OutDir);C:\Users\Administrator\Desktop\E-N TabConverter\OpenCV\opencv\build\x64\vc15\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(SolutionDir)..\GUIlib\GUIlib;$(SolutionDir)E-N TabConverter;$(SolutionDir)tinyxml2;$(SolutionDir)OpenCV\opencv\build\include\opencv2;$(SolutionDir)OpenCV\opencv\build\include\opencv;$(SolutionDir)OpenCV\opencv\build\include;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)$(IntDir);C:\Users\Administrator\Desktop\E-N TabConverter\OpenCV\opencv\build\x64\vc15\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir);$(SolutionDir)E-N TabConverter;$(SolutionDir)tinyxml2;$(SolutionDir)OpenCV\opencv\build\include\opencv2;$(SolutionDir)OpenCV\opencv\build\include\opencv;$(SolutionDir)OpenCV\opencv\build\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(OutDir);$(LibraryPath)</LibraryPath>
     <CodeAnalysisRuleSet>..\zzs_learning_rule.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -99,6 +99,7 @@
     <ClInclude Include="..\Cuckoo\Cuckoo.h" />
     <ClInclude Include="..\Cuckoo\Dodo.h" />
     <ClInclude Include="..\tinyxml2\tinyxml2.h" />
+    <ClInclude Include="converter.h" />
     <ClInclude Include="eagle.h" />
     <ClInclude Include="global.h" />
     <ClInclude Include="music.h" />
@@ -110,10 +111,6 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="E-N TabConverter.rc" />
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="..\icon\192.ico" />
-    <Image Include="..\icon\64.ico" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\icon\ml_csv2.bin" />

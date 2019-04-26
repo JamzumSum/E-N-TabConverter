@@ -1,0 +1,354 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>frmSetting</class>
+ <widget class="QDialog" name="frmSetting">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>720</width>
+    <height>480</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>frmSetting</string>
+  </property>
+  <widget class="QScrollArea" name="scrollArea">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>720</width>
+     <height>480</height>
+    </rect>
+   </property>
+   <property name="verticalScrollBarPolicy">
+    <enum>Qt::ScrollBarAlwaysOn</enum>
+   </property>
+   <property name="horizontalScrollBarPolicy">
+    <enum>Qt::ScrollBarAlwaysOff</enum>
+   </property>
+   <property name="widgetResizable">
+    <bool>true</bool>
+   </property>
+   <widget class="QWidget" name="scrollAreaWidgetContents">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>697</width>
+      <height>478</height>
+     </rect>
+    </property>
+    <widget class="QGroupBox" name="groupCfgPath">
+     <property name="geometry">
+      <rect>
+       <x>12</x>
+       <y>12</y>
+       <width>673</width>
+       <height>95</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>Config Path</string>
+     </property>
+     <widget class="QSplitter" name="splitter">
+      <property name="geometry">
+       <rect>
+        <x>8</x>
+        <y>32</y>
+        <width>640</width>
+        <height>32</height>
+       </rect>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="handleWidth">
+       <number>8</number>
+      </property>
+      <widget class="QLineEdit" name="txtCfgPath"/>
+      <widget class="QPushButton" name="btnCfgSelect">
+       <property name="text">
+        <string>Select</string>
+       </property>
+      </widget>
+     </widget>
+    </widget>
+    <widget class="QGroupBox" name="groupSmpPath">
+     <property name="geometry">
+      <rect>
+       <x>12</x>
+       <y>120</y>
+       <width>673</width>
+       <height>96</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>Sample Folder</string>
+     </property>
+     <widget class="QSplitter" name="splitter_2">
+      <property name="geometry">
+       <rect>
+        <x>8</x>
+        <y>32</y>
+        <width>640</width>
+        <height>32</height>
+       </rect>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="handleWidth">
+       <number>8</number>
+      </property>
+      <widget class="QLineEdit" name="txtSmpPath"/>
+      <widget class="QPushButton" name="btnSmpSelect">
+       <property name="text">
+        <string>Select</string>
+       </property>
+      </widget>
+     </widget>
+    </widget>
+    <widget class="QGroupBox" name="groupStudyData">
+     <property name="geometry">
+      <rect>
+       <x>12</x>
+       <y>228</y>
+       <width>673</width>
+       <height>95</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>KNN Data Path</string>
+     </property>
+     <widget class="QSplitter" name="splitter_4">
+      <property name="geometry">
+       <rect>
+        <x>8</x>
+        <y>32</y>
+        <width>640</width>
+        <height>32</height>
+       </rect>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="handleWidth">
+       <number>8</number>
+      </property>
+      <widget class="QLineEdit" name="txtDataPth"/>
+      <widget class="QPushButton" name="btnDataSelect">
+       <property name="text">
+        <string>Select</string>
+       </property>
+      </widget>
+     </widget>
+    </widget>
+    <widget class="QGroupBox" name="groupSaveFolder">
+     <property name="geometry">
+      <rect>
+       <x>12</x>
+       <y>336</y>
+       <width>673</width>
+       <height>95</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>Save Picure to</string>
+     </property>
+     <widget class="QSplitter" name="splitter_3">
+      <property name="geometry">
+       <rect>
+        <x>8</x>
+        <y>32</y>
+        <width>640</width>
+        <height>32</height>
+       </rect>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="handleWidth">
+       <number>8</number>
+      </property>
+      <widget class="QLineEdit" name="txtSavePath"/>
+      <widget class="QPushButton" name="btnSaveSelect">
+       <property name="text">
+        <string>Select</string>
+       </property>
+      </widget>
+     </widget>
+    </widget>
+    <widget class="QPushButton" name="btnSave">
+     <property name="geometry">
+      <rect>
+       <x>564</x>
+       <y>444</y>
+       <width>96</width>
+       <height>36</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Save</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btnTrain">
+     <property name="geometry">
+      <rect>
+       <x>444</x>
+       <y>444</y>
+       <width>96</width>
+       <height>36</height>
+      </rect>
+     </property>
+     <property name="palette">
+      <palette>
+       <active>
+        <colorrole role="ButtonText">
+         <brush brushstyle="SolidPattern">
+          <color alpha="255">
+           <red>255</red>
+           <green>0</green>
+           <blue>0</blue>
+          </color>
+         </brush>
+        </colorrole>
+       </active>
+       <inactive>
+        <colorrole role="ButtonText">
+         <brush brushstyle="SolidPattern">
+          <color alpha="255">
+           <red>255</red>
+           <green>0</green>
+           <blue>0</blue>
+          </color>
+         </brush>
+        </colorrole>
+       </inactive>
+       <disabled>
+        <colorrole role="ButtonText">
+         <brush brushstyle="SolidPattern">
+          <color alpha="255">
+           <red>120</red>
+           <green>120</green>
+           <blue>120</blue>
+          </color>
+         </brush>
+        </colorrole>
+       </disabled>
+      </palette>
+     </property>
+     <property name="text">
+      <string>Retrain</string>
+     </property>
+    </widget>
+   </widget>
+  </widget>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>btnTrain</sender>
+   <signal>clicked()</signal>
+   <receiver>frmSetting</receiver>
+   <slot>onTrain()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>492</x>
+     <y>462</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>359</x>
+     <y>239</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>btnSave</sender>
+   <signal>clicked()</signal>
+   <receiver>frmSetting</receiver>
+   <slot>onSave()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>612</x>
+     <y>462</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>359</x>
+     <y>239</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>txtCfgPath</sender>
+   <signal>textChanged(QString)</signal>
+   <receiver>frmSetting</receiver>
+   <slot>textChange(QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>225</x>
+     <y>60</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>359</x>
+     <y>239</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>txtDataPth</sender>
+   <signal>textChanged(QString)</signal>
+   <receiver>frmSetting</receiver>
+   <slot>textChange(QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>225</x>
+     <y>276</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>359</x>
+     <y>239</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>txtSavePath</sender>
+   <signal>textChanged(QString)</signal>
+   <receiver>frmSetting</receiver>
+   <slot>textChange(QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>225</x>
+     <y>384</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>359</x>
+     <y>239</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>txtSmpPath</sender>
+   <signal>textChanged(QString)</signal>
+   <receiver>frmSetting</receiver>
+   <slot>textChange(QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>225</x>
+     <y>168</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>359</x>
+     <y>239</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>onTrain()</slot>
+  <slot>onSave()</slot>
+  <slot>textChange(QString)</slot>
+ </slots>
+</ui>

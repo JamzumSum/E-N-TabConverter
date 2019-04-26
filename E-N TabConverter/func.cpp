@@ -5,7 +5,7 @@
 #include "../Cuckoo/Cuckoo.h"
 #include "swan.h"
 #include "tools.h"
-#include <functional>
+#include "converter.h"
 
 using namespace std;
 using namespace cv;
@@ -15,12 +15,13 @@ GlobalPool global(cfgPath);
 void TrainMode() {
 	NumReader::train(defaultCSV);
 }
+
 int go(string f, bool isCut, function<void(string)> notify, function<void(int)> progress) {
 	atomic_int prog = 0;
 	bool flag = false;
 	Mat img = imread(f.c_str(), 0);
-	Mat trimmed = threshold(img);
 	if (img.empty()) raiseErr("Wrong format.", 3);
+	Mat trimmed = threshold(img);
 	
 	trimmed = trim(trimmed);
 	float screenCols = 1920 / 1.25f;				//1920, 最大显示宽度；1.25， win10 系统缩放比
