@@ -201,6 +201,9 @@ void measure::recTime(vector<Vec4i> rows) {
 	map<int, Value> TimeValue;
 	int t = maxCharacterWidth;
 	Mat picValue = org(Range(max(rows[5][1], rows[5][3]) + maxCharacterHeight / 2, org.rows), Range::all()).clone();
+	//TODO: bug if no value area in org. 
+	//		present as max(rows[5][1], rows[5][3]) + maxCharacterHeight / 2 > org.rows, and cvException here. 
+
 	Mat inv;
 	vector<vector<Point>> cont;
 	auto predictLenth = [&inv, &picValue, &cont, this]() -> int {

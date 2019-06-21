@@ -31,6 +31,7 @@ int go(string f, bool isCut, function<void(string)> notify, function<void(int)> 
 		trimmed = perspect(trimmed, int(screenCols), int(toRows));
 		trimmed = threshold(trimmed);
 	}
+	global.setCol(trimmed.cols);
 	vector<Mat> piece;
 	
 	Splitter piccut(trimmed);
@@ -39,7 +40,6 @@ int go(string f, bool isCut, function<void(string)> notify, function<void(int)> 
 	progress(1);
 	notify("过滤算法正常");
 	
-	global.setCol(trimmed.cols);
 	size_t n = piece.size();
 	vector<measure> sections;					//按行存储
 	vector<Mat> info;							//其余信息

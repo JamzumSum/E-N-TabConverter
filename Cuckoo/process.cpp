@@ -16,15 +16,15 @@ template<class cls>
 vector<vector<cls>> classifyContinuous(const vector<cls>& arr, function<const int(cls)> getInt);
 
 void Splitter::start(vector<Mat>& piece) {
-	auto hMORPH = [this](Mat& r, short threadNum) {
+	const Mat hkernel = getStructuringElement(MORPH_RECT, Size(max(org.cols / 2, 1), 1)); 
+	auto hMORPH = [this, &hkernel](Mat& r, short threadNum) {
 		//terriblly slow... so multi-thread...
 		atomic_int cnt = threadNum;
 		int y = 0;
 		int step = org.rows / threadNum;
-		Mat hkernel = getStructuringElement(MORPH_RECT, Size(max(org.cols / 2, 1), 1));
 		auto forthread = [&](const int y, const int len) {
-			Rect roi(0, y, org.cols, len);
-			morphologyEx(255 - org(roi), r(roi), MORPH_CLOSE, hkernel);
+			const Rect roi(0, y, org.cols, len);
+			morphologyEx(255 - org(roi), r(roi), MORPH_CLOSE, hkernel);		//TODO: unknown bug... 
 			cnt--;
 		};
 		for (short i = 1; i < threadNum; i++) {
@@ -38,12 +38,13 @@ void Splitter::start(vector<Mat>& piece) {
 	};
 	
 	Mat r(org.rows, org.cols, org.type());
-	hMORPH(r, 4);
-	r = Morphology(r, org.cols / 100, false, true);
+	hMORPH(r, max(thread::hardware_concurrency(), 2u));
+	//r = Morphology(r, org.cols / 100, false, true);
 	Mat ccolor;
 	cvtColor(org, ccolor, CV_GRAY2BGR);
 	vector<vector<Point>> cont;
 	findContours(r, cont, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
+	drawContours(ccolor, cont, -1, Scalar(0, 0, 255));
 
 	size_t n = cont.size();
 	vector<Rect> region(n);
@@ -124,7 +125,7 @@ void LineFinder::findRow(vector<Vec4i> & lines) {
 
 	upper = std::min(lines[5][1], lines[5][3]);
 	lower = std::max(lines[0][1], lines[0][3]);
-#if 0
+#if 1
 	Mat color;
 	cvtColor(org, color, CV_GRAY2BGR);
 	for (Vec4i& i : lines) {

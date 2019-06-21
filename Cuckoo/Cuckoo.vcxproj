@@ -47,11 +47,13 @@
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>$(SolutionDir)E-N TabConverter;$(SolutionDir)tinyxml2;$(SolutionDir)OpenCV\opencv\build\include;$(SolutionDir)OpenCV\opencv\build\include\opencv;$(SolutionDir)OpenCV\opencv\build\include\opencv2;$(IncludePath)</IncludePath>
     <LibraryPath>C:\Users\Administrator\Desktop\E-N TabConverter\OpenCV\opencv\build\x64\vc15\lib;$(LibraryPath)</LibraryPath>
+    <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(SolutionDir)E-N TabConverter;$(SolutionDir)tinyxml2;$(SolutionDir)OpenCV\opencv\build\include;$(SolutionDir)OpenCV\opencv\build\include\opencv;$(SolutionDir)OpenCV\opencv\build\include\opencv2;$(IncludePath)</IncludePath>
     <LibraryPath>C:\Users\Administrator\Desktop\E-N TabConverter\OpenCV\opencv\build\x64\vc15\lib;$(LibraryPath)</LibraryPath>
+    <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>

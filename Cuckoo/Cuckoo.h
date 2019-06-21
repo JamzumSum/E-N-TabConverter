@@ -15,7 +15,7 @@ extern GlobalPool global;
 class easynote {
 public:
 	int pos = 0, fret = 0;
-	unsigned string;
+	unsigned string = 0;
 	std::vector<int> possible;
 	std::vector<float> safety;
 	Value time;
@@ -71,7 +71,7 @@ class LineFinder: public ImageProcess{
 private:
 	double range;
 	std::vector<int> thickness;
-	int upper, lower;
+	int upper = 0, lower = 0;
 
 	bool isDotLine(cv::Vec4i line);
 public:

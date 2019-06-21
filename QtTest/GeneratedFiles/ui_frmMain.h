@@ -120,6 +120,7 @@ public:
         QObject::connect(btnScan, SIGNAL(clicked()), frmMainClass, SLOT(onScan()));
         QObject::connect(btnSetting, SIGNAL(clicked()), frmMainClass, SLOT(onSetting()));
         QObject::connect(actionAbout, SIGNAL(triggered()), frmMainClass, SLOT(showAbout()));
+        QObject::connect(actionExit, SIGNAL(triggered()), frmMainClass, SLOT(close()));
 
         QMetaObject::connectSlotsByName(frmMainClass);
     } // setupUi
