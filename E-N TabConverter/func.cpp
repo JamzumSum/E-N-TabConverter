@@ -24,8 +24,10 @@ int go(string f, bool isCut, function<void(string)> notify, function<void(int)> 
 	Mat trimmed = threshold(img);
 	
 	trimmed = trim(trimmed);
-	float screenCols = 1920 / 1.25f;				//1920, 最大显示宽度；1.25， win10 系统缩放比
-													//TODO：不知道怎么获取QAQ
+	auto dpi = getScaleFactor();
+	auto screen = getWorkspaceSize();
+	float screenCols = screen.first / dpi.first;
+	
 	if (trimmed.cols > screenCols) {
 		float toRows = screenCols / trimmed.cols * trimmed.rows;
 		trimmed = perspect(trimmed, int(screenCols), int(toRows));
@@ -102,17 +104,7 @@ int go(string f, bool isCut, function<void(string)> notify, function<void(int)> 
 	saveDoc finish(name, "unknown", "unknown", "unknown", PROJECT, "Internet");
 	for (measure& i : sections) {
 		if(SUCCEED(i.id))
-		try { 
-			finish.saveMeasure(i.getNotes()); 
-		}
-		catch (Err ex) {
-			switch (ex.id)
-			{
-			case 3: break;				//unexpected timeValue
-										//impossible
-			default: break;
-			}
-		}
+		finish.saveMeasure(i.getNotes()); 
 		prog += 20 / (int)sections.size();
 		progress(prog);
 	}
@@ -122,9 +114,11 @@ int go(string f, bool isCut, function<void(string)> notify, function<void(int)> 
 		notify("用户放弃了保存");
 		return 1;
 	}
-	finish.save(fn);
-	progress(100);
-	notify("Success");
+	if (0 == finish.save(fn)) {
+		progress(100);
+		notify("Success");
+	}
+	else notify("Error when saving doc. ");
 	cv::destroyAllWindows();
 	return 0;
 }

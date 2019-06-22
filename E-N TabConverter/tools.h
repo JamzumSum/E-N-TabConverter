@@ -15,3 +15,5 @@ bool isExist(string filepath);
 string GBKToUTF8(string strGBK);
 string fname(string path);
 int prompt(void* hWnd, string text, string caption, unsigned flag);
+pair<float, float> getScaleFactor();
+pair<int, int> getWorkspaceSize();

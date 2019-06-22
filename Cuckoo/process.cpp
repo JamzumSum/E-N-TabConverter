@@ -39,7 +39,7 @@ void Splitter::start(vector<Mat>& piece) {
 	
 	Mat r(org.rows, org.cols, org.type());
 	hMORPH(r, max(thread::hardware_concurrency(), 2u));
-	//r = Morphology(r, org.cols / 100, false, true);
+	r = Morphology(r, org.cols / 100, false, true);
 	Mat ccolor;
 	cvtColor(org, ccolor, CV_GRAY2BGR);
 	vector<vector<Point>> cont;
@@ -125,7 +125,7 @@ void LineFinder::findRow(vector<Vec4i> & lines) {
 
 	upper = std::min(lines[5][1], lines[5][3]);
 	lower = std::max(lines[0][1], lines[0][3]);
-#if 1
+#if 0
 	Mat color;
 	cvtColor(org, color, CV_GRAY2BGR);
 	for (Vec4i& i : lines) {
@@ -177,7 +177,7 @@ void LineFinder::findCol(vector<Vec4i> & lines) {
 		}
 	}
 
-#if 1
+#if 0
 	Mat ccolor;
 	cvtColor(org, ccolor, CV_GRAY2BGR);
 	for (Vec4i& i : lines) {

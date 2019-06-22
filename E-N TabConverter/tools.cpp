@@ -48,8 +48,8 @@ string fname(string path) {
 	 * @param[in] path, string, fullpath
 	 * @retval string name
 	*/
-	size_t pos = path.rfind('\\');
-	if (pos == string::npos) pos = 0;
+	size_t pos = path.rfind('/');
+	if (pos == string::npos) pos = -1;
 	size_t dot = path.rfind('.');
 	if (dot == string::npos) return path.substr(pos);
 	else return path.substr(pos + 1, dot - pos - 1);
@@ -140,4 +140,23 @@ bool isExist(string filepath) {
 
 int prompt(void* hWnd, string text, string caption, unsigned flag) {
 	return MessageBox(hWnd ? *(HWND*)hWnd: NULL, text.c_str(), caption.c_str(), flag);
+}
+
+/*
+@return pair<int, int>, first as horizontal DPI, second as vertical DPI. 
+*/
+pair<float, float> getScaleFactor() {
+	auto dc = shared_ptr<HDC__>(GetDC(nullptr), [](const HDC dc) { ReleaseDC(nullptr, dc); });
+	auto f = [](const int dpi) -> float {switch (dpi) {
+	case 96: return 1.0f;
+	case 120: return 1.25f;
+	case 144: return 1.5f;
+	case 192: return 2.0f;
+	}};
+	return make_pair(f(GetDeviceCaps(&(*dc), LOGPIXELSX)), f(GetDeviceCaps(&(*dc), LOGPIXELSY)));
+}
+
+pair<int, int> getWorkspaceSize() {
+	auto dc = shared_ptr<HDC__>(GetDC(nullptr), [](const HDC dc) { ReleaseDC(nullptr, dc); });
+	return make_pair(GetDeviceCaps(&(*dc), HORZRES), GetDeviceCaps(&(*dc), VERTRES));
 }
