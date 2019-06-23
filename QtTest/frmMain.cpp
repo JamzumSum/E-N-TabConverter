@@ -2,12 +2,16 @@
 #include "../E-N TabConverter/converter.h"
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QSettings>
 
 frmMain::frmMain(QWidget *parent)
 	: QMainWindow(parent)
 {
 	ui.setupUi(this);
 	ui.statusBar->showMessage("press 'Scan' to start. ");
+	QSettings s("settings.ini", QSettings::IniFormat);
+	s.setIniCodec("UTF8");
+	outputDir = s.value("Recognize/OutputDir", ".").toString();
 }
 
 frmMain::~frmMain()
@@ -17,8 +21,8 @@ frmMain::~frmMain()
 
 void frmMain::onScan() {
 	ui.statusBar->showMessage("then select an image. ");
-
-	QFileDialog* fileDialog = new QFileDialog(this, "Select a Image", ".", "Image(.bmp;*.jpg;*.JPG;*.jpeg;*.png;)");
+	
+	QFileDialog* fileDialog = new QFileDialog(this, "Select a Image", outputDir, "Image(.bmp;*.jpg;*.JPG;*.jpeg;*.png;)");
 	fileDialog->setAcceptMode(QFileDialog::AcceptOpen);
 	fileDialog->setFileMode(QFileDialog::ExistingFile);
 	fileDialog->setViewMode(QFileDialog::List);//文件以详细的形式显示，显示文件名，大小，创建日期等信息；
@@ -29,7 +33,7 @@ void frmMain::onScan() {
 		try {
 			go(string(path.toLocal8Bit()), ui.ckbCut->isChecked(), 
 						[this](string x) {ui.statusBar->showMessage(QString::fromLocal8Bit(x.data())); }, 
-						[this](int x) {ui.progressBar->setValue(x);});
+						[this](int x) {ui.progressBar->setValue(x);}, string(outputDir.toLocal8Bit()));
 		}
 		catch (std::runtime_error ex) {
 			ui.statusBar->showMessage(ex.what());

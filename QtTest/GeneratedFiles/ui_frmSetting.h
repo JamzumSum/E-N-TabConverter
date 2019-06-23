@@ -17,6 +17,7 @@
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QScrollArea>
 #include <QtWidgets/QSplitter>
+#include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QWidget>
 
 QT_BEGIN_NAMESPACE
@@ -24,6 +25,7 @@ QT_BEGIN_NAMESPACE
 class Ui_frmSetting
 {
 public:
+    QVBoxLayout *verticalLayout_2;
     QScrollArea *scrollArea;
     QWidget *scrollAreaWidgetContents;
     QGroupBox *groupCfgPath;
@@ -44,21 +46,35 @@ public:
     QPushButton *btnSaveSelect;
     QPushButton *btnSave;
     QPushButton *btnTrain;
+    QGroupBox *groupOutputDir;
+    QSplitter *splitter_6;
+    QLineEdit *txtOutputDir;
+    QPushButton *btnOutputDir;
 
     void setupUi(QDialog *frmSetting)
     {
         if (frmSetting->objectName().isEmpty())
             frmSetting->setObjectName(QStringLiteral("frmSetting"));
-        frmSetting->resize(720, 480);
+        frmSetting->resize(720, 459);
+        verticalLayout_2 = new QVBoxLayout(frmSetting);
+        verticalLayout_2->setSpacing(6);
+        verticalLayout_2->setContentsMargins(11, 11, 11, 11);
+        verticalLayout_2->setObjectName(QStringLiteral("verticalLayout_2"));
         scrollArea = new QScrollArea(frmSetting);
         scrollArea->setObjectName(QStringLiteral("scrollArea"));
-        scrollArea->setGeometry(QRect(0, 0, 720, 480));
         scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
         scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+        scrollArea->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
         scrollArea->setWidgetResizable(true);
         scrollAreaWidgetContents = new QWidget();
         scrollAreaWidgetContents->setObjectName(QStringLiteral("scrollAreaWidgetContents"));
-        scrollAreaWidgetContents->setGeometry(QRect(0, 0, 697, 478));
+        scrollAreaWidgetContents->setGeometry(QRect(0, 0, 720, 640));
+        QSizePolicy sizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+        sizePolicy.setHorizontalStretch(0);
+        sizePolicy.setVerticalStretch(8);
+        sizePolicy.setHeightForWidth(scrollAreaWidgetContents->sizePolicy().hasHeightForWidth());
+        scrollAreaWidgetContents->setSizePolicy(sizePolicy);
+        scrollAreaWidgetContents->setMinimumSize(QSize(720, 640));
         groupCfgPath = new QGroupBox(scrollAreaWidgetContents);
         groupCfgPath->setObjectName(QStringLiteral("groupCfgPath"));
         groupCfgPath->setGeometry(QRect(12, 12, 673, 95));
@@ -117,10 +133,10 @@ public:
         splitter_3->addWidget(btnSaveSelect);
         btnSave = new QPushButton(scrollAreaWidgetContents);
         btnSave->setObjectName(QStringLiteral("btnSave"));
-        btnSave->setGeometry(QRect(564, 444, 96, 36));
+        btnSave->setGeometry(QRect(570, 550, 96, 36));
         btnTrain = new QPushButton(scrollAreaWidgetContents);
         btnTrain->setObjectName(QStringLiteral("btnTrain"));
-        btnTrain->setGeometry(QRect(444, 444, 96, 36));
+        btnTrain->setGeometry(QRect(450, 550, 96, 36));
         QPalette palette;
         QBrush brush(QColor(255, 0, 0, 255));
         brush.setStyle(Qt::SolidPattern);
@@ -130,7 +146,24 @@ public:
         brush1.setStyle(Qt::SolidPattern);
         palette.setBrush(QPalette::Disabled, QPalette::ButtonText, brush1);
         btnTrain->setPalette(palette);
+        groupOutputDir = new QGroupBox(scrollAreaWidgetContents);
+        groupOutputDir->setObjectName(QStringLiteral("groupOutputDir"));
+        groupOutputDir->setGeometry(QRect(20, 450, 673, 95));
+        splitter_6 = new QSplitter(groupOutputDir);
+        splitter_6->setObjectName(QStringLiteral("splitter_6"));
+        splitter_6->setGeometry(QRect(8, 32, 640, 32));
+        splitter_6->setOrientation(Qt::Horizontal);
+        splitter_6->setHandleWidth(8);
+        txtOutputDir = new QLineEdit(splitter_6);
+        txtOutputDir->setObjectName(QStringLiteral("txtOutputDir"));
+        splitter_6->addWidget(txtOutputDir);
+        btnOutputDir = new QPushButton(splitter_6);
+        btnOutputDir->setObjectName(QStringLiteral("btnOutputDir"));
+        splitter_6->addWidget(btnOutputDir);
         scrollArea->setWidget(scrollAreaWidgetContents);
+
+        verticalLayout_2->addWidget(scrollArea);
+
 
         retranslateUi(frmSetting);
         QObject::connect(btnTrain, SIGNAL(clicked()), frmSetting, SLOT(onTrain()));
@@ -139,6 +172,7 @@ public:
         QObject::connect(txtDataPth, SIGNAL(textChanged(QString)), frmSetting, SLOT(textChange(QString)));
         QObject::connect(txtSavePath, SIGNAL(textChanged(QString)), frmSetting, SLOT(textChange(QString)));
         QObject::connect(txtSmpPath, SIGNAL(textChanged(QString)), frmSetting, SLOT(textChange(QString)));
+        QObject::connect(txtOutputDir, SIGNAL(textChanged(QString)), frmSetting, SLOT(textChange(QString)));
 
         QMetaObject::connectSlotsByName(frmSetting);
     } // setupUi
@@ -156,6 +190,8 @@ public:
         btnSaveSelect->setText(QApplication::translate("frmSetting", "Select", nullptr));
         btnSave->setText(QApplication::translate("frmSetting", "Save", nullptr));
         btnTrain->setText(QApplication::translate("frmSetting", "Retrain", nullptr));
+        groupOutputDir->setTitle(QApplication::translate("frmSetting", "Output Directory", nullptr));
+        btnOutputDir->setText(QApplication::translate("frmSetting", "Select", nullptr));
     } // retranslateUi
 
 };

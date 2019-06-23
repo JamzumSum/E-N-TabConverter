@@ -16,4 +16,4 @@ using std::string;
 using std::function;
 
 void TrainMode();
-int go(string f, bool isCut, function<void(string)> notify, function<void(int)> progress);
+int go(string f, bool isCut, function<void(string)> notify, function<void(int)> progress, string outputDir);

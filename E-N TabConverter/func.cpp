@@ -16,7 +16,7 @@ void TrainMode() {
 	NumReader::train(defaultCSV);
 }
 
-int go(string f, bool isCut, function<void(string)> notify, function<void(int)> progress) {
+int go(string f, bool isCut, function<void(string)> notify, function<void(int)> progress, string outputDir) {
 	atomic_int prog = 0;
 	bool flag = false;
 	Mat img = imread(f.c_str(), 0);
@@ -108,8 +108,9 @@ int go(string f, bool isCut, function<void(string)> notify, function<void(int)> 
 		prog += 20 / (int)sections.size();
 		progress(prog);
 	}
-	string fn = name;
-	fn += ".xml";
+	string fn = outputDir;
+	if (fn.back() != '\\') fn.append("\\");
+	fn.append(name).append(".xml");
 	if (isExist(fn)) if (prompt(NULL, fn + " 已经存在，要替换吗？", PROJECT, 0x34) == 7) {
 		notify("用户放弃了保存");
 		return 1;

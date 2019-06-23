@@ -14,6 +14,7 @@ public:
 private:
 	frmSetting* setting = nullptr;
 	Ui::frmMainClass ui;
+	QString outputDir;
 public slots:
 
 	void onScan();

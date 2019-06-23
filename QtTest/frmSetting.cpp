@@ -17,7 +17,7 @@ frmSetting::frmSetting(QWidget* parent)
 	s.beginGroup("Recognize");
 	ui.txtSavePath->setText(s.value("SaveTo", "C:\\Users\\Administrator\\Desktop\\oh").toString());
 	ui.txtCfgPath->setText(s.value("ConfigPath", "C:\\Users\\Administrator\\Desktop\\E-N TabConverter\\global.xml").toString());
-
+	ui.txtOutputDir->setText(s.value("OutputDir").toString());
 	changed = false;
 }
 
@@ -33,6 +33,7 @@ void frmSetting::onSave()
 	s.setValue("Train/SamplePath", ui.txtSmpPath->text());
 	s.setValue("Recognize/SaveTo", ui.txtSavePath->text());
 	s.setValue("Recognize/ConfigPath", ui.txtCfgPath->text());
+	s.setValue("Recognize/OutputDir", ui.txtOutputDir->text());
 	close();
 }
 
