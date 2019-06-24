@@ -61,36 +61,13 @@ int go(string f, bool isCut, function<void(string)> notify, function<void(int)> 
 
 			getkey(rowLenth) += i.rows;
 
-			/*atomic_int cnt = int(origin.size());
-			auto measureStart = [&cnt, &rows](measure& x) {
-				x.start(rows);
-				cnt--;
-			};*/
 			for (Mat j : origin) {
 				measure newSec(j, sections.size() + 1);
-				if (newSec.id) sections.emplace_back(newSec); 
-				else {
-					//cnt--; 
-					continue;
-				};
-				try {
-					thread t(&measure::start, newSec, rows);
-					t.join();
-				}
-				catch (Err ex) {
-					//cnt--;
-					switch (ex.id) {
-					case 1:
-					default: throw ex; break;
-					}
-				}
-				
+				newSec.start(rows);
+				if (newSec.id) sections.emplace_back(newSec);
 			}
-			//while (cnt > 0) this_thread::yield();
 		}
-		else {
-			info.emplace_back(i);
-		}
+		else info.emplace_back(i);
 		prog += 80 / int(n);
 		progress(prog);
 	}

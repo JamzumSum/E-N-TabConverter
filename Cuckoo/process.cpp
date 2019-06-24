@@ -218,7 +218,7 @@ vector<vector<cls>> classifyContinuous(const vector<cls>& arr, function<const in
 	for (size_t i = 1; i < n; i++) {
 		t = t1;
 		t1 = getInt(arr[i]);
-		if (t + 1 == t1) r.back().emplace_back(arr[i]);
+		if (t + 1 >= t1) r.back().emplace_back(arr[i]);
 		else r.emplace_back(vector<cls>{ arr[i] });
 	}
 

@@ -278,14 +278,13 @@ void measure::recTime(vector<Vec4i> rows) {
 		TimeValue[i.x + i.width / 2] = newc;
 	}
 	assert(!TimeValue.empty());
-	Value kk = TimeValue[0];
-	for (unsigned i = 1; i < TimeValue.size(); i++) {
-		if (TimeValue[i] != kk) goto distribute;
-	}
-	kk = time.beat_type * (time.beats / (int)TimeValue.size());		//防止4个全音符或者2个四分音符之类的情况
-	for (auto &i : TimeValue) i.second = kk;
+	Value kk = TimeValue.begin()->second;
 
-distribute:
+	if (all_of(TimeValue.begin(), TimeValue.end(), [kk](const pair<int, Value>& x) -> bool {return x.second == kk; })) {
+		kk = time.beat_type * (time.beats / (int)TimeValue.size());		//防止4个全音符或者2个四分音符之类的情况
+		for (auto& i : TimeValue) i.second = kk;
+	}
+	
 	if (TimeValue.size() == 1 && notes.size() == 1) {
 		//全音符
 		kk = time.beat_type * time.beats;

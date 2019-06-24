@@ -50,8 +50,11 @@ public:
 	bool operator>(const int x) {
 		return v > 1.0f / x;
 	}
-	bool operator==(const int x) {
+	bool operator==(const int x){
 		return x == int(round(1 / v));
+	}
+	bool operator==(const Value& x) const {
+		return x.v == int(round(1 / v)) && x.dot == dot;
 	}
 	operator int() {
 		return int(round(1 / v));
