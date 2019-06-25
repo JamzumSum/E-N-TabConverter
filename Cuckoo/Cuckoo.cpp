@@ -441,11 +441,9 @@ void measure::start(vector<Vec4i> rows) {
 	Mat img = den.denoise_morphology();
 	try {
 		recNum(img, rows);
-		if (savepic) {
-			id = 0;
-			return;
+		if (!savepic) {
+			recTime(rows);
 		}
-		recTime(rows);
 	}
 	catch (Err ex) {
 		switch (ex.id)

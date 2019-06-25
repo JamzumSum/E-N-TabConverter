@@ -11,14 +11,16 @@ using namespace std;
 using namespace cv;
 
 GlobalPool global(cfgPath);
+extern bool savepic;
 
 void TrainMode() {
 	NumReader::train(defaultCSV);
 }
 
-int go(string f, bool isCut, function<void(string)> notify, function<void(int)> progress, string outputDir) {
+int go(const vector<string>& pics, bool isCut, function<void(string)> notify, function<void(int)> progress, string outputDir) {
 	atomic_int prog = 0;
 	bool flag = false;
+	string f = pics[0];
 	Mat img = imread(f.c_str(), 0);
 	if (img.empty()) raiseErr("Wrong format.", 3);
 	Mat trimmed = threshold(img);
@@ -57,14 +59,14 @@ int go(string f, bool isCut, function<void(string)> notify, function<void(int)> 
 
 			finder.findCol(lines);											//
 			vector<Mat> origin;												//ÇÐ¸î²¢´æ´¢
-			if (lines.size()) cut(i, lines, 0, origin, true);				//
+			if (!lines.empty()) cut(i, lines, 0, origin, true);				//
 
 			getkey(rowLenth) += i.rows;
 
-			for (Mat j : origin) {
-				measure newSec(j, sections.size() + 1);
-				newSec.start(rows);
-				if (newSec.id) sections.emplace_back(newSec);
+			for (size_t j = 0, pre = sections.size(); j < origin.size(); j++) {
+				sections.emplace_back(origin[j], pre + j + 1);
+				assert(sections[pre + j].id != 0);
+				sections[pre + j].start(rows);
 			}
 		}
 		else info.emplace_back(i);

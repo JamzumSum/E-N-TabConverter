@@ -29,11 +29,17 @@ void frmMain::onScan() {
 
 																	  //还有另一种形式QFileDialog::List，这个只是把文件的文件名以列表的形式显示出来
 	if (fileDialog->exec() == QDialog::Accepted) {//注意使用的是QFileDialog::Accepted或者QDialog::Accepted,不是QFileDialog::Accept
-		QString path = fileDialog->selectedFiles()[0];
+		QStringList path = fileDialog->selectedFiles();
+		vector<string> list(path.size());
+		std::transform(path.begin(), path.end(), list.begin(), [](const QString& x) -> string {return string(x.toLocal8Bit()); });
+		Converter converter(list);
+		converter.setCut(ui.ckbCut->isChecked());
+		converter.setOutputDir(string(outputDir.toLocal8Bit()));
 		try {
-			go(string(path.toLocal8Bit()), ui.ckbCut->isChecked(), 
-						[this](string x) {ui.statusBar->showMessage(QString::fromLocal8Bit(x.data())); }, 
-						[this](int x) {ui.progressBar->setValue(x);}, string(outputDir.toLocal8Bit()));
+			converter.scan(
+				[this](string x) {ui.statusBar->showMessage(QString::fromLocal8Bit(x.data())); },
+				[this](int x) {ui.progressBar->setValue(x); }
+			);
 		}
 		catch (std::runtime_error ex) {
 			ui.statusBar->showMessage(ex.what());
