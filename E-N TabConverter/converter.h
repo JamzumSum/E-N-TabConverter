@@ -18,9 +18,6 @@ using std::string;
 using std::function;
 using std::vector;
 
-void TrainMode();
-int go(const vector<string>& f, bool isCut, function<void(string)> notify, function<void(int)> progress, string outputDir);
-
 class Converter {
 private:
 	vector<string> picPath;
@@ -31,13 +28,9 @@ public:
 		picPath = pics;
 	}
 
-	void Train() {
-		TrainMode();
-	}
+	static void Train();
 
-	int scan(function<void(string)> notify, function<void(int)> progress) {
-		return go(picPath, ifCut, notify, progress, outputDir);
-	}
+	int scan(function<void(string)> notify, function<void(int)> progress);
 
 	void setCut(bool ifCut) {
 		this->ifCut = ifCut;

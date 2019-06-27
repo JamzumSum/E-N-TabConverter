@@ -13,14 +13,13 @@ using namespace cv;
 GlobalPool global(cfgPath);
 extern bool savepic;
 
-void TrainMode() {
+void Converter::Train() {
 	NumReader::train(defaultCSV);
 }
 
-int go(const vector<string>& pics, bool isCut, function<void(string)> notify, function<void(int)> progress, string outputDir) {
-	atomic_int prog = 0;
+int Converter::scan (function<void(string)> notify, function<void(int)> progress) {
 	bool flag = false;
-	string f = pics[0];
+	string f = picPath[0];
 	Mat img = imread(f.c_str(), 0);
 	if (img.empty()) raiseErr("Wrong format.", 3);
 	Mat trimmed = threshold(img);
@@ -44,48 +43,86 @@ int go(const vector<string>& pics, bool isCut, function<void(string)> notify, fu
 	progress(1);
 	notify("过滤算法正常");
 	
-	size_t n = piece.size();
-	vector<measure> sections;					//按行存储
+	int n = static_cast<int>(piece.size());
 	vector<Mat> info;							//其余信息
 	
-	
-	for (Mat& i: piece) {
+	using general = tuple<vector<Vec4i>, vector<Vec4i>, Mat>;
+	vector<general> sectionsGrid; sectionsGrid.reserve(n);
+
+	atomic_int cnt = 0;
+	auto scanGrid = [&cnt, &sectionsGrid, &n, &info](Mat i, int index) {
 		vector<Vec4i> rows;
-		vector<int> thick;
 		LineFinder finder(i, 10);
 		finder.findRow(rows);
 		if (rows.size() == 6) {
 			vector<Vec4i> lines;
-
-			finder.findCol(lines);											//
-			vector<Mat> origin;												//切割并存储
-			if (!lines.empty()) cut(i, lines, 0, origin, true);				//
-
-			getkey(rowLenth) += i.rows;
-
-			for (size_t j = 0, pre = sections.size(); j < origin.size(); j++) {
-				sections.emplace_back(origin[j], pre + j + 1);
-				assert(sections[pre + j].id != 0);
-				sections[pre + j].start(rows);
-			}
+			finder.findCol(lines);
+			while (cnt < index - 1) this_thread::yield();
+			sectionsGrid.emplace_back(rows, lines, i);
+			n += static_cast<int>(lines.size());
+			cnt++;
 		}
-		else info.emplace_back(i);
-		prog += 80 / int(n);
-		progress(prog);
+		else {
+			while (cnt < index - 1) this_thread::yield();
+			info.push_back(i);
+			cnt++;
+		}
+	};
+	int tmpsize = static_cast<int>(n);
+	n = 0;
+	for (int k = 0; k < tmpsize; k++) {
+		thread t(scanGrid, piece[k], k + 1);
+		t.detach();						//race!
+	}
+	while (cnt < tmpsize) {
+		this_thread::yield();
+	}
+	piece.clear(); piece.shrink_to_fit(); sectionsGrid.shrink_to_fit();
+	progress(30);
+
+	vector<measure> sections;												//按行存储
+	sections.reserve(n);
+	cnt = 0;
+	atomic_int cnt2 = 0;
+	tmpsize = static_cast<int>(sectionsGrid.size());
+	auto scanMeasure = [&cnt, &cnt2, &sections](const general& i, int index) {
+		vector<Mat> origin;
+		if (!get<1>(i).empty()) cut(get<2>(i), get<1>(i), 0, origin, true);	//切割
+
+		getkey(rowLenth) += get<2>(i).rows;
+
+		while (cnt < index) this_thread::yield();
+		size_t pre = sections.size();
+		for (size_t j = 0; j < origin.size(); j++) {
+			sections.emplace(sections.begin() + pre + j, origin[j], pre + j + 1);
+		}
+		cnt++;
+
+		for (size_t j = 0; j < origin.size(); j++) {
+			sections[pre + j].start(get<0>(i));
+		}
+		cnt2++;
+	};
+	for (int i = 0; i < tmpsize; i++) {
+		thread t(scanMeasure, ref(sectionsGrid[i]), i);
+		t.join();
+	}
+	while (cnt2 < tmpsize) {
+		progress(cnt2 / tmpsize / 2 + 30);
+		this_thread::yield();
 	}
 	piece.clear(); piece.shrink_to_fit();
 
-	//sort(sections.begin(), sections.end());
 	notify("扫描完成，准备写入文件");
-	progress((prog = 80));
+	progress(80);
 	global.save();
 	string name = fname(f);
 	saveDoc finish(name, "unknown", "unknown", "unknown", PROJECT, "Internet");
-	for (measure& i : sections) {
-		if(SUCCEED(i.id))
-		finish.saveMeasure(i.getNotes()); 
-		prog += 20 / (int)sections.size();
-		progress(prog);
+	n = static_cast<int>(sections.size());
+	for (int i = 0; i < n; i++) {
+		assert(sections[i].id > 0);
+		finish.saveMeasure(sections[i].getNotes()); 
+		progress(80 + i / n);
 	}
 	string fn = outputDir;
 	if (fn.back() != '\\') fn.append("\\");

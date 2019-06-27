@@ -155,4 +155,9 @@
     <lineThickness col="722">1</lineThickness>
     <rowLenth col="722">85</rowLenth>
     <valueSignalLen col="722">19</valueSignalLen>
+    <characterWidth col="722">5</characterWidth>
+    <colLenth col="722">147</colLenth>
+    <lineThickness col="722">1</lineThickness>
+    <rowLenth col="722">84</rowLenth>
+    <valueSignalLen col="722">19</valueSignalLen>
 </GLOBALPOOL>

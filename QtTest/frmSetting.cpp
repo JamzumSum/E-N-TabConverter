@@ -23,7 +23,7 @@ frmSetting::frmSetting(QWidget* parent)
 
 void frmSetting::onTrain()
 {
-	TrainMode();
+	Converter::Train();
 }
 
 void frmSetting::onSave()
