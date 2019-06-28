@@ -1,5 +1,4 @@
 #pragma once
-#pragma comment(lib, "Cuckoo.lib")
 #if _DEBUG
 #pragma comment(lib, "opencv_world401d.lib")
 #else

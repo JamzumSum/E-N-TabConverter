@@ -55,7 +55,7 @@ void Splitter::start(vector<Mat>& piece) {
 
 	std::transform(region.begin(), region.end(), piece.begin(), [this](Rect x) -> Mat {return org(x).clone(); });
 
-	remove_if(piece.begin(), piece.end(), [](Mat & x) -> bool {return x.empty(); });
+	piece.erase(remove_if(piece.begin(), piece.end(), [](Mat & x) -> bool {return x.empty(); }), piece.end());
 	piece.shrink_to_fit();
 }
 
@@ -102,11 +102,11 @@ void LineFinder::findRow(vector<Vec4i> & lines) {
 
 	//½Ç¶ÈÉ¸Ñ¡
 	double t = tan(range);
-	remove_if(lines.begin(), lines.end(), [t, this](const Vec4i x) -> bool {
+	lines.erase(remove_if(lines.begin(), lines.end(), [t, this](const Vec4i x) -> bool {
 		return x[2] == x[0] 
 			|| abs(((double)x[3] - x[1]) / (x[2] - x[0])) > t
 			|| isDotLine(x);
-	});
+	}), lines.end());
 
 	//sort
 	if (!lines.size()) return;
@@ -154,9 +154,9 @@ void LineFinder::findCol(vector<Vec4i> & lines) {
 
 	//range filter
 	double t = tan(CV_PI / 2.0 - range);
-	remove_if(lines.begin(), lines.end(), [t](const Vec4i x) -> bool {
-		return x[0] == x[2] || abs(((double)x[3] - x[1]) / (x[2] - x[0])) < t; 
-	});
+	lines.erase(remove_if(lines.begin(), lines.end(), [t](const Vec4i x) -> bool {
+		return x[0] != x[2] && abs(((double)x[3] - x[1]) / (x[2] - x[0])) < t; 
+	}), lines.end());
 
 	//sort it
 	sort(lines.begin(), lines.end(), [](const Vec4i x, const Vec4i y) ->bool {

@@ -143,7 +143,7 @@ int prompt(void* hWnd, string text, string caption, unsigned flag) {
 }
 
 /*
-@return pair<int, int>, first as horizontal DPI, second as vertical DPI. 
+@return pair<int, int>, first as horizontal DPI, second as vertical DPI. contains 0 if error. 
 */
 pair<float, float> getScaleFactor() {
 	auto dc = shared_ptr<HDC__>(GetDC(nullptr), [](const HDC dc) { ReleaseDC(nullptr, dc); });
@@ -152,6 +152,7 @@ pair<float, float> getScaleFactor() {
 	case 120: return 1.25f;
 	case 144: return 1.5f;
 	case 192: return 2.0f;
+	default: return 0;
 	}};
 	return make_pair(f(GetDeviceCaps(&(*dc), LOGPIXELSX)), f(GetDeviceCaps(&(*dc), LOGPIXELSY)));
 }

@@ -1,4 +1,5 @@
 #pragma once
+#pragma comment(lib, "Cuckoo.lib")
 #include "cv.h" 
 #include "../E-N TabConverter/music.h"
 #include "../E-N TabConverter/global.h"
@@ -23,10 +24,10 @@ public:
 	static easynote invalid() { easynote i; i.fret = -1; return i; }
 };
 
-typedef struct {
+using ChordSet = struct {
 	int avrpos;
 	std::vector<easynote> chords;
-}ChordSet;
+};
 
 class ImageProcess {
 protected:

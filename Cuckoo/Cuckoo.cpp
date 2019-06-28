@@ -8,7 +8,7 @@ using namespace cv;
 
 #define find_in(vector, lambda) find_if(vector##.begin(), vector##.end(), lambda)
 #if _DEBUG
-#define Showrectangle if(0)
+#define Showrectangle if(1)
 #define Showline if(0)
 #define draw(func, img, from, to, color) Show##func func(img, from, to, color)
 #else 
@@ -285,7 +285,7 @@ void measure::recTime(vector<Vec4i> rows) {
 		for (auto& i : TimeValue) i.second = kk;
 	}
 	
-	if (TimeValue.size() == 1 && notes.size() == 1) {
+	if (TimeValue.empty() && notes.size() == 1) {
 		//全音符
 		kk = time.beat_type * time.beats;
 		for (easynote& i : notes[0].chords) i.time = kk;
@@ -294,10 +294,23 @@ void measure::recTime(vector<Vec4i> rows) {
 	//不应该含全音符
 
 
-	vector<ChordSet*> noValue;
-	for (ChordSet& i : notes) noValue.emplace_back(&i);
+	/*vector<ChordSet*> noValue;
+	for (ChordSet& i : notes) noValue.emplace_back(&i);*/
+	
+	for (auto& i : notes) {
+		auto range = TimeValue.equal_range(i.avrpos);
 
-	for (auto &i: TimeValue) {
+		if (range.second != TimeValue.end() && abs(range.second->first - i.avrpos) < t) {
+			for (auto& j : i.chords) j.time = range.second->second;
+		}
+		else if(auto prevRange = --(range.second); abs(prevRange->first - i.avrpos) < t){
+			for (auto& j : i.chords) j.time = prevRange->second;
+		}
+		else 
+			for (auto& j : i.chords) j.time = Value::whole;
+	}
+
+	/*for (auto &i: TimeValue) {
 		int pos = i.first;
 		for (;;) {
 			auto s = find_in(noValue, ([pos, t](const ChordSet * x)->bool {
@@ -310,7 +323,8 @@ void measure::recTime(vector<Vec4i> rows) {
 			noValue.erase(s);
 		}
 	}
-	if (!noValue.empty()) raiseErr("有未分配时值的乐符", 1);
+	if (!noValue.empty()) 
+		raiseErr("有未分配时值的乐符", 1);*/
 }
 
 MusicMeasure measure::getNotes() {
