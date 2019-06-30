@@ -24,6 +24,7 @@ frmSetting::frmSetting(QWidget* parent)
 void frmSetting::onTrain()
 {
 	Converter::Train();
+	QMessageBox::information(this, u8"训练已完成", "训练已完成, 数据位于" + ui.txtDataPth->text());
 }
 
 void frmSetting::onSave()

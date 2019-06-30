@@ -347,17 +347,21 @@ keepnote:
 			pitch(srcnotes[i].notation.technical.string, srcnotes[i].notation.technical.fret, "E4", pi,up);
 			break;
 		}
-		char qu[2];
-		qu[0] = pi[0];
-		qu[1] = 0;
-		//if (sta == 1) pi[1] = pi[1] + 1;
-		steps[i]->InsertEndChild(doc.NewText(qu));
-		octaves[i]->InsertEndChild(doc.NewText(&pi[1]));
-		pitchs[i]->InsertEndChild(steps[i]);
-		if (up) pitchs[i]->InsertEndChild(doc.NewElement("alter"))->InsertEndChild(doc.NewText("1"));
-		pitchs[i]->InsertEndChild(octaves[i]);
-		notes[i]->InsertEndChild(pitchs[i]);
 
+		if (srcnotes[i].notation.technical.string == 0) notes[i]->InsertEndChild(doc.NewElement("rest"));
+		else {
+			char qu[2];
+			qu[0] = pi[0];
+			qu[1] = 0;
+			//if (sta == 1) pi[1] = pi[1] + 1;
+			steps[i]->InsertEndChild(doc.NewText(qu));
+			octaves[i]->InsertEndChild(doc.NewText(&pi[1]));
+			pitchs[i]->InsertEndChild(steps[i]);
+			if (up) pitchs[i]->InsertEndChild(doc.NewElement("alter"))->InsertEndChild(doc.NewText("1"));
+			pitchs[i]->InsertEndChild(octaves[i]);
+			notes[i]->InsertEndChild(pitchs[i]);
+		}
+		
 		//duration: 4:1024
 
 		char a[8] = "";

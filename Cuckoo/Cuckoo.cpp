@@ -8,7 +8,7 @@ using namespace cv;
 
 #define find_in(vector, lambda) find_if(vector##.begin(), vector##.end(), lambda)
 #if _DEBUG
-#define Showrectangle if(1)
+#define Showrectangle if(0)
 #define Showline if(0)
 #define draw(func, img, from, to, color) Show##func func(img, from, to, color)
 #else 
@@ -21,13 +21,13 @@ bool savepic = 0;
 static NumReader reader(defaultCSV);
 
 static int count(Mat img, Rect range, int delta) {
-	Mat roi = img(range);
+	assert(img.isContinuous());
 	bool lock = false;
 	int sum = 0, x = range.x + (delta > 0 ? range.width : 0) + delta;
 	//int blocksize = 2 * (int)max(1.0, round(getkey(col / 1000.0)) + 1;
 	for (int y = range.height / 2; y < range.height; y++)
 	{
-		uchar* ptr1 = img.ptr<uchar>(y);
+		uchar* ptr1 = img.ptr<uchar>(range.y + y);
 		if (!ptr1[x]) {
 			if (!lock) {
 				sum++;
@@ -41,66 +41,61 @@ static int count(Mat img, Rect range, int delta) {
 	return sum;
 }
 
-void measure::recNum(Mat denoised, vector<Vec4i> rows) {
-	/*
-	* 函数：measure::recNum
-	* 功能：从传入图像中提取数字等
-	* 参数：
-		denoised，Mat，传入图像
-		rows，Vec4i，传入的网格信息（谱线）
-	*/
+/**
+	从传入图像中提取数字等
+	@name	measure::recNum
+	@param	denoised，Mat，传入图像
+	@param	rows，Vec4i，传入的网格信息（谱线）
+*/
+void measure::recNum(Mat denoised, const vector<Vec4i>& rows) {
+	
 	vector<vector<Point>> cont;
 	vector<Rect> region, possible;
 	Mat inv = 255 - denoised;
 	Mat ccolor;
-	auto mergeFret = [this](int t) {
-		vector<easynote>::iterator m, n;
-		while (1) {										//合并相邻的fret version2
+	auto mergeFret = [this](unsigned t) {				//mergeFret v3
+		//note[0] is sorted. 
 
-			m = find_in(notes[0].chords, ([this, t, &n](const easynote x) ->bool {
-				n = find_in(notes[0].chords, ([x, t](const easynote y) ->bool {
-					return x.pos != y.pos
-						&& y.string == x.string
-						&& abs(x.pos - y.pos) <= 2 * t;
-				}));
-				return n != notes[0].chords.end();
-			}));
-			if (m == notes[0].chords.end()) break;
-
-			if (m->pos > n->pos) swap(m, n);
-			if (m->fret > 1) {
-				bool flag = false;
-				for (int i : m->possible) {
-					if (i < 2) {
-						m->pos = (m->pos + n->pos) / 2;
-						m->fret = 10 * i + n->fret;
-						notes[0].chords.erase(n);
-						flag = true;
+		for (auto i = notes[0].begin(); i != notes[0].end(); i++) {
+			for (auto j = i + 1; j < notes[0].end(); j++) {
+				if (bool flag = false; j->pos - i->pos <= ((unsigned)maxCharacterWidth << 1)) {
+					if (i->string != j->string) {			//can be aligned.
+						i->pos = j->pos = (i->pos + j->pos) >> 1;
+						continue;
 					}
+					for (auto k : i->possible) {				//can be merged. 
+						if (k.second > '1') continue;
+						i->fret = 10 * (k.second - '0') + j->fret;
+						i->pos = (i->pos + j->pos) >> 1;
+						notes[0].erase(j);
+						i--; flag = true;
+						break;
+					}
+					if(!flag) raiseErr("fret合并：不可置信条件. 检查模型", 0);
 				}
-				if (!flag) raiseErr("fret合并：不可置信条件. 检查模型", 0);
+				else break;
 			}
-			m->pos = (m->pos + n->pos) / 2;
-			m->fret = 10 + n->fret;
-			notes[0].chords.erase(n);
 		}
 	};
-	auto fillTimeAndPos = [this](int t) {
-		for (easynote& i : notes[0].chords) {
-			auto add = find_if(notes.begin() + 1, notes.end(), [i, t](const ChordSet x) -> bool {
-				return abs(i.pos - x.avrpos) <= t / 2;
+	auto fillTimeAndPos = [this](unsigned t) {
+		for (EasyNote& i : notes[0]) {
+			auto _1 = notes.begin();
+			auto add = find_if(++_1, notes.end(), [i, t](pair<const unsigned, ChordSet> x) -> bool {
+				return abs(i.pos - x.first) <= t / 2;
 			});
 			if (add == notes.end()) {
-				ChordSet newc;
-				newc.avrpos = i.pos;
-				newc.chords.emplace_back(i);
-				notes.emplace_back(newc);
+				ChordSet newc({i});
+				notes[i.pos] = newc;
 			}
 			else {
-				add->chords.emplace_back(i);
+				add->second.emplace_back(i);
 				unsigned sum = 0;
-				for (easynote& i : add->chords) sum += i.pos;
-				add->avrpos = sum / (int)add->chords.size();
+				for (EasyNote& i : add->second) sum += i.pos;
+				sum /= static_cast<unsigned>(add->second.size());
+				if (add->first != sum) {
+					notes.insert(make_pair(sum, add->second));
+					notes.erase(add);
+				}
 			}
 		}
 	};
@@ -113,8 +108,6 @@ void measure::recNum(Mat denoised, vector<Vec4i> rows) {
 		return sum;
 	};
 	Showrectangle cvtColor(denoised, ccolor, CV_GRAY2BGR);
-
-	notes.resize(1);
 
 	findContours(inv, cont, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
 	for (vector<Point>& i : cont) {								//convert contour to rect
@@ -145,22 +138,14 @@ void measure::recNum(Mat denoised, vector<Vec4i> rows) {
 				if (!whichLine(i, rows)) continue;
 				possible.emplace_back(i); continue;
 			}
-			easynote newNote;
+			EasyNote newNote;
 			Mat number = org(i).clone();
 			if (countBlack(number) > 0.8 * i.area()) continue;
-
-			cvtColor(number, number, CV_GRAY2BGR);
-
-			number = perspect(number, 8, 14);
-			if (savepic) {
-				savePic(picFolder, number);													//保存数字样本
-				continue;
-			}
 
 			newNote.string = whichLine(i, rows);											//几何关系判断string
 			if (!newNote.string) continue;
 			try {
-				newNote.fret = reader.rec(number, newNote.possible, newNote.safety);				//识别数字fret
+				newNote.acceptRecData(reader.rec(number));									//识别数字fret
 				if (newNote.fret < 0) continue;												//较大的几率不是数字
 			}
 			catch (runtime_error ex) {
@@ -174,32 +159,35 @@ void measure::recNum(Mat denoised, vector<Vec4i> rows) {
 
 			maxCharacterWidth = max(maxCharacterWidth, i.width);
 			maxCharacterHeight = max(maxCharacterHeight, i.height);
-			notes[0].chords.emplace_back(newNote);
+			notes[0].emplace_back(newNote);
+			if (savepic) {
+				savePic(picFolder, number);													//保存数字样本
+			}
 		}
 	}
 	for (Rect& i : possible) {
 		//TODO: blocked, like 3--3
 		if (i.area() < 0.8 * maxCharacterHeight * maxCharacterWidth) continue;
-		easynote newNote = dealWithIt(org(i));
-		if (newNote.fret > 0) notes[0].chords.emplace_back(newNote);
+		EasyNote newNote = dealWithIt(org, i, rows);
+		if (newNote.fret > 0) notes[0].emplace_back(newNote);
 	}
 	possible.clear();
 	Showrectangle imdebug("Showrectangle", ccolor);
 
-
-	mergeFret(maxCharacterWidth);
-	std::sort(notes[0].chords.begin(), notes[0].chords.end(), [](const easynote x, const easynote y) -> bool {
+	std::sort(notes[0].begin(), notes[0].end(), [](const EasyNote x, const EasyNote y) -> bool {
 		return x.pos < y.pos || (x.pos == y.pos && x.string < y.string);
 	});
+	mergeFret(maxCharacterWidth);
+	
 
 	fillTimeAndPos(maxCharacterWidth);
 	//assert(notes.size() > 1);
 	notes.erase(notes.begin());
 }
 
-void measure::recTime(vector<Vec4i> rows) {
-	map<int, Value> TimeValue;
-	int t = maxCharacterWidth;
+void measure::recTime(const vector<Vec4i>& rows) {
+	map<int, Value> timeValue;
+	unsigned t = maxCharacterWidth;
 	Mat picValue = org(Range(max(rows[5][1], rows[5][3]) + maxCharacterHeight / 2, org.rows), Range::all()).clone();
 	//TODO: bug if no value area in org. 
 	//		present as max(rows[5][1], rows[5][3]) + maxCharacterHeight / 2 > org.rows, and cvException here. 
@@ -273,58 +261,46 @@ void measure::recTime(vector<Vec4i> rows) {
 		if (i.height <= predLen / 2 && !sum1 && !sum2) {
 			sum1--; sum2--;
 		}
-		Value newc = time.beat_type / (int)pow(2, max(sum1, !sum3 && sum2 ? sum2 - 1 : sum2));;
+		Value newc = time.beat_type / (int)pow(2, max(sum1, !sum3 && sum2 ? sum2 - 1 : sum2));
 		newc.dot = !sum3 && sum2;
-		TimeValue[i.x + i.width / 2] = newc;
+		timeValue[i.x + i.width / 2] = newc;
 	}
-	assert(!TimeValue.empty());
-	Value kk = TimeValue.begin()->second;
+	assert(!timeValue.empty());
+	Value kk = timeValue.begin()->second;
 
-	if (all_of(TimeValue.begin(), TimeValue.end(), [kk](const pair<int, Value>& x) -> bool {return x.second == kk; })) {
-		kk = time.beat_type * (time.beats / (int)TimeValue.size());		//防止4个全音符或者2个四分音符之类的情况
-		for (auto& i : TimeValue) i.second = kk;
+	if (all_of(timeValue.begin(), timeValue.end(), [kk](const pair<int, Value>& x) -> bool {return x.second == kk; })) {
+		kk = time.beat_type * (time.beats / (int)timeValue.size());		//防止4个全音符或者2个四分音符之类的情况
+		for (auto& i : timeValue) i.second = kk;
 	}
 	
-	if (TimeValue.empty() && notes.size() == 1) {
+	if (timeValue.empty() && notes.size() == 1) {
 		//全音符
 		kk = time.beat_type * time.beats;
-		for (easynote& i : notes[0].chords) i.time = kk;
+		for (EasyNote& i : notes[0]) i.time = kk;
 		return;
 	}
 	//不应该含全音符
-
-
-	/*vector<ChordSet*> noValue;
-	for (ChordSet& i : notes) noValue.emplace_back(&i);*/
 	
 	for (auto& i : notes) {
-		auto range = TimeValue.equal_range(i.avrpos);
+		auto range = timeValue.equal_range(i.first);
 
-		if (range.second != TimeValue.end() && abs(range.second->first - i.avrpos) < t) {
-			for (auto& j : i.chords) j.time = range.second->second;
+		if (range.second != timeValue.end() && abs(range.second->first - i.first) < t) {
+			for (auto& j : i.second) j.time = range.second->second;
+			timeValue.erase(range.second);
 		}
-		else if(auto prevRange = --(range.second); abs(prevRange->first - i.avrpos) < t){
-			for (auto& j : i.chords) j.time = prevRange->second;
+		else if(range.second != timeValue.begin()
+			&& abs((--range.second)->first - i.first) < t)
+		{
+			for (auto& j : i.second) j.time = range.second->second;
+			timeValue.erase(range.second);
 		}
 		else 
-			for (auto& j : i.chords) j.time = Value::whole;
+			for (auto& j : i.second) j.time = Value::whole;				//错误: 找不到对应的时值. 处理方案: 时值置whole. 
 	}
 
-	/*for (auto &i: TimeValue) {
-		int pos = i.first;
-		for (;;) {
-			auto s = find_in(noValue, ([pos, t](const ChordSet * x)->bool {
-				return abs(x->avrpos - pos) < t;
-			}));
-			if (s == noValue.end()) break;
-			for (easynote& j : (**s).chords) {
-				j.time = i.second;
-			}
-			noValue.erase(s);
-		}
+	for (auto i : timeValue) {
+		notes.insert(make_pair(i.first, ChordSet::rest(i.first, i.second)));
 	}
-	if (!noValue.empty()) 
-		raiseErr("有未分配时值的乐符", 1);*/
 }
 
 MusicMeasure measure::getNotes() {
@@ -332,31 +308,32 @@ MusicMeasure measure::getNotes() {
 	r.time = this->time;
 	r.key = this->key;
 	r.id = this->id;
-	for (ChordSet& i : notes) {
-		if (i.chords.empty()) continue;
+	for (auto& i : notes) {
+		if (i.second.empty()) continue;
 		note newn;
-		newn.chord = false;  newn.timeValue = i.chords[0].time;
-		newn.notation.technical.string = i.chords[0].string;
-		newn.notation.technical.fret = i.chords[0].fret;
+		newn.chord = false;  newn.timeValue = i.second[0].time;
+		newn.notation.technical.string = i.second[0].string;
+		newn.notation.technical.fret = i.second[0].fret;
 		r.notes.emplace_back(newn);
 		newn.chord = true;
-		for (unsigned j = 1; j < i.chords.size(); j++) {
-			newn.timeValue = i.chords[j].time;
-			newn.notation.technical.string = i.chords[j].string;
-			newn.notation.technical.fret = i.chords[j].fret;
+		for (unsigned j = 1; j < i.second.size(); j++) {
+			newn.timeValue = i.second[j].time;
+			newn.notation.technical.string = i.second[j].string;
+			newn.notation.technical.fret = i.second[j].fret;
 			r.notes.emplace_back(newn);
 		}
 	}
 	return r;
 }
 
-easynote measure::dealWithIt(Mat img) {
-	auto tooWide_MORPH = [this, &img]() -> easynote {
+EasyNote measure::dealWithIt(const Mat& org, const Rect& region, const vector<Vec4i>& rows) {
+	Mat img = org(region);
+	auto tooWide_MORPH = [this, &img, &region, &rows]() -> EasyNote {
 		int more = img.cols - maxCharacterWidth;
 		Mat mask = Morphology(255 - img, more - 1, true, false);
 		img |= mask;
 		vector<vector<Point>> cont;
-		vector<Rect> region;
+		vector<Rect> re;
 		findContours(img, cont, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
 		for (vector<Point>& i : cont) {								//convert contour to rect
 			Rect tmp = boundingRect(i);
@@ -364,27 +341,32 @@ easynote measure::dealWithIt(Mat img) {
 				&& tmp.height > 3
 				&& tmp.width > 3
 				) {
-				region.emplace_back(tmp);
+				re.emplace_back(tmp);
 			}
 		}
-		cont.clear();
-		for (Rect& i : region) {
+		cont.clear(); cont.shrink_to_fit();
+		for (Rect& i : re) {
 			if (i.height < 2.5 * i.width
 				&& (getkey(characterWidth) ? (i.width > getkey(characterWidth) / 2) : 1)
 				&& i.height > i.width) {
-				easynote newNote;
-				newNote.fret = reader.rec(img(i), newNote.possible, newNote.safety, 45.0f);
-				return newNote;
+				EasyNote newNote;
+				newNote.acceptRecData(reader.rec(img(i), 45.0f));
+				newNote.string = whichLine(Rect(region.tl() + i.tl(), i.size()), rows);
+				if (newNote.fret > 0 && newNote.string) {
+					newNote.pos = region.x + i.x + i.width / 2;
+					return newNote;
+				}
+				else continue;
 			}
 		}
-		return easynote::invalid();
+		return EasyNote::invalid();
 	};
-	auto tooHigh_MORPH = [this, &img]() -> easynote {
+	auto tooHigh_MORPH = [this, &img, &region, &rows]() -> EasyNote {
 		int more = img.rows - maxCharacterHeight;
 		Mat mask = Morphology(255 - img, more - 1, true, false);
 		img |= mask;
 		vector<vector<Point>> cont;
-		vector<Rect> region;
+		vector<Rect> re;
 		findContours(img, cont, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
 		for (vector<Point>& i : cont) {								//convert contour to rect
 			Rect tmp = boundingRect(i);
@@ -392,40 +374,53 @@ easynote measure::dealWithIt(Mat img) {
 				&& tmp.height > 3
 				&& tmp.width > 3
 				) {
-				region.emplace_back(tmp);
+				re.emplace_back(tmp);
 			}
 		}
 		cont.clear();
-		for (Rect& i : region) {
+		for (Rect& i : re) {
 			if (i.height < 2.5 * i.width
 				&& (getkey(characterWidth) ? (i.width > getkey(characterWidth) / 2) : 1)
 				&& i.height > i.width) {
-				easynote newNote;
-				newNote.fret = reader.rec(img(i), newNote.possible, newNote.safety, 45.0f);
-				return newNote;
+				EasyNote newNote;
+				newNote.acceptRecData(reader.rec(img(i), 45.0f));
+				newNote.string = whichLine(Rect(region.tl() + i.tl(), i.size()), rows);
+				if (newNote.fret > 0 && newNote.string) {
+					newNote.pos = region.x + i.x + i.width / 2;
+					return newNote;
+				}
+				else continue;
 			}
 		}
-		return easynote::invalid();
+		return EasyNote::invalid();
 	};
-	auto tooWide_Rec = [this, &img]() -> easynote {
-		int trueWidth = int(float(img.rows) / maxCharacterHeight * maxCharacterWidth);
+	auto tooWide_Rec = [this, &img, &region, &rows]() -> EasyNote {
+		int trueWidth = static_cast<int>(float(img.rows) / maxCharacterHeight * maxCharacterWidth);
 		for (int i = 0; i < img.cols - trueWidth; i++) {
 			Mat test = img(Range::all(), Range(i, i + trueWidth));
-			easynote newNote;
-			newNote.fret = reader.rec(test, newNote.possible, newNote.safety, 25.0f);
-			if (newNote.fret > 0) return newNote;
+			EasyNote newNote;
+			newNote.string = whichLine(region, rows);
+			newNote.pos = i + trueWidth / 2;
+			newNote.acceptRecData(reader.rec(test, 25.0f));
+			if (newNote.fret > 0 && newNote.string) return newNote;
 		}
-		return easynote::invalid();
+		return EasyNote::invalid();
 	};
-	auto tooHigh_Rec = [this, &img]() -> easynote {
+	auto tooHigh_Rec = [this, &img, &region, &rows]() -> EasyNote {
 		int trueHeight = int(float(img.rows) / maxCharacterHeight * maxCharacterWidth);
 		for (int i = 0; i < img.rows - trueHeight; i++) {
 			Mat test = img(Range(i, i + trueHeight), Range::all());
-			easynote newNote;
-			newNote.fret = reader.rec(test, newNote.possible, newNote.safety, 25.0f);
-			if (newNote.fret > 0) return newNote;
+			EasyNote newNote;
+			newNote.acceptRecData(reader.rec(test, 25.0f));
+			if (newNote.fret > 0) {
+				newNote.string = whichLine(Range(i, i + trueHeight), rows);
+				if (newNote.string) {
+					newNote.pos = region.x + region.width / 2;
+					return newNote;
+				}
+			}
 		}
-		return easynote::invalid();
+		return EasyNote::invalid();
 	};
 	if (img.cols > maxCharacterWidth && img.rows < maxCharacterHeight) {
 		if (img.cols > 2 * maxCharacterWidth) return tooWide_Rec();
@@ -435,7 +430,7 @@ easynote measure::dealWithIt(Mat img) {
 		if (img.rows > 2 * maxCharacterWidth) return tooHigh_Rec();
 		else return tooHigh_MORPH();
 	}
-	else return easynote::invalid();
+	else return EasyNote::invalid();
 }
 
 measure::measure(Mat origin, size_t id)
@@ -444,13 +439,14 @@ measure::measure(Mat origin, size_t id)
 	maxCharacterWidth = getkey(characterWidth) / 2;
 	maxCharacterHeight = maxCharacterWidth + 1;
 	
+	//TODO: id = 0 is deprecated
 	if (org.cols < getkey(colLenth) / 5) {
 		this->id = 0;
 		return;
 	}
 }
 
-void measure::start(vector<Vec4i> rows) {
+void measure::start(const vector<Vec4i>& rows) {
 	Denoiser den(org);
 	Mat img = den.denoise_morphology();
 	try {

@@ -9,13 +9,18 @@ using namespace cv::ml;
 
 class NumReader {
 private:
+	int preferWidth = 8;
+	int preferHeight = 14;
 	Ptr<ml::KNearest> knn = KNearest::create();;
 public:
 	static void train(string save);
-	int rec(Mat character, vector<int>& possible, vector<float>& safety, float thresh = 60.0f);
+	map<char, float> rec(Mat character, float threshold = 60.0f);
 	void load(string csv);
 	bool isTrained() { return knn->isTrained(); }
 
 	NumReader() {}
 	NumReader(string csv) { load(csv); }
+
+	int getPreferWidth() { return preferWidth; }
+	int getPreferHeight() { return preferHeight; }
 };

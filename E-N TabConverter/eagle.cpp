@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include "Dodo.h"
 #include "eagle.h"
 #include "tools.h"
 #include "type.h"
@@ -6,33 +7,38 @@
 
 #define IDR_ML_CSV1 103
 
-int NumReader::rec(Mat character, vector<int> &possible, vector<float>& safety, float thresh) {
+/**
+	识别传入的字符. 
+	@name NumReader::rec
+	@param	character cv::Mat, the character's image. 
+				requires size of the Mat equals to preferWidth * preferHeight. 
+	@param	threshold, float, if the possibility is greater than the threshold, the result will
+				be pushed into the return val. 
+	@retval	map of(-1->-1) is returned if 'reshape' throws an error; or no result has a possibility 
+				greater than threshold. 
+*/
+map<char, float> NumReader::rec(Mat character, float threshold) {
+	cvtColor(character, character, CV_GRAY2BGR);
+	character = perspect(character, preferWidth, preferHeight);
+	
 	Mat res, tmp, neighbour, dist;
 	//dist: wrong recgonization, 33.244, 47.31, 45.299
-	try {
-		character.reshape(1, 1).convertTo(tmp, CV_32FC1, 1.0 / 255.0);
-	}
-	catch (exception ex) {
-		return -1;
-	}
-	load(defaultCSV);
-	if (!knn->isTrained()) throw runtime_error("knn网络读取失败");
+	(character.isContinuous() ? character : character.clone()).
+		reshape(1, 1).convertTo(tmp, CV_32FC1, 1.0 / 255.0);
 	
+	load(defaultCSV);
+	assert(knn->isTrained());
 	knn->findNearest(tmp, 5, res, neighbour, dist);
 
-	possible.clear();
-	safety.clear();
+	map<char, float> ret;
 	for (int j = 0; j < dist.cols ; j++) {
 		float a = dist.at<float>(0, j);
-		if (a < thresh) {
-			safety.emplace_back(a);
-			possible.emplace_back((int)neighbour.at<float>(0, j));
+		if (a < threshold) {
+			ret.insert(make_pair(static_cast<char>(neighbour.at<float>(0, j)), a));
 		}
 		else break;
 	}
-	sort(possible.begin(), possible.end());
-	possible.erase(unique(possible.begin(),possible.end()),possible.end());		//去重
-	return possible.empty() ? -1 : (int)res.at<float>(0, 0);
+	return ret.empty() ? map<char, float>({ {-1, -1.0f} }) : ret;
 }
 
 void NumReader::train(string save) {
@@ -49,7 +55,7 @@ void NumReader::train(string save) {
 		for (int i = 0; i < (int)fileList.size(); i++) {
 			Mat tmp = imread(string(fileList[i]));
 			trainData.push_back(tmp.reshape(1, 1));
-			Label.push_back(num);										//与trainData对应的标记
+			Label.push_back(c);										//与trainData对应的标记
 		}
 		fileList.clear();
 	}

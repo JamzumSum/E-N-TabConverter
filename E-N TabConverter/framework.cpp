@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "cv.h"
-#include "../Cuckoo/Dodo.h"
+#include "Dodo.h"
 #include "imgproc.hpp"
 #include "opencv.hpp"
 

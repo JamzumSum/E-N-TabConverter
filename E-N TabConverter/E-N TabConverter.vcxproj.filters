@@ -24,9 +24,6 @@
     <ClCompile Include="framework.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="func.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="swan.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -34,6 +31,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="global.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="converter.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

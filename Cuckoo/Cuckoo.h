@@ -1,8 +1,7 @@
 #pragma once
-#pragma comment(lib, "Cuckoo.lib")
 #include "cv.h" 
-#include "../E-N TabConverter/music.h"
-#include "../E-N TabConverter/global.h"
+#include "music.h"
+#include "global.h"
 #include <atomic>
 
 #if _DEBUG
@@ -13,20 +12,34 @@
 
 extern GlobalPool global;
 
-class easynote {
+class EasyNote {
 public:
-	int pos = 0, fret = 0;
-	unsigned string = 0;
-	std::vector<int> possible;
-	std::vector<float> safety;
+	unsigned pos = 0;	//horizontal postion of the note on image. 
+	int fret = 0;		//fret -1 as invalid. 
+	int string = 0;		//string -1 as invalid, string 0 as a rest. string 1-6 as normal string. 
+	std::map<float, char> possible;
 	Value time;
 
-	static easynote invalid() { easynote i; i.fret = -1; return i; }
+	static EasyNote rest(int pos, Value value) { EasyNote i; i.time = value; i.pos = pos; return i; };
+	static EasyNote invalid() { EasyNote i; i.string = -1; return i; }
+
+	void acceptRecData(std::map<char, float> data) {
+		assert(!data.empty());
+		for (auto i : data) possible.insert(std::make_pair(i.second, i.first));
+		fret = possible.begin()->second - '0';
+	}
 };
 
-using ChordSet = struct {
-	int avrpos;
-	std::vector<easynote> chords;
+class ChordSet: public std::vector<EasyNote>
+{
+public:
+	ChordSet() {}
+	ChordSet(std::initializer_list<EasyNote> initializer) 
+		: std::vector<EasyNote>(initializer){}
+
+	static ChordSet rest(int pos, Value value) {
+		return ChordSet({ EasyNote::rest(pos, value) });
+	}
 };
 
 class ImageProcess {
@@ -42,17 +55,17 @@ class measure: ImageProcess {
 private:
 	int maxCharacterWidth = 0;
 	int maxCharacterHeight = 0;
-	void recNum(cv::Mat section, std::vector<cv::Vec4i> rows);
-	void recTime(std::vector<cv::Vec4i> rows);
-	easynote dealWithIt(cv::Mat it);
-	std::vector<ChordSet> notes;
+	void recNum(cv::Mat section, const std::vector<cv::Vec4i>& rows);
+	void recTime(const std::vector<cv::Vec4i>& rows);
+	EasyNote dealWithIt(const cv::Mat& org, const cv::Rect& region, const std::vector<cv::Vec4i>& rows);
+	std::map<unsigned, ChordSet> notes;
 public:
 	size_t id = 0;							//Ð¡½ÚÊý
 	Time time;
 	key key;
 	measure(cv::Mat img, size_t id);
 	MusicMeasure getNotes();
-	void start(std::vector<cv::Vec4i> rows);
+	void start(const std::vector<cv::Vec4i>& rows);
 };
 
 class Splitter: public ImageProcess{

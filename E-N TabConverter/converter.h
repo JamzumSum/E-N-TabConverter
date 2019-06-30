@@ -1,9 +1,4 @@
 #pragma once
-#if _DEBUG
-#pragma comment(lib, "opencv_world401d.lib")
-#else
-#pragma comment(lib, "opencv_world401.lib")
-#endif
 
 /*
 	converter.h
