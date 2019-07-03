@@ -18,9 +18,6 @@
     <ClCompile Include="..\tinyxml2\tinyxml2.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="eagle.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="framework.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -57,9 +54,6 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="stdafx.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="eagle.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="global.h">

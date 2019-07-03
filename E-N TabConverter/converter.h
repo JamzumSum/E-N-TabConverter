@@ -7,6 +7,7 @@
 #include <functional>
 #include <string>
 #include <vector>
+#include <cv.h>
 
 using std::string;
 using std::function;
@@ -15,16 +16,21 @@ using std::vector;
 class Converter {
 private:
 	vector<string> picPath;
-	bool ifCut;
 	string outputDir;
+	function<string(void)> selectSaveStrategy;
+	void* api;
+	bool ifCut;
+	void* doc = nullptr;
+	bool ocrReady = false;
+
+	auto scan(const int startWith, string path, function<void(string)> notify, function<void(int)> progress);
+	void title(const vector<cv::Mat>& info);
 public:
-	Converter(const vector<string>& pics) {
-		picPath = pics;
-	}
+	Converter(const vector<string>& pics);
 
 	static void Train();
 
-	int scan(function<void(string)> notify, function<void(int)> progress);
+	void scan(function<void(string)> notify, function<void(int)> progress);
 
 	void setCut(bool ifCut) {
 		this->ifCut = ifCut;
@@ -38,5 +44,12 @@ public:
 
 	string getOutputDir() { return outputDir; }
 
+	void setSelectSaveStrategy(function<string(void)> strategy) { selectSaveStrategy = strategy; }
 
+	void setPicPath(vector<string> pics) {
+		assert(!pics.empty());
+		picPath = pics;
+	}
+
+	~Converter();
 };

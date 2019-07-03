@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "pch.h"
 #include "Dodo.h"
 #include "eagle.h"
 #include "tools.h"
@@ -7,27 +7,30 @@
 
 #define IDR_ML_CSV1 103
 
+using namespace std;
+using namespace cv;
+
 /**
 	识别传入的字符. 
-	@name NumReader::rec
-	@param	character cv::Mat, the character's image. 
+	@name CharReader::rec
+	@param	character Mat, the character's image. 
 				requires size of the Mat equals to preferWidth * preferHeight. 
 	@param	threshold, float, if the possibility is greater than the threshold, the result will
 				be pushed into the return val. 
 	@retval	map of(-1->-1) is returned if 'reshape' throws an error; or no result has a possibility 
 				greater than threshold. 
 */
-map<char, float> NumReader::rec(Mat character, float threshold) {
+map<char, float> knnReader::rec(Mat character, float threshold) {
 	cvtColor(character, character, CV_GRAY2BGR);
-	character = perspect(character, preferWidth, preferHeight);
+	character = perspect(character, getPreferWidth(), getPreferHeight());
 	
 	Mat res, tmp, neighbour, dist;
 	//dist: wrong recgonization, 33.244, 47.31, 45.299
 	(character.isContinuous() ? character : character.clone()).
 		reshape(1, 1).convertTo(tmp, CV_32FC1, 1.0 / 255.0);
 	
-	load(defaultCSV);
-	assert(knn->isTrained());
+	load(defaultCSV);					//lazy load
+	assert(knn->isTrained());			//post condition
 	knn->findNearest(tmp, 5, res, neighbour, dist);
 
 	map<char, float> ret;
@@ -41,21 +44,20 @@ map<char, float> NumReader::rec(Mat character, float threshold) {
 	return ret.empty() ? map<char, float>({ {-1, -1.0f} }) : ret;
 }
 
-void NumReader::train(string save) {
+void CharReader::train(string save) {
 	//trainData 个数*大小
 	//Labels 个数*10
 	Mat trainData, Label ,CSV;
 	//录入训练样本和标记
-	int num;															//num 是样本是什么数字
 	vector<string> fileList;
 	string path = samplePath;
-	for (num = 0; num < 10; num++) {
-		char c = num + '0';
-		ls((path + c).c_str(), fileList);
+
+	for (char i: readable) {
+		ls((path + i).c_str(), fileList);
 		for (int i = 0; i < (int)fileList.size(); i++) {
 			Mat tmp = imread(string(fileList[i]));
 			trainData.push_back(tmp.reshape(1, 1));
-			Label.push_back(c);										//与trainData对应的标记
+			Label.push_back(i);										//与trainData对应的标记
 		}
 		fileList.clear();
 	}
@@ -68,16 +70,22 @@ void NumReader::train(string save) {
 	file.close();
 }
 
-void NumReader::load(string csv) {
-	if (knn->isTrained()) return;											//避免重复
+/*
+	load train data from a csv file. 
+	@name CharReader::load
+	@param csv	string, path of the csv file. 
+		
+		effects: this->knn->isTrain() == true
+*/
+void knnReader::load(string csv) {
+	if (knn->isTrained()) return;									//return if trained. 
 	
-	if(!isExist(csv)) FreeResFile(IDR_ML_CSV1, "ML_CSV", defaultCSV);
+	if(!isExist(csv)) FreeResFile(IDR_ML_CSV1, "ML_CSV", csv);
 
 	Ptr<TrainData> trainData = TrainData::loadFromCSV(csv, 0, 0, -1);
 
-	if (trainData.empty()) {
-		FreeResFile(IDR_ML_CSV1, "ML_CSV", defaultCSV);
-		Ptr<TrainData> trainData = TrainData::loadFromCSV(csv, 0, 0, -1);
+	if (trainData.empty()) {										//csv is destroyed. 
+		if (onDestroyed(csv)) return;
 	}
 	knn->setDefaultK(5);
 	knn->setIsClassifier(true);
@@ -86,3 +94,15 @@ void NumReader::load(string csv) {
 	knn->train(trainData->getSamples(),ROW_SAMPLE,Label);
 }
 
+/*
+	the strategy when train data is lost or destroyed. 
+	@param csv	string, the csv file path. 
+	@retval true if the strategy suggests exit. 
+*/
+bool CharReader::onDestroyed(const string& csv) noexcept {
+	FreeResFile(IDR_ML_CSV1, "ML_CSV", csv);
+	Ptr<TrainData> trainData = TrainData::loadFromCSV(csv, 0, 0, -1);
+	return false;
+}
+
+CharReader::~CharReader() {}			//virtual dtor. 

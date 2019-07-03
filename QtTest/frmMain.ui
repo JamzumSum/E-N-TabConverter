@@ -17,82 +17,126 @@
     <pointsize>10</pointsize>
    </font>
   </property>
+  <property name="acceptDrops">
+   <bool>true</bool>
+  </property>
   <property name="windowTitle">
    <string>E-N Tab Converter</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <widget class="QPushButton" name="btnScan">
-    <property name="geometry">
-     <rect>
-      <x>350</x>
-      <y>250</y>
-      <width>140</width>
-      <height>50</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Scan</string>
-    </property>
-   </widget>
-   <widget class="QSplitter" name="splitter_checks">
-    <property name="geometry">
-     <rect>
-      <x>696</x>
-      <y>420</y>
-      <width>140</width>
-      <height>80</height>
-     </rect>
-    </property>
-    <property name="orientation">
-     <enum>Qt::Vertical</enum>
-    </property>
-    <widget class="QCheckBox" name="ckbCut">
-     <property name="text">
-      <string>Cut</string>
-     </property>
-    </widget>
-    <widget class="QCheckBox" name="ckbSave">
-     <property name="text">
-      <string>Save Image</string>
-     </property>
-    </widget>
-   </widget>
-   <widget class="QPushButton" name="btnSetting">
-    <property name="geometry">
-     <rect>
-      <x>8</x>
-      <y>8</y>
-      <width>48</width>
-      <height>48</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string/>
-    </property>
-    <property name="icon">
-     <iconset>
-      <normaloff>../icon/setting.ico</normaloff>../icon/setting.ico</iconset>
-    </property>
-    <property name="iconSize">
-     <size>
-      <width>40</width>
-      <height>40</height>
-     </size>
-    </property>
-   </widget>
-   <widget class="QProgressBar" name="progressBar">
-    <property name="geometry">
-     <rect>
-      <x>8</x>
-      <y>504</y>
-      <width>824</width>
-      <height>24</height>
-     </rect>
-    </property>
-    <property name="value">
-     <number>0</number>
-    </property>
-   </widget>
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="0" column="0">
+     <widget class="QDropListWidget" name="listWidget">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>7</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="acceptDrops">
+       <bool>true</bool>
+      </property>
+      <property name="dragEnabled">
+       <bool>true</bool>
+      </property>
+      <property name="dragDropMode">
+       <enum>QAbstractItemView::DragDrop</enum>
+      </property>
+      <property name="defaultDropAction">
+       <enum>Qt::MoveAction</enum>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="0" alignment="Qt::AlignVCenter">
+     <widget class="QSplitter" name="splitter">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>1</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Plain</enum>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <widget class="QProgressBar" name="progressBar">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+         <horstretch>6</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>512</width>
+         <height>32</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>32</height>
+        </size>
+       </property>
+       <property name="value">
+        <number>0</number>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="btnScan">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+         <horstretch>1</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>90</width>
+         <height>48</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777214</width>
+         <height>48</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>Scan</string>
+       </property>
+      </widget>
+      <widget class="QSplitter" name="splitter_checks">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+         <horstretch>1</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>120</width>
+         <height>60</height>
+        </size>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+       <widget class="QCheckBox" name="ckbCut">
+        <property name="text">
+         <string>Cut</string>
+        </property>
+       </widget>
+       <widget class="QCheckBox" name="ckbSave">
+        <property name="text">
+         <string>Save Image</string>
+        </property>
+       </widget>
+      </widget>
+     </widget>
+    </item>
+   </layout>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
@@ -114,6 +158,7 @@
      <string>File</string>
     </property>
     <addaction name="actionHistory"/>
+    <addaction name="actionSetting"/>
     <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
@@ -150,11 +195,25 @@
     <string>About...</string>
    </property>
   </action>
+  <action name="actionSetting">
+   <property name="text">
+    <string>Setting</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="8" margin="8"/>
+ <customwidgets>
+  <customwidget>
+   <class>QDropListWidget</class>
+   <extends>QListWidget</extends>
+   <header>qdroplistwidget.h</header>
+   <slots>
+    <slot>showItem(QListWidgetItem*)</slot>
+   </slots>
+  </customwidget>
+ </customwidgets>
  <tabstops>
   <tabstop>btnScan</tabstop>
-  <tabstop>btnSetting</tabstop>
   <tabstop>ckbCut</tabstop>
   <tabstop>ckbSave</tabstop>
  </tabstops>
@@ -162,38 +221,6 @@
   <include location="frmMain.qrc"/>
  </resources>
  <connections>
-  <connection>
-   <sender>btnScan</sender>
-   <signal>clicked()</signal>
-   <receiver>frmMainClass</receiver>
-   <slot>onScan()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>400</x>
-     <y>323</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>514</x>
-     <y>410</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>btnSetting</sender>
-   <signal>clicked()</signal>
-   <receiver>frmMainClass</receiver>
-   <slot>onSetting()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>36</x>
-     <y>67</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>174</x>
-     <y>209</y>
-    </hint>
-   </hints>
-  </connection>
   <connection>
    <sender>actionAbout</sender>
    <signal>triggered()</signal>
@@ -223,6 +250,54 @@
     <hint type="destinationlabel">
      <x>419</x>
      <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionSetting</sender>
+   <signal>triggered()</signal>
+   <receiver>frmMainClass</receiver>
+   <slot>onSetting()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>419</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>btnScan</sender>
+   <signal>clicked()</signal>
+   <receiver>frmMainClass</receiver>
+   <slot>onScan()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>702</x>
+     <y>549</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>514</x>
+     <y>410</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>listWidget</sender>
+   <signal>itemDoubleClicked(QListWidgetItem*)</signal>
+   <receiver>listWidget</receiver>
+   <slot>showItem(QListWidgetItem*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>235</x>
+     <y>217</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>354</x>
+     <y>232</y>
     </hint>
    </hints>
   </connection>

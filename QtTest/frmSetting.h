@@ -14,10 +14,17 @@ public:
 private:
 	Ui::frmSetting ui;
 	bool changed;
+	QString selectDir(QString title, QString dir = QString());
+	QString selectFile(QString title, QString dir = QString(), QString filter = QString());
 
 public slots:
 	void onTrain();
 	void onSave();
 	void textChange(QString) { changed = true;}
 	void closeEvent(QCloseEvent* event);
+	void selectSample();
+	void selectSave();
+	void selectOutput();
+	void selectData();
+	void selectConfig();
 };

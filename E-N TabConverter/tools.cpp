@@ -10,11 +10,12 @@
 
 using namespace std;
 
+/*
+	将GBK编码转成UTF8，主要应对tinyxml编码处理的问题
+	@name GBKToUTF8
+*/
 string GBKToUTF8(string strGBK) {
-	/*
-		函数名：GBKToUTF8
-		功能：将GBK编码转成UTF8，主要应对tinyxml编码处理的问题
-	*/
+	
 	int len = MultiByteToWideChar(CP_ACP, 0, strGBK.c_str(), -1, NULL, 0);
 	wchar_t* wstr = new wchar_t[len + 1];
 	memset(wstr, 0, len + 1);
@@ -26,6 +27,25 @@ string GBKToUTF8(string strGBK) {
 	string strTemp = str;
 	if (wstr) delete[] wstr;
 	if (str) delete[] str;
+	return strTemp;
+}
+
+/*
+	Convert UTF8 to GBK. 
+*/
+string Utf8ToGbk(const char* src_str)
+{
+	int len = MultiByteToWideChar(CP_UTF8, 0, src_str, -1, NULL, 0);
+	wchar_t* wszGBK = new wchar_t[len + 1];
+	memset(wszGBK, 0, len * 2 + 2);
+	MultiByteToWideChar(CP_UTF8, 0, src_str, -1, wszGBK, len);
+	len = WideCharToMultiByte(CP_ACP, 0, wszGBK, -1, NULL, 0, NULL, NULL);
+	char* szGBK = new char[len + 1];
+	memset(szGBK, 0, len + 1);
+	WideCharToMultiByte(CP_ACP, 0, wszGBK, -1, szGBK, len, NULL, NULL);
+	string strTemp(szGBK);
+	if (wszGBK) delete[] wszGBK;
+	if (szGBK) delete[] szGBK;
 	return strTemp;
 }
 

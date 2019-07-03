@@ -43,12 +43,12 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(SolutionDir)E-N TabConverter;$(SolutionDir)Cuckoo;$(SolutionDir)tinyxml2;$(OPENCV_BUILD)\include;$(OPENCV_BUILD)\include\opencv;$(OPENCV_BUILD)\include\opencv2;$(SolutionDir);$(IncludePath)</IncludePath>
-    <LibraryPath>$(OutDir);$(OPENCV_DIR)\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>F:\Downloads\tesseract-5.0.0-alpha\out\install\x64-Debug\include\tesseract;$(SolutionDir)E-N TabConverter;$(SolutionDir)Cuckoo;$(SolutionDir)tinyxml2;$(OPENCV_BUILD)\include;$(OPENCV_BUILD)\include\opencv;$(OPENCV_BUILD)\include\opencv2;$(SolutionDir);$(IncludePath)</IncludePath>
+    <LibraryPath>F:\Downloads\tesseract-5.0.0-alpha\out\install\x64-Debug\lib;$(OutDir);$(OPENCV_DIR)\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>$(SolutionDir)E-N TabConverter;$(SolutionDir)Cuckoo;$(SolutionDir)tinyxml2;$(OPENCV_BUILD)\include;$(OPENCV_BUILD)\include\opencv;$(OPENCV_BUILD)\include\opencv2;$(SolutionDir);$(IncludePath)</IncludePath>
-    <LibraryPath>$(OutDir);$(OPENCV_DIR)\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath>D:\vcpkg\installed\x64-windows-static\lib;$(OutDir);$(OPENCV_DIR)\lib;$(LibraryPath)</LibraryPath>
     <CodeAnalysisRuleSet>..\zzs_learning_rule.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -68,7 +68,7 @@
       <AdditionalManifestDependencies>%(AdditionalManifestDependencies)</AdditionalManifestDependencies>
     </Link>
     <Lib>
-      <AdditionalDependencies>Cuckoo.lib</AdditionalDependencies>
+      <AdditionalDependencies>Cuckoo.lib;tesseract50d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
     <Lib>
       <AdditionalLibraryDirectories>$(OutDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
@@ -82,11 +82,11 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalOptions>/D_CRT_SECURE_NO_WARNINGS %(AdditionalOptions)</AdditionalOptions>
       <OpenMPSupport>false</OpenMPSupport>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeader>Create</PrecompiledHeader>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <AdditionalOptions>/D_CRT_SECURE_NO_WARNINGS %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -95,7 +95,7 @@
       <AdditionalManifestDependencies>%(AdditionalManifestDependencies)</AdditionalManifestDependencies>
     </Link>
     <Lib>
-      <AdditionalDependencies>Cuckoo.lib</AdditionalDependencies>
+      <AdditionalDependencies>Cuckoo.lib;tesseract40.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
     <Lib>
       <AdditionalLibraryDirectories>$(OutDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
@@ -103,7 +103,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\tinyxml2\tinyxml2.cpp" />
-    <ClCompile Include="eagle.cpp" />
     <ClCompile Include="framework.cpp" />
     <ClCompile Include="converter.cpp" />
     <ClCompile Include="global.cpp" />
@@ -115,7 +114,6 @@
     <ClInclude Include="..\Cuckoo\Dodo.h" />
     <ClInclude Include="..\tinyxml2\tinyxml2.h" />
     <ClInclude Include="converter.h" />
-    <ClInclude Include="eagle.h" />
     <ClInclude Include="global.h" />
     <ClInclude Include="music.h" />
     <ClInclude Include="resource.h" />
@@ -131,6 +129,5 @@
     <None Include="..\icon\ml_csv2.bin" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-  <ImportGroup Label="ExtensionTargets">
-  </ImportGroup>
+  <ImportGroup Label="ExtensionTargets" />
 </Project>

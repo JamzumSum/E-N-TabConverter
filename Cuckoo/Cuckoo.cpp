@@ -1,24 +1,18 @@
 ﻿#include "pch.h"
 #include "Cuckoo.h"
 #include "Dodo.h"
-#include "../E-N TabConverter/eagle.h"
+#include "eagle.h"
 
 using namespace std;
 using namespace cv;
 
-#define find_in(vector, lambda) find_if(vector##.begin(), vector##.end(), lambda)
-#if _DEBUG
-#define Showrectangle if(0)
-#define Showline if(0)
+#define find_in(vector, lambda) find_if((vector).begin(), (vector).end(), lambda)
+#define Showrectangle if constexpr(0)
+#define Showline if constexpr(0)
 #define draw(func, img, from, to, color) Show##func func(img, from, to, color)
-#else 
-#define Showrectangle /##/
-#define Showline /##/
-#define draw(func, img, from, to, color)
-#endif
 
 bool savepic = 0;
-static NumReader reader(defaultCSV);
+static knnReader reader;
 
 static int count(Mat img, Rect range, int delta) {
 	assert(img.isContinuous());
@@ -43,11 +37,11 @@ static int count(Mat img, Rect range, int delta) {
 
 /**
 	从传入图像中提取数字等
-	@name	measure::recNum
+	@name	Measure::recNum
 	@param	denoised，Mat，传入图像
 	@param	rows，Vec4i，传入的网格信息（谱线）
 */
-void measure::recNum(Mat denoised, const vector<Vec4i>& rows) {
+void Measure::recNum(Mat denoised, const vector<Vec4i>& rows) {
 	
 	vector<vector<Point>> cont;
 	vector<Rect> region, possible;
@@ -56,8 +50,8 @@ void measure::recNum(Mat denoised, const vector<Vec4i>& rows) {
 	auto mergeFret = [this](unsigned t) {				//mergeFret v3
 		//note[0] is sorted. 
 
-		for (auto i = notes[0].begin(); i != notes[0].end(); i++) {
-			for (auto j = i + 1; j < notes[0].end(); j++) {
+		for (auto i = notes[0].begin(); i != notes[0].end();) {
+			for (auto j = i + 1; j != notes[0].end(); j++) {
 				if (bool flag = false; j->pos - i->pos <= ((unsigned)maxCharacterWidth << 1)) {
 					if (i->string != j->string) {			//can be aligned.
 						i->pos = j->pos = (i->pos + j->pos) >> 1;
@@ -67,14 +61,15 @@ void measure::recNum(Mat denoised, const vector<Vec4i>& rows) {
 						if (k.second > '1') continue;
 						i->fret = 10 * (k.second - '0') + j->fret;
 						i->pos = (i->pos + j->pos) >> 1;
-						notes[0].erase(j);
-						i--; flag = true;
+						j = notes[0].erase(j) - 1;
+						flag = true;
 						break;
 					}
 					if(!flag) raiseErr("fret合并：不可置信条件. 检查模型", 0);
 				}
 				else break;
 			}
+			i++;
 		}
 	};
 	auto fillTimeAndPos = [this](unsigned t) {
@@ -185,7 +180,7 @@ void measure::recNum(Mat denoised, const vector<Vec4i>& rows) {
 	notes.erase(notes.begin());
 }
 
-void measure::recTime(const vector<Vec4i>& rows) {
+void Measure::recTime(const vector<Vec4i>& rows) {
 	map<int, Value> timeValue;
 	unsigned t = maxCharacterWidth;
 	Mat picValue = org(Range(max(rows[5][1], rows[5][3]) + maxCharacterHeight / 2, org.rows), Range::all()).clone();
@@ -303,7 +298,7 @@ void measure::recTime(const vector<Vec4i>& rows) {
 	}
 }
 
-MusicMeasure measure::getNotes() {
+MusicMeasure Measure::getNotes() const {
 	MusicMeasure r;
 	r.time = this->time;
 	r.key = this->key;
@@ -326,7 +321,7 @@ MusicMeasure measure::getNotes() {
 	return r;
 }
 
-EasyNote measure::dealWithIt(const Mat& org, const Rect& region, const vector<Vec4i>& rows) {
+EasyNote Measure::dealWithIt(const Mat& org, const Rect& region, const vector<Vec4i>& rows) {
 	Mat img = org(region);
 	auto tooWide_MORPH = [this, &img, &region, &rows]() -> EasyNote {
 		int more = img.cols - maxCharacterWidth;
@@ -433,7 +428,7 @@ EasyNote measure::dealWithIt(const Mat& org, const Rect& region, const vector<Ve
 	else return EasyNote::invalid();
 }
 
-measure::measure(Mat origin, size_t id)
+Measure::Measure(Mat origin, size_t id)
 	: id(id), ImageProcess(origin)
 {
 	maxCharacterWidth = getkey(characterWidth) / 2;
@@ -446,7 +441,7 @@ measure::measure(Mat origin, size_t id)
 	}
 }
 
-void measure::start(const vector<Vec4i>& rows) {
+void Measure::start(const vector<Vec4i>& rows) {
 	Denoiser den(org);
 	Mat img = den.denoise_morphology();
 	try {

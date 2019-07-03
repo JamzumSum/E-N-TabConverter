@@ -1,7 +1,8 @@
 #include "frmMain.h"
-#include "../E-N TabConverter/converter.h"
+#include "converter.h"
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QMimeData>
 #include <QSettings>
 
 frmMain::frmMain(QWidget *parent)
@@ -19,32 +20,45 @@ frmMain::~frmMain()
 	delete setting;
 }
 
-void frmMain::onScan() {
-	ui.statusBar->showMessage("then select an image. ");
-	
-	QFileDialog* fileDialog = new QFileDialog(this, "Select a Image", outputDir, "Image(.bmp;*.jpg;*.JPG;*.jpeg;*.png;)");
-	fileDialog->setAcceptMode(QFileDialog::AcceptOpen);
-	fileDialog->setFileMode(QFileDialog::ExistingFile);
-	fileDialog->setViewMode(QFileDialog::List);//文件以详细的形式显示，显示文件名，大小，创建日期等信息；
-
-																	  //还有另一种形式QFileDialog::List，这个只是把文件的文件名以列表的形式显示出来
-	if (fileDialog->exec() == QDialog::Accepted) {//注意使用的是QFileDialog::Accepted或者QDialog::Accepted,不是QFileDialog::Accept
-		QStringList path = fileDialog->selectedFiles();
-		vector<string> list(path.size());
-		std::transform(path.begin(), path.end(), list.begin(), [](const QString& x) -> string {return string(x.toLocal8Bit()); });
-		Converter converter(list);
-		converter.setCut(ui.ckbCut->isChecked());
-		converter.setOutputDir(string(outputDir.toLocal8Bit()));
-		try {
-			converter.scan(
-				[this](string x) {ui.statusBar->showMessage(QString::fromLocal8Bit(x.data())); },
-				[this](int x) {ui.progressBar->setValue(x); }
-			);
-		}
-		catch (std::runtime_error ex) {
-			ui.statusBar->showMessage(ex.what());
-		}
+void frmMain::dragEnterEvent(QDragEnterEvent* event)
+{
+	if (event->mimeData()->hasFormat("text/uri-list")) {
+		event->acceptProposedAction();
 	}
+}
+
+void frmMain::dropEvent(QDropEvent* e)
+{
+	QList<QUrl> urls = e->mimeData()->urls();
+	for (QUrl tmp : urls) {
+		if (auto s = tmp.toLocalFile(); s.isEmpty()) continue;
+		else ui.listWidget->acceptIcon(s);
+	}
+}
+
+void frmMain::onScan() {
+	if (ui.listWidget->count() == 0) return;
+	vector<string> list;
+	for (int i = 0; i < ui.listWidget->count(); i++) {
+		list.emplace_back(ui.listWidget->item(i)->text().toLocal8Bit());
+	}
+	Converter converter(list);
+	converter.setCut(ui.ckbCut->isChecked());
+	converter.setOutputDir(string(outputDir.toLocal8Bit()));
+	converter.setSelectSaveStrategy([this]() -> string {
+		return QFileDialog::getSaveFileName(this, "select where to save", 
+			outputDir, "XML files (*.xml);;All files (*)").toLocal8Bit(); 
+	});
+	try {
+		converter.scan(
+			[this](string x) {ui.statusBar->showMessage(QString::fromLocal8Bit(x.data())); },
+			[this](int x) {ui.progressBar->setValue(x); }
+		);
+	}
+	catch (std::runtime_error ex) {
+		ui.statusBar->showMessage(ex.what());
+	}
+	ui.listWidget->clear();
 }
 
 void frmMain::onSetting() {

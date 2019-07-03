@@ -1,26 +1,57 @@
 #include "stdafx.h"
-#include "Cuckoo/Dodo.h"
+#include "Dodo.h"
 #include "eagle.h"
 #include "global.h"
-#include "Cuckoo/Cuckoo.h"
+#include "Cuckoo.h"
 #include "swan.h"
 #include "tools.h"
 #include "converter.h"
+#include <numeric>
 
-using namespace std;
-using namespace cv;
+//vcpkg include
+#include <baseapi.h>
+
+using std::get;
+using std::thread;
 
 GlobalPool global(cfgPath);
 extern bool savepic;
 
 void Converter::Train() {
-	NumReader::train(defaultCSV);
+	CharReader::train(defaultCSV);
 }
 
-int Converter::scan (function<void(string)> notify, function<void(int)> progress) {
+void Converter::title(const vector<Mat>& info) {
+	Mat ccolor;
+	cvtColor(info[0], ccolor, CV_GRAY2BGR);
+	while (!ocrReady) std::this_thread::yield();
+
+	auto ocr = reinterpret_cast<tesseract::TessBaseAPI*>(api);
+	ocr->SetImage(info[0].data, info[0].cols, info[0].rows, ccolor.channels(), static_cast<int>(ccolor.step));
+
+	char* title = ocr->GetUTF8Text();
+	auto caption = Utf8ToGbk(title);
+	delete[] title;
+	api = nullptr;
+	string composer, lyricist, artist, tabber, irights;
+
+	doc = new saveDoc(caption, composer, lyricist, artist, tabber, irights);
+	ocr->End();
+}
+
+Converter::Converter(const vector<string>& pics): api(new tesseract::TessBaseAPI()) {
+	using namespace tesseract;
+	assert(!pics.empty());
+	picPath = pics;
+	thread([this]() {
+		assert(reinterpret_cast<TessBaseAPI*>(api)->TessBaseAPI::Init("D:\\Program Files\\Tesseract-OCR\\tessdata", "chi_sim+eng") == 0);
+		ocrReady = true;
+	}).detach();
+}
+
+auto Converter::scan (const int startWith, string picPath, function<void(string)> notify, function<void(int)> progress) {
 	bool flag = false;
-	string f = picPath[0];
-	Mat img = imread(f.c_str(), 0);
+	Mat img = cv::imread(picPath.c_str(), 0);
 	if (img.empty()) raiseErr("Wrong format.", 3);
 	Mat trimmed = threshold(img);
 	
@@ -46,10 +77,10 @@ int Converter::scan (function<void(string)> notify, function<void(int)> progress
 	int n = static_cast<int>(piece.size());
 	vector<Mat> info;							//其余信息
 	
-	using general = tuple<vector<Vec4i>, vector<Vec4i>, Mat>;
+	using general = std::tuple<vector<Vec4i>, vector<Vec4i>, Mat>;
 	vector<general> sectionsGrid; sectionsGrid.reserve(n);
 
-	atomic_int cnt = 0;
+	std::atomic_int cnt = 0;
 	auto scanGrid = [&cnt, &sectionsGrid, &n, &info](Mat i, int index) {
 		vector<Vec4i> rows;
 		LineFinder finder(i, 10);
@@ -57,13 +88,13 @@ int Converter::scan (function<void(string)> notify, function<void(int)> progress
 		if (rows.size() == 6) {
 			vector<Vec4i> lines;
 			finder.findCol(lines);
-			while (cnt < index - 1) this_thread::yield();
+			while (cnt < index - 1) std::this_thread::yield();
 			sectionsGrid.emplace_back(rows, lines, i);
 			n += static_cast<int>(lines.size());
 			cnt++;
 		}
 		else {
-			while (cnt < index - 1) this_thread::yield();
+			while (cnt < index - 1) std::this_thread::yield();
 			info.push_back(i);
 			cnt++;
 		}
@@ -71,27 +102,27 @@ int Converter::scan (function<void(string)> notify, function<void(int)> progress
 	int tmpsize = static_cast<int>(n);
 	n = 0;
 	for (int k = 0; k < tmpsize; k++) {
-		thread t(scanGrid, piece[k], k + 1);
+		std::thread t(scanGrid, piece[k], k + 1);
 		t.detach();						//race!
 	}
 	while (cnt < tmpsize) {
-		this_thread::yield();
+		std::this_thread::yield();
 	}
-	piece.clear(); piece.shrink_to_fit(); sectionsGrid.shrink_to_fit();
+	vector<Mat>().swap(piece); sectionsGrid.shrink_to_fit();
 	progress(30);
 
-	vector<measure> sections;												//按行存储
+	vector<Measure> sections;												//按行存储
 	sections.reserve(n);
 	cnt = 0;
-	atomic_int cnt2 = 0;
+	std::atomic_int cnt2 = 0;
 	tmpsize = static_cast<int>(sectionsGrid.size());
 	auto scanMeasure = [&cnt, &cnt2, &sections](const general& i, int index) {
 		vector<Mat> origin;
-		if (!get<1>(i).empty()) cut(get<2>(i), get<1>(i), 0, origin, true);	//切割
+		if (!std::get<1>(i).empty()) cut(get<2>(i), get<1>(i), 0, origin, true);	//切割
 
 		getkey(rowLenth) += get<2>(i).rows;
 
-		while (cnt < index) this_thread::yield();
+		while (cnt < index) std::this_thread::yield();
 		size_t pre = sections.size();
 		for (size_t j = 0; j < origin.size(); j++) {
 			sections.emplace(sections.begin() + pre + j, origin[j], pre + j + 1);
@@ -109,33 +140,90 @@ int Converter::scan (function<void(string)> notify, function<void(int)> progress
 	}
 	while (cnt2 < tmpsize) {
 		progress(cnt2 / tmpsize / 2 + 30);
-		this_thread::yield();
+		std::this_thread::yield();
 	}
 	piece.clear(); piece.shrink_to_fit();
+
+	sections.erase(remove_if(sections.begin(), sections.end(), [](const Measure& x) -> bool {return x.ID() == 0; }),
+		sections.end());
+
+	for (auto& i : sections) i.setID(startWith + i.ID());
+#if 0
+	if (startWith == 0) {
+		title(info);
+	}
+#endif
+	return sections;
+}
+
+void Converter::scan(function<void(string)> notify, function<void(int)> progress) {
+	int n = static_cast<int>(picPath.size());
+	size_t ms = 0;
+	vector<int> prog(n);
+	vector<vector<Measure>> ptr(n);
+	std::atomic_int cnt = 0;
+	for (int i = 0; i < n; i++) {
+		ptr[i] = scan(static_cast<int>(ms), picPath[i], notify,
+			[i, n, &prog, &progress](int p) {
+				prog[i] = p; progress(accumulate(prog.begin(), prog.end(), 0) / n);
+			});
+		ms += ptr[i].size();
+	}
+	vector<int>().swap(prog);
 
 	notify("扫描完成，准备写入文件");
 	progress(80);
 	global.save();
-	string name = fname(f);
-	saveDoc finish(name, "unknown", "unknown", "unknown", PROJECT, "Internet");
-	n = static_cast<int>(sections.size());
-	for (int i = 0; i < n; i++) {
-		assert(sections[i].id > 0);
-		finish.saveMeasure(sections[i].getNotes()); 
-		progress(80 + i / n);
+	string name = fname(picPath[0]);
+	size_t i = 0;
+	assert(doc);
+	if (!doc) {
+		doc = new saveDoc(name, "unknown", "unknown", "unknown", PROJECT, "Internet");
 	}
+	saveDoc* finish = (saveDoc*)doc;
+
+	while (cnt) std::this_thread::yield();
+
+	for (const auto& v : ptr) {
+		for (const auto& m : v) {
+			assert(m.ID() != 0);
+			finish->saveMeasure(m.getNotes());
+			progress(static_cast<int>(80 + i++ / ms));
+		}
+	}
+
 	string fn = outputDir;
 	if (fn.back() != '\\') fn.append("\\");
 	fn.append(name).append(".xml");
 	if (isExist(fn)) if (prompt(NULL, fn + " 已经存在，要替换吗？", PROJECT, 0x34) == 7) {
-		notify("用户放弃了保存");
-		return 1;
+		assert(selectSaveStrategy);
+		fn = selectSaveStrategy();
+		if (fn.empty()) {
+			notify("用户放弃了保存. ");
+			return;
+		}
+		if (fn.back() != '\\') fn.append("\\");
+		fn.append(name).append(".xml");
 	}
-	if (0 == finish.save(fn)) {
+	if (0 == finish->save(fn)) {
 		progress(100);
 		notify("Success");
 	}
 	else notify("Error when saving doc. ");
 	cv::destroyAllWindows();
-	return 0;
+	if (doc) {
+		delete doc;
+		doc = nullptr;
+	}
+}
+
+Converter::~Converter() {
+	if (doc) {
+		delete reinterpret_cast<saveDoc*>(doc);
+		doc = nullptr;
+	}
+	if (api) {
+		reinterpret_cast<tesseract::TessBaseAPI*>(api)->End();
+		api = nullptr;
+	}
 }

@@ -39,12 +39,18 @@
     <ClCompile Include="frmSetting.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="qdroplistwidget.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="frmMain.h">
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="frmSetting.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="qdroplistwidget.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>

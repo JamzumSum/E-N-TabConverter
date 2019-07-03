@@ -5,6 +5,7 @@
 #include "../E-N TabConverter/global.h"
 
 using namespace cv;
+using namespace std;
 
 #if _DEBUG
 #define Showdenoise if(0)

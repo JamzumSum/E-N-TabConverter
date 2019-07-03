@@ -51,8 +51,9 @@ public:
 	}
 };
 
-class measure: ImageProcess {
+class Measure: ImageProcess {
 private:
+	size_t id = 0;							//小节数
 	int maxCharacterWidth = 0;
 	int maxCharacterHeight = 0;
 	void recNum(cv::Mat section, const std::vector<cv::Vec4i>& rows);
@@ -60,12 +61,14 @@ private:
 	EasyNote dealWithIt(const cv::Mat& org, const cv::Rect& region, const std::vector<cv::Vec4i>& rows);
 	std::map<unsigned, ChordSet> notes;
 public:
-	size_t id = 0;							//小节数
 	Time time;
 	key key;
-	measure(cv::Mat img, size_t id);
-	MusicMeasure getNotes();
+	Measure(cv::Mat img, size_t id);
+	MusicMeasure getNotes() const;
 	void start(const std::vector<cv::Vec4i>& rows);
+
+	size_t ID() const { return id; }
+	void setID(size_t newID) { id = newID; }
 };
 
 class Splitter: public ImageProcess{

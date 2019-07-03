@@ -68,7 +68,7 @@ public:
         scrollArea->setWidgetResizable(true);
         scrollAreaWidgetContents = new QWidget();
         scrollAreaWidgetContents->setObjectName(QStringLiteral("scrollAreaWidgetContents"));
-        scrollAreaWidgetContents->setGeometry(QRect(0, 0, 720, 640));
+        scrollAreaWidgetContents->setGeometry(QRect(0, -205, 720, 640));
         QSizePolicy sizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
         sizePolicy.setHorizontalStretch(0);
         sizePolicy.setVerticalStretch(8);
@@ -173,6 +173,11 @@ public:
         QObject::connect(txtSavePath, SIGNAL(textChanged(QString)), frmSetting, SLOT(textChange(QString)));
         QObject::connect(txtSmpPath, SIGNAL(textChanged(QString)), frmSetting, SLOT(textChange(QString)));
         QObject::connect(txtOutputDir, SIGNAL(textChanged(QString)), frmSetting, SLOT(textChange(QString)));
+        QObject::connect(btnCfgSelect, SIGNAL(clicked()), frmSetting, SLOT(selectConfig()));
+        QObject::connect(btnDataSelect, SIGNAL(clicked()), frmSetting, SLOT(selectData()));
+        QObject::connect(btnSmpSelect, SIGNAL(clicked()), frmSetting, SLOT(selectSample()));
+        QObject::connect(btnSaveSelect, SIGNAL(clicked()), frmSetting, SLOT(selectSave()));
+        QObject::connect(btnOutputDir, SIGNAL(clicked()), frmSetting, SLOT(selectOutput()));
 
         QMetaObject::connectSlotsByName(frmSetting);
     } // setupUi

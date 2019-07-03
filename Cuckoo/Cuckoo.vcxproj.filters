@@ -27,11 +27,11 @@
     <ClInclude Include="Dodo.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="eagle.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Cuckoo.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="pch.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -39,6 +39,12 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="Dodo.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="eagle.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Cuckoo.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

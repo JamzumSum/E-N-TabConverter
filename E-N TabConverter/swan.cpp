@@ -53,7 +53,7 @@ static void CopyNode(tinyxml2::XMLDocument *desdoc, const tinyxml2::XMLDocument 
 	
 }
 
-saveDoc::saveDoc(string title, const char* composer, const char* lyricist, const char* artist, const char* tabber, const char* irights)
+saveDoc::saveDoc(const string& title, const string& composer, const string& lyricist, const string& artist, const string& tabber, const string& irights)
 {
 	tinyxml2::XMLDocument doc;
 	doc.Parse("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
@@ -74,26 +74,26 @@ saveDoc::saveDoc(string title, const char* composer, const char* lyricist, const
 
 	XMLElement* creator_composer = doc.NewElement("creator");
 	creator_composer->SetAttribute("type", "composer");
-	XMLText* composerText = doc.NewText(composer);
+	XMLText* composerText = doc.NewText(composer.c_str());
 	creator_composer->InsertEndChild(composerText);
 
 	XMLElement* creator_lyricist = doc.NewElement("lyricist");
 	creator_lyricist->SetAttribute("type", "lyricist");
-	XMLText* lyricistText = doc.NewText(lyricist);
+	XMLText* lyricistText = doc.NewText(lyricist.c_str());
 	creator_lyricist->InsertEndChild(lyricistText);
 
 	XMLElement* creator_artist = doc.NewElement("artist");
 	creator_artist->SetAttribute("type", "artist");
-	XMLText* artistText = doc.NewText(artist);
+	XMLText* artistText = doc.NewText(artist.c_str());
 	creator_artist->InsertEndChild(artistText);
 
 	XMLElement* creator_tabber = doc.NewElement("tabber");
 	creator_tabber->SetAttribute("type", "tabber");
-	XMLText* tabberText = doc.NewText(tabber);
+	XMLText* tabberText = doc.NewText(tabber.c_str());
 	creator_tabber->InsertEndChild(tabberText);
 
 	ele(rights);
-	txtx(irights);
+	XMLText* irightsText = doc.NewText(irights.c_str());
 	rights->InsertEndChild(irightsText);
 
 	ele(encoding);
