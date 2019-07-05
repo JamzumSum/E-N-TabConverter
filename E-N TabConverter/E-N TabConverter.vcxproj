@@ -103,7 +103,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\tinyxml2\tinyxml2.cpp" />
-    <ClCompile Include="framework.cpp" />
     <ClCompile Include="converter.cpp" />
     <ClCompile Include="global.cpp" />
     <ClCompile Include="swan.cpp" />
@@ -127,6 +126,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\icon\ml_csv2.bin" />
+    <None Include="cpp.hint" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

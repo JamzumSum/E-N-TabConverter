@@ -34,6 +34,7 @@ public:
     QAction *actionExit;
     QAction *actionAbout;
     QAction *actionSetting;
+    QAction *actionOpen;
     QWidget *centralWidget;
     QGridLayout *gridLayout;
     QDropListWidget *listWidget;
@@ -67,6 +68,8 @@ public:
         actionAbout->setObjectName(QStringLiteral("actionAbout"));
         actionSetting = new QAction(frmMainClass);
         actionSetting->setObjectName(QStringLiteral("actionSetting"));
+        actionOpen = new QAction(frmMainClass);
+        actionOpen->setObjectName(QStringLiteral("actionOpen"));
         centralWidget = new QWidget(frmMainClass);
         centralWidget->setObjectName(QStringLiteral("centralWidget"));
         gridLayout = new QGridLayout(centralWidget);
@@ -84,6 +87,7 @@ public:
         listWidget->setDragEnabled(true);
         listWidget->setDragDropMode(QAbstractItemView::DragDrop);
         listWidget->setDefaultDropAction(Qt::MoveAction);
+        listWidget->setMovement(QListView::Snap);
 
         gridLayout->addWidget(listWidget, 0, 0, 1, 1);
 
@@ -125,6 +129,7 @@ public:
         sizePolicy4.setHeightForWidth(splitter_checks->sizePolicy().hasHeightForWidth());
         splitter_checks->setSizePolicy(sizePolicy4);
         splitter_checks->setMinimumSize(QSize(120, 60));
+        splitter_checks->setMaximumSize(QSize(160, 16777215));
         splitter_checks->setOrientation(Qt::Vertical);
         ckbCut = new QCheckBox(splitter_checks);
         ckbCut->setObjectName(QStringLiteral("ckbCut"));
@@ -160,8 +165,10 @@ public:
 
         menuBar->addAction(menuFile->menuAction());
         menuBar->addAction(menuHelp->menuAction());
-        menuFile->addAction(actionHistory);
+        menuFile->addAction(actionOpen);
+        menuFile->addSeparator();
         menuFile->addAction(actionSetting);
+        menuFile->addAction(actionHistory);
         menuFile->addSeparator();
         menuFile->addAction(actionExit);
         menuHelp->addAction(actionAbout);
@@ -172,6 +179,7 @@ public:
         QObject::connect(actionSetting, SIGNAL(triggered()), frmMainClass, SLOT(onSetting()));
         QObject::connect(btnScan, SIGNAL(clicked()), frmMainClass, SLOT(onScan()));
         QObject::connect(listWidget, SIGNAL(itemDoubleClicked(QListWidgetItem*)), listWidget, SLOT(showItem(QListWidgetItem*)));
+        QObject::connect(actionOpen, SIGNAL(triggered()), listWidget, SLOT(onAddAction()));
 
         QMetaObject::connectSlotsByName(frmMainClass);
     } // setupUi
@@ -183,6 +191,7 @@ public:
         actionExit->setText(QApplication::translate("frmMainClass", "Exit", nullptr));
         actionAbout->setText(QApplication::translate("frmMainClass", "About...", nullptr));
         actionSetting->setText(QApplication::translate("frmMainClass", "Setting", nullptr));
+        actionOpen->setText(QApplication::translate("frmMainClass", "Open", nullptr));
         btnScan->setText(QApplication::translate("frmMainClass", "Scan", nullptr));
         ckbCut->setText(QApplication::translate("frmMainClass", "Cut", nullptr));
         ckbSave->setText(QApplication::translate("frmMainClass", "Save Image", nullptr));

@@ -16,7 +16,7 @@ public:
 private:
 	frmSetting* setting = nullptr;
 	Ui::frmMainClass ui;
-	QString outputDir;
+	
 protected:
 	void dragEnterEvent(QDragEnterEvent* event);
 	void dropEvent(QDropEvent* event);

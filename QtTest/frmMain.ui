@@ -45,6 +45,9 @@
       <property name="defaultDropAction">
        <enum>Qt::MoveAction</enum>
       </property>
+      <property name="movement">
+       <enum>QListView::Snap</enum>
+      </property>
      </widget>
     </item>
     <item row="1" column="0" alignment="Qt::AlignVCenter">
@@ -120,6 +123,12 @@
          <height>60</height>
         </size>
        </property>
+       <property name="maximumSize">
+        <size>
+         <width>160</width>
+         <height>16777215</height>
+        </size>
+       </property>
        <property name="orientation">
         <enum>Qt::Vertical</enum>
        </property>
@@ -157,8 +166,10 @@
     <property name="title">
      <string>File</string>
     </property>
-    <addaction name="actionHistory"/>
+    <addaction name="actionOpen"/>
+    <addaction name="separator"/>
     <addaction name="actionSetting"/>
+    <addaction name="actionHistory"/>
     <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
@@ -200,6 +211,11 @@
     <string>Setting</string>
    </property>
   </action>
+  <action name="actionOpen">
+   <property name="text">
+    <string>Open</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="8" margin="8"/>
  <customwidgets>
@@ -209,6 +225,7 @@
    <header>qdroplistwidget.h</header>
    <slots>
     <slot>showItem(QListWidgetItem*)</slot>
+    <slot>onAddAction()</slot>
    </slots>
   </customwidget>
  </customwidgets>
@@ -298,6 +315,22 @@
     <hint type="destinationlabel">
      <x>354</x>
      <y>232</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionOpen</sender>
+   <signal>triggered()</signal>
+   <receiver>listWidget</receiver>
+   <slot>onAddAction()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>419</x>
+     <y>272</y>
     </hint>
    </hints>
   </connection>

@@ -30,6 +30,8 @@ public:
 
 	static void Train();
 
+	static auto cvVersion() { return CV_VERSION; }
+
 	void scan(function<void(string)> notify, function<void(int)> progress);
 
 	void setCut(bool ifCut) {
@@ -50,6 +52,8 @@ public:
 		assert(!pics.empty());
 		picPath = pics;
 	}
+
+	void setSavePic(bool ifSave);
 
 	~Converter();
 };

@@ -18,9 +18,6 @@
     <ClCompile Include="..\tinyxml2\tinyxml2.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="framework.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="swan.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -78,5 +75,6 @@
     <None Include="..\icon\ml_csv2.bin">
       <Filter>资源文件</Filter>
     </None>
+    <None Include="cpp.hint" />
   </ItemGroup>
 </Project>

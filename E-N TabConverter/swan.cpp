@@ -434,7 +434,36 @@ keepnote:
 		technicals[i]->InsertEndChild(strings[i]);
 		technicals[i]->InsertEndChild(frets[i]);
 		notations[i]->InsertEndChild(technicals[i]);
-
+		for (char c : srcnotes[i].notation.notation) {
+			switch (c) {
+			case 'L': {
+				auto tie = doc.NewElement("tie"), tie2 = doc.NewElement("tie");
+				tie->SetAttribute("type", "start");
+				tie2->SetAttribute("type", "start");
+				notes[i]->InsertEndChild(tie);
+				notations[i]->InsertEndChild(tie2);
+				break;
+			}
+			case 'l': {
+				auto tie = doc.NewElement("tie"), tie2 = doc.NewElement("tie");
+				tie->SetAttribute("type", "stop");
+				tie2->SetAttribute("type", "stop");
+				notations[i]->InsertEndChild(tie);
+				notations[i]->InsertEndChild(tie2);
+				break;
+			}
+			case 'h': {
+				auto slur = doc.NewElement("slur"), hammerOn = doc.NewElement("hammer-on");
+				slur->SetAttribute("type", "start");
+				hammerOn->SetAttribute("number", 1);
+				hammerOn->SetAttribute("type", "start");
+				hammerOn->InsertEndChild(doc.NewText("H"));
+				notations[i]->InsertEndChild(slur);
+				technicals[i]->InsertEndChild(hammerOn);
+				break;
+			}
+			}
+		}
 		notations[i]->InsertEndChild(doc.NewElement("dynamics"))->InsertEndChild(doc.NewText("mf"));
 		notes[i]->InsertEndChild(notations[i]);
 		measure->InsertEndChild(notes[i]);

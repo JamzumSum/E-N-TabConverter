@@ -10,9 +10,6 @@ frmMain::frmMain(QWidget *parent)
 {
 	ui.setupUi(this);
 	ui.statusBar->showMessage("press 'Scan' to start. ");
-	QSettings s("settings.ini", QSettings::IniFormat);
-	s.setIniCodec("UTF8");
-	outputDir = s.value("Recognize/OutputDir", ".").toString();
 }
 
 frmMain::~frmMain()
@@ -44,10 +41,11 @@ void frmMain::onScan() {
 	}
 	Converter converter(list);
 	converter.setCut(ui.ckbCut->isChecked());
-	converter.setOutputDir(string(outputDir.toLocal8Bit()));
+	converter.setSavePic(ui.ckbSave->isChecked());
+	converter.setOutputDir(string(QDropListWidget::outputDir.toLocal8Bit()));
 	converter.setSelectSaveStrategy([this]() -> string {
 		return QFileDialog::getSaveFileName(this, "select where to save", 
-			outputDir, "XML files (*.xml);;All files (*)").toLocal8Bit(); 
+			QDropListWidget::outputDir, "XML files (*.xml);;All files (*)").toLocal8Bit();
 	});
 	try {
 		converter.scan(

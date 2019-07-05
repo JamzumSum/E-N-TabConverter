@@ -10,6 +10,8 @@
 using namespace std;
 using namespace cv;
 
+bool savepic = 0;
+
 /**
 	识别传入的字符. 
 	@name CharReader::rec
@@ -39,7 +41,10 @@ map<char, float> knnReader::rec(Mat character, float threshold) {
 		if (a < threshold) {
 			ret.insert(make_pair(static_cast<char>(neighbour.at<float>(0, j)), a));
 		}
-		else break;
+		else if (savepic && j == 0) {
+			savePic(picFolder, character);
+			break;
+		}
 	}
 	return ret.empty() ? map<char, float>({ {-1, -1.0f} }) : ret;
 }
@@ -54,8 +59,8 @@ void CharReader::train(string save) {
 
 	for (char i: readable) {
 		ls((path + i).c_str(), fileList);
-		for (int i = 0; i < (int)fileList.size(); i++) {
-			Mat tmp = imread(string(fileList[i]));
+		for (int j = 0; j < (int)fileList.size(); j++) {
+			Mat tmp = imread(string(fileList[j]));
 			trainData.push_back(tmp.reshape(1, 1));
 			Label.push_back(i);										//与trainData对应的标记
 		}

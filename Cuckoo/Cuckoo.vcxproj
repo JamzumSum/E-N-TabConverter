@@ -112,7 +112,6 @@
     <ClInclude Include="Cuckoo.h" />
     <ClInclude Include="Dodo.h" />
     <ClInclude Include="eagle.h" />
-    <ClInclude Include="framework.h" />
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>

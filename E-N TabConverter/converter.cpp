@@ -116,7 +116,7 @@ auto Converter::scan (const int startWith, string picPath, function<void(string)
 	cnt = 0;
 	std::atomic_int cnt2 = 0;
 	tmpsize = static_cast<int>(sectionsGrid.size());
-	auto scanMeasure = [&cnt, &cnt2, &sections](const general& i, int index) {
+	auto scanMeasure = [&cnt, &cnt2, &sections, &progress, tmpsize](const general& i, int index) {
 		vector<Mat> origin;
 		if (!std::get<1>(i).empty()) cut(get<2>(i), get<1>(i), 0, origin, true);	//ÇÐ¸î
 
@@ -133,16 +133,14 @@ auto Converter::scan (const int startWith, string picPath, function<void(string)
 			sections[pre + j].start(get<0>(i));
 		}
 		cnt2++;
+		progress(cnt2 / tmpsize / 2 + 30);
 	};
 	for (int i = 0; i < tmpsize; i++) {
 		thread t(scanMeasure, ref(sectionsGrid[i]), i);
 		t.join();
 	}
-	while (cnt2 < tmpsize) {
-		progress(cnt2 / tmpsize / 2 + 30);
-		std::this_thread::yield();
-	}
-	piece.clear(); piece.shrink_to_fit();
+	while (cnt2 < tmpsize) std::this_thread::yield();
+	vector<Mat>().swap(piece);
 
 	sections.erase(remove_if(sections.begin(), sections.end(), [](const Measure& x) -> bool {return x.ID() == 0; }),
 		sections.end());
@@ -215,6 +213,10 @@ void Converter::scan(function<void(string)> notify, function<void(int)> progress
 		delete doc;
 		doc = nullptr;
 	}
+}
+
+void Converter::setSavePic(bool ifSave) {
+	savepic = ifSave;
 }
 
 Converter::~Converter() {

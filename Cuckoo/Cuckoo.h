@@ -13,20 +13,41 @@
 extern GlobalPool global;
 
 class EasyNote {
+private:
+	std::string notation;
+
 public:
 	unsigned pos = 0;	//horizontal postion of the note on image. 
-	int fret = 0;		//fret -1 as invalid. 
-	int string = 0;		//string -1 as invalid, string 0 as a rest. string 1-6 as normal string. 
+	int fret; 
+	int string;		//string -1 as invalid, string 0 as a rest. string 1-6 as normal string. 
 	std::map<float, char> possible;
 	Value time;
 
-	static EasyNote rest(int pos, Value value) { EasyNote i; i.time = value; i.pos = pos; return i; };
-	static EasyNote invalid() { EasyNote i; i.string = -1; return i; }
+	EasyNote(int string, int fret) : string(string), fret(fret) {}
+	EasyNote(): EasyNote(0, 0) {}
+
+	static EasyNote rest(int pos, Value value) { EasyNote i(0, 0); i.time = value; i.pos = pos; return i; };
+	static EasyNote invalid() { return EasyNote(-1, 0); }
 
 	void acceptRecData(std::map<char, float> data) {
 		assert(!data.empty());
 		for (auto i : data) possible.insert(std::make_pair(i.second, i.first));
 		fret = possible.begin()->second - '0';
+	}
+
+	void addNotation(char c) {
+		auto it = lower_bound(notation.begin(), notation.end(), c);
+		notation.insert(it, c);
+	}
+
+	void removeNotation(char c) {
+		auto it = lower_bound(notation.begin(), notation.end(), c);
+		assert(it != notation.end());
+		notation.erase(it);
+	}
+
+	const std::string getNotation() const {
+		return notation;
 	}
 };
 
@@ -40,6 +61,25 @@ public:
 	static ChordSet rest(int pos, Value value) {
 		return ChordSet({ EasyNote::rest(pos, value) });
 	}
+
+	void sort() { std::sort(this->begin(), end(), 
+		[](const EasyNote& x, const EasyNote& y) {return x.string < y.string; });
+	}
+
+	bool is_sorted() const { return std::is_sorted(this->begin(), end(),
+		[](const EasyNote& x, const EasyNote& y) {return x.string < y.string; });
+	}
+
+	const EasyNote* at(unsigned string) const {
+		for (const auto& i : *this) if (i.string == string) return &i;
+		return nullptr;
+	}
+
+	void rest() {
+		clear(); emplace_back(0, 0);
+	}
+
+	void removeRest() { clear(); }
 };
 
 class ImageProcess {
@@ -56,10 +96,14 @@ private:
 	size_t id = 0;							//Ð¡½ÚÊý
 	int maxCharacterWidth = 0;
 	int maxCharacterHeight = 0;
+	std::map<unsigned, ChordSet> notes;
+
 	void recNum(cv::Mat section, const std::vector<cv::Vec4i>& rows);
 	void recTime(const std::vector<cv::Vec4i>& rows);
 	EasyNote dealWithIt(const cv::Mat& org, const cv::Rect& region, const std::vector<cv::Vec4i>& rows);
-	std::map<unsigned, ChordSet> notes;
+	void mergeFret();
+	void dealWithLink(const std::pair<cv::Vec4i, double>& arcVec, const std::vector<cv::Vec4i>& rows);
+
 public:
 	Time time;
 	key key;

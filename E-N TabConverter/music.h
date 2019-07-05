@@ -69,6 +69,7 @@ typedef struct {
 typedef struct {
 	char* dynamics = (char*)"mf";					//力度
 	technical technical;
+	std::string notation;
 }notations;
 
 class note {
@@ -79,7 +80,7 @@ public:
 	bool dot = false;							//附点
 	int voice = 1;								//发声类型
 	int duration = 1;							//延音值
-	notations notation = { (char*)"mf",{1,0} };
+	notations notation = { (char*)"mf", {1,0}, ""};
 
 	int pos;									//x坐标
 	bool operator==(const note x) {
