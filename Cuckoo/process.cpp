@@ -84,12 +84,47 @@ Mat Denoiser::denoise_inpaint(vector<Vec4i> lines, double radius) {
 	Mat r, mask = Mat(org.size(), CV_8UC1, Scalar::all(0));
 	for (Vec4i& i : lines) line(mask, Point(i[0], i[1]), Point(i[2], i[3]), Scalar(255));
 	
-	inpaint(org, mask, r, radius, INPAINT_TELEA);
+	inpaint(r, org, mask);
 	threshold(r, r, 200, 255, THRESH_BINARY);
 
 	Showdenoise imdebug("denoise(Inpaint)", r);
 
 	return r;
+}
+
+/*
+	fix the pixels that may be cleared by morphology-denoise. 
+	requires: lines.size() == width.size() ==  6. 
+	only the line i that width[i] == 1 is fixed. 
+	@param img, back-ground is black, fore-ground is white. 
+*/
+void Denoiser::inpaint(cv::Mat& img, std::vector<cv::Vec4i> lines, std::vector<int> width)
+{
+	vector<int> fix;
+	for (int i = 0; i < width.size(); i++) if (width[i] == 1) fix.emplace_back(lines[i][1]);
+	const auto l = [](const uchar* up, const uchar* down, int c) -> const uchar {
+		return min(up[c - 1], max(down[c], down[c + 1]));
+	};
+	const auto r = [](const uchar* up, const uchar* down, int c) -> const uchar {
+		return min(up[c + 1], max(down[c], down[c - 1]));
+	};
+	const auto m = [](const uchar* up, const uchar* down, int c) -> const uchar {
+		return min(up[c], max({ down[c - 1], down[c], down[c + 1] }));
+	};
+
+	for (int i : fix) {
+		if (i <= 1 || i >= img.rows - 1) continue;
+		uchar* up = img.ptr<uchar>(i - 1);
+		uchar* cur = img.ptr<uchar>(i);
+		uchar* down = img.ptr<uchar>(i + 1);
+		
+		int j = 0;
+		cur[j] = max({ cur[j], min(up[j], max(down[j], down[j + 1])), min(up[j + 1], down[j]) });
+		for (j = 1; j < img.cols - 1; j++) {
+			cur[j] = max({ cur[j], l(up, down, j), r(up, down, j), m(up, down, j) });
+		}
+		cur[j] = max({ cur[j], min(up[j - 1], down[j]), min(up[j], max(down[j - 1], down[j])) });
+	}
 }
 
 

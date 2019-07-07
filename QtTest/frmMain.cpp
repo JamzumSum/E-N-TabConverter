@@ -34,10 +34,13 @@ void frmMain::dropEvent(QDropEvent* e)
 }
 
 void frmMain::onScan() {
-	if (ui.listWidget->count() == 0) return;
+	if (ui.listWidget->count() == 0) {
+		ui.statusBar->showMessage("What are you doing buddy? Don't you see the list is empty? ");
+		return;
+	}
 	vector<string> list;
 	for (int i = 0; i < ui.listWidget->count(); i++) {
-		list.emplace_back(ui.listWidget->item(i)->text().toLocal8Bit());
+		list.emplace_back(reinterpret_cast<QPathIconItem*>(ui.listWidget->item(i))->text().toLocal8Bit());
 	}
 	Converter converter(list);
 	converter.setCut(ui.ckbCut->isChecked());
@@ -48,7 +51,7 @@ void frmMain::onScan() {
 			QDropListWidget::outputDir, "XML files (*.xml);;All files (*)").toLocal8Bit();
 	});
 	try {
-		converter.scan(
+		string outputfile = converter.scan(
 			[this](string x) {ui.statusBar->showMessage(QString::fromLocal8Bit(x.data())); },
 			[this](int x) {ui.progressBar->setValue(x); }
 		);

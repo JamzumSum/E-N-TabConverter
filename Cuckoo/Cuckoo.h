@@ -97,19 +97,24 @@ private:
 	int maxCharacterWidth = 0;
 	int maxCharacterHeight = 0;
 	std::map<unsigned, ChordSet> notes;
+	cv::Mat denoised;
+	std::vector<cv::Vec4i> rows;
 
-	void recNum(cv::Mat section, const std::vector<cv::Vec4i>& rows);
-	void recTime(const std::vector<cv::Vec4i>& rows);
-	EasyNote dealWithIt(const cv::Mat& org, const cv::Rect& region, const std::vector<cv::Vec4i>& rows);
-	void mergeFret();
-	void dealWithLink(const std::pair<cv::Vec4i, double>& arcVec, const std::vector<cv::Vec4i>& rows);
+	void recStaffLines();
+	void recTime();
+	EasyNote dealWithIt(const cv::Rect& region);
+	void mergeFret(std::vector<EasyNote>& noteSet);
+	void fillTimeAndPos(std::vector<EasyNote>& noteSet);
+	EasyNote recNum(const cv::Rect& rect);
+	void dealWithLink(const std::pair<cv::Vec4i, double>& arcVec);
+	bool rescan(unsigned pos, Value v = Value::whole);
 
 public:
 	Time time;
 	key key;
 	Measure(cv::Mat img, size_t id);
 	MusicMeasure getNotes() const;
-	void start(const std::vector<cv::Vec4i>& rows);
+	void start(const std::vector<cv::Vec4i>& rows, const std::vector<int>& width);
 
 	size_t ID() const { return id; }
 	void setID(size_t newID) { id = newID; }
@@ -126,6 +131,7 @@ public:
 	Denoiser(cv::Mat img) : ImageProcess(img) {}
 	cv::Mat denoise_morphology();
 	cv::Mat denoise_inpaint(std::vector<cv::Vec4i> lines, double radius);
+	static void inpaint(cv::Mat& img, std::vector<cv::Vec4i> lines, std::vector<int> width);
 };
 
 class LineFinder: public ImageProcess{
@@ -142,6 +148,6 @@ public:
 	}
 	void findRow(std::vector<cv::Vec4i>& lines);
 	void findCol(std::vector<cv::Vec4i>& lines);
-	std::vector<int> getThickness() { return thickness; }
+	std::vector<int> getLineThickness() { return thickness; }
 };
 

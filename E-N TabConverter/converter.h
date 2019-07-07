@@ -32,7 +32,7 @@ public:
 
 	static auto cvVersion() { return CV_VERSION; }
 
-	void scan(function<void(string)> notify, function<void(int)> progress);
+	string scan(function<void(string)> notify, function<void(int)> progress);
 
 	void setCut(bool ifCut) {
 		this->ifCut = ifCut;

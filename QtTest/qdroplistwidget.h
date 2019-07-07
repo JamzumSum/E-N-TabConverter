@@ -34,15 +34,22 @@ public slots:
 class QPathIconItem : public QListWidgetItem {
 private:
 	static QRegExp rx1;
+	QString path;
+
 public:
-	QPathIconItem(const QIcon& icon, const QString& path, QListWidget* parent = 0) {
+	QPathIconItem(const QIcon& icon, const QString& path, QListWidget* parent = 0): path(path) {
 		setText(path);
 		setIcon(icon);
 	}
 
 	void setText(const QString& path) {
+		this->path = path;
 		int pos = rx1.indexIn(path);
 		assert(pos != -1);
 		QListWidgetItem::setText(rx1.cap(0));
+	}
+
+	QString text() const {
+		return path;
 	}
 };

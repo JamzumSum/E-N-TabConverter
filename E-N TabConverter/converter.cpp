@@ -77,7 +77,7 @@ auto Converter::scan (const int startWith, string picPath, function<void(string)
 	int n = static_cast<int>(piece.size());
 	vector<Mat> info;							//其余信息
 	
-	using general = std::tuple<vector<Vec4i>, vector<Vec4i>, Mat>;
+	using general = std::tuple<vector<Vec4i>, vector<int>, vector<Vec4i>, Mat>;
 	vector<general> sectionsGrid; sectionsGrid.reserve(n);
 
 	std::atomic_int cnt = 0;
@@ -89,7 +89,7 @@ auto Converter::scan (const int startWith, string picPath, function<void(string)
 			vector<Vec4i> lines;
 			finder.findCol(lines);
 			while (cnt < index - 1) std::this_thread::yield();
-			sectionsGrid.emplace_back(rows, lines, i);
+			sectionsGrid.emplace_back(rows, finder.getLineThickness(), lines, i);
 			n += static_cast<int>(lines.size());
 			cnt++;
 		}
@@ -118,9 +118,9 @@ auto Converter::scan (const int startWith, string picPath, function<void(string)
 	tmpsize = static_cast<int>(sectionsGrid.size());
 	auto scanMeasure = [&cnt, &cnt2, &sections, &progress, tmpsize](const general& i, int index) {
 		vector<Mat> origin;
-		if (!std::get<1>(i).empty()) cut(get<2>(i), get<1>(i), 0, origin, true);	//切割
+		if (!std::get<1>(i).empty()) cut(get<3>(i), get<2>(i), 0, origin, true);	//切割
 
-		getkey(rowLenth) += get<2>(i).rows;
+		getkey(rowLenth) += get<3>(i).rows;
 
 		while (cnt < index) std::this_thread::yield();
 		size_t pre = sections.size();
@@ -130,7 +130,7 @@ auto Converter::scan (const int startWith, string picPath, function<void(string)
 		cnt++;
 
 		for (size_t j = 0; j < origin.size(); j++) {
-			sections[pre + j].start(get<0>(i));
+			sections[pre + j].start(get<0>(i), get<1>(i));
 		}
 		cnt2++;
 		progress(cnt2 / tmpsize / 2 + 30);
@@ -154,7 +154,7 @@ auto Converter::scan (const int startWith, string picPath, function<void(string)
 	return sections;
 }
 
-void Converter::scan(function<void(string)> notify, function<void(int)> progress) {
+string Converter::scan(function<void(string)> notify, function<void(int)> progress) {
 	int n = static_cast<int>(picPath.size());
 	size_t ms = 0;
 	vector<int> prog(n);
@@ -174,7 +174,6 @@ void Converter::scan(function<void(string)> notify, function<void(int)> progress
 	global.save();
 	string name = fname(picPath[0]);
 	size_t i = 0;
-	assert(doc);
 	if (!doc) {
 		doc = new saveDoc(name, "unknown", "unknown", "unknown", PROJECT, "Internet");
 	}
@@ -192,7 +191,7 @@ void Converter::scan(function<void(string)> notify, function<void(int)> progress
 
 	string fn = outputDir;
 	if (fn.back() != '\\') fn.append("\\");
-	fn.append(name).append(".xml");
+	fn.append(name).append(".musicxml");
 	if (isExist(fn)) if (prompt(NULL, fn + " 已经存在，要替换吗？", PROJECT, 0x34) == 7) {
 		assert(selectSaveStrategy);
 		fn = selectSaveStrategy();
@@ -201,13 +200,13 @@ void Converter::scan(function<void(string)> notify, function<void(int)> progress
 			return;
 		}
 		if (fn.back() != '\\') fn.append("\\");
-		fn.append(name).append(".xml");
+		fn.append(name).append(".musicxml");
 	}
-	if (0 == finish->save(fn)) {
+	if (auto xmlret = finish->save(fn); 0 ==  xmlret) {
 		progress(100);
-		notify("Success");
+		notify("Success: " + name + ".musicxml");
 	}
-	else notify("Error when saving doc. ");
+	else notify("Error when saving doc, error code " + xmlret);
 	cv::destroyAllWindows();
 	if (doc) {
 		delete doc;

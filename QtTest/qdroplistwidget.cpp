@@ -81,7 +81,7 @@ void QDropListWidget::showContextMenu() {
 
 void QDropListWidget::onAddAction() {
 	auto list = QFileDialog::getOpenFileNames(this, "select images", 
-		QDropListWidget::outputDir, "Image files (*.bmp, *.jpg, *.png);;All files (*)");
+		QDropListWidget::outputDir, "Image files (*.bmp *.jpg *.png);;All files (*)");
 	for (const auto& i : list) acceptIcon(i);
 }
 
