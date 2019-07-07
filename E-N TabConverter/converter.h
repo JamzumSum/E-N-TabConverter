@@ -13,6 +13,8 @@ using std::string;
 using std::function;
 using std::vector;
 
+constexpr bool TesseractEnabled = false;
+
 class Converter {
 private:
 	vector<string> picPath;

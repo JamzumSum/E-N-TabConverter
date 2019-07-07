@@ -50,10 +50,12 @@ void frmMain::onScan() {
 		return QFileDialog::getSaveFileName(this, "select where to save", 
 			QDropListWidget::outputDir, "XML files (*.xml);;All files (*)").toLocal8Bit();
 	});
+
+	progress(0);
 	try {
 		string outputfile = converter.scan(
 			[this](string x) {ui.statusBar->showMessage(QString::fromLocal8Bit(x.data())); },
-			[this](int x) {ui.progressBar->setValue(x); }
+			progress
 		);
 	}
 	catch (std::runtime_error ex) {

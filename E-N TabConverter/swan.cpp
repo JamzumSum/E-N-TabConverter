@@ -452,7 +452,7 @@ keepnote:
 				notations[i]->InsertEndChild(tie2);
 				break;
 			}
-			case 'h': {
+			case 'H': {
 				auto slur = doc.NewElement("slur"), hammerOn = doc.NewElement("hammer-on");
 				slur->SetAttribute("type", "start");
 				hammerOn->SetAttribute("number", 1);
@@ -461,6 +461,22 @@ keepnote:
 				notations[i]->InsertEndChild(slur);
 				technicals[i]->InsertEndChild(hammerOn);
 				break;
+			}
+			case 'h': {
+				auto slur = doc.NewElement("slur"), hammerOn = doc.NewElement("hammer-on");
+				slur->SetAttribute("type", "stop");
+				hammerOn->SetAttribute("number", 1);
+				hammerOn->SetAttribute("type", "stop");
+				notations[i]->InsertEndChild(slur);
+				technicals[i]->InsertEndChild(hammerOn);
+				break;
+			}
+			case 'x': {
+				auto play = doc.NewElement("play");
+				auto mute = doc.NewElement("mute");
+				mute->InsertEndChild(doc.NewText("straight"));
+				play->InsertEndChild(mute);
+				notes[i]->InsertEndChild(play);
 			}
 			}
 		}

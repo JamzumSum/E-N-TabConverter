@@ -6,7 +6,6 @@
 using namespace std;
 using namespace cv;
 
-#define find_in(vector, lambda) find_if((vector).begin(), (vector).end(), lambda)
 #define Showrectangle if constexpr(0)
 #define Showline if constexpr(0)
 #define draw(func, img, from, to, color) Show##func func(img, from, to, color)
@@ -36,6 +35,13 @@ static int count(Mat img, Rect range, int delta) {
 
 template<class T>
 using tIterator = typename map<unsigned, T>::const_iterator;
+/*
+	access an interval determined by key and interval. 
+	@param uMap		Map has unsigned key. no repeative keys.  
+	@param key
+	@param interval	the interval is (key - interval, key + interval)
+	@return the key-value pair that key is in the interval. 
+*/
 template<class T>
 tIterator<T> intervalAccess(const map<unsigned, T>& uMap, unsigned key, unsigned interval) {
 	auto ub = uMap.lower_bound(key);
@@ -120,7 +126,9 @@ void Measure::recStaffLines() {
 	mergeFret(tmp);
 	fillTimeAndPos(tmp);
 
-	assert(!notes.empty());
+	if (notes.empty()) {
+		return;
+	}
 
 	//rec notations. 
 	for (const auto& i : arc) {
@@ -213,14 +221,14 @@ void Measure::recTime() {
 	};
 	auto time_denoise = [&cont]() -> vector<Rect>{
 		vector<Rect> region(cont.size());
-		std::transform(cont.begin(), cont.end(), region.begin(), [](vector<Point> x) {return boundingRect(x); });
+		std::transform(cont.begin(), cont.end(), region.begin(), [](const vector<Point>& x) {return boundingRect(x); });
 		while (1) {
-			auto m = find_in(region, ([&region](Rect x) ->bool {
+			auto m = find_if(region.begin(), region.end(), [&region](Rect x) ->bool {
 				return any_of(region.begin(), region.end(), [&](Rect y) ->bool {
 					return y.br().y < x.y
 						&& y.height > x.height;
 				});
-			}));
+			});
 			if (m == region.end()) break;
 			else region.erase(m);
 		};
@@ -288,19 +296,15 @@ MusicMeasure Measure::getNotes() const {
 	r.key = this->key;
 	r.id = this->id;
 	for (auto& i : notes) {
-		if (i.second.empty()) continue;
 		note newn;
-		newn.chord = false;  newn.timeValue = i.second[0].time;
-		newn.notation.technical.string = i.second[0].string;
-		newn.notation.technical.fret = i.second[0].fret;
-		r.notes.emplace_back(newn);
-		newn.chord = true;
-		for (unsigned j = 1; j < i.second.size(); j++) {
+		newn.chord = false;
+		for (unsigned j = 0; j < i.second.size(); j++) {
 			newn.timeValue = i.second[j].time;
 			newn.notation.technical.string = i.second[j].string;
 			newn.notation.technical.fret = i.second[j].fret;
 			newn.notation.notation = i.second[j].getNotation();
 			r.notes.emplace_back(newn);
+			newn.chord = true;
 		}
 	}
 	return r;
@@ -564,8 +568,10 @@ void Measure::dealWithLink(const pair<Vec4i, double>& arcVec) {
 		return;
 	}
 
-	if (rnote) 
-		const_cast<EasyNote*>(lnote)->addNotation('h');
+	if (rnote) {
+		const_cast<EasyNote*>(lnote)->addNotation('H');
+		const_cast<EasyNote*>(rnote)->addNotation('h');
+	}
 	else {
 		const_cast<ChordSet&>(r_it->second).push_back(*lnote);
 		rnote = r_it->second.at(string);

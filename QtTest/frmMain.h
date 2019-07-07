@@ -16,6 +16,7 @@ public:
 private:
 	frmSetting* setting = nullptr;
 	Ui::frmMainClass ui;
+	std::function<void(int)> progress = [this](const int x) {ui.progressBar->setValue(x); };
 	
 protected:
 	void dragEnterEvent(QDragEnterEvent* event);

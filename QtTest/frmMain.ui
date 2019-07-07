@@ -125,7 +125,7 @@
        </property>
        <property name="maximumSize">
         <size>
-         <width>160</width>
+         <width>16777215</width>
          <height>16777215</height>
         </size>
        </property>
@@ -140,6 +140,9 @@
        <widget class="QCheckBox" name="ckbSave">
         <property name="text">
          <string>Save Image</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
         </property>
        </widget>
       </widget>

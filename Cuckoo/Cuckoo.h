@@ -32,7 +32,16 @@ public:
 	void acceptRecData(std::map<char, float> data) {
 		assert(!data.empty());
 		for (auto i : data) possible.insert(std::make_pair(i.second, i.first));
-		fret = possible.begin()->second - '0';
+		char c = possible.begin()->second;
+		if (c < 0) fret = c;
+		else if(isdigit(c)) fret = c - '0';
+		else {
+			fret = 0;
+			switch (c) {
+			case 'x': addNotation('x'); break;
+			default: _wassert(L"invalid rec val: " + c, __FILEW__, __LINE__);
+			}
+		}
 	}
 
 	void addNotation(char c) {

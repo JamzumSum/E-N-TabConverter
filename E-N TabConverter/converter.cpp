@@ -43,10 +43,12 @@ Converter::Converter(const vector<string>& pics): api(new tesseract::TessBaseAPI
 	using namespace tesseract;
 	assert(!pics.empty());
 	picPath = pics;
-	thread([this]() {
-		assert(reinterpret_cast<TessBaseAPI*>(api)->TessBaseAPI::Init("D:\\Program Files\\Tesseract-OCR\\tessdata", "chi_sim+eng") == 0);
-		ocrReady = true;
-	}).detach();
+	if constexpr (TesseractEnabled) {
+		thread([this]() {
+			assert(reinterpret_cast<TessBaseAPI*>(api)->TessBaseAPI::Init("D:\\Program Files\\Tesseract-OCR\\tessdata", "chi_sim+eng") == 0);
+			ocrReady = true;
+		}).detach();
+	}
 }
 
 auto Converter::scan (const int startWith, string picPath, function<void(string)> notify, function<void(int)> progress) {
@@ -146,11 +148,13 @@ auto Converter::scan (const int startWith, string picPath, function<void(string)
 		sections.end());
 
 	for (auto& i : sections) i.setID(startWith + i.ID());
-#if 0
-	if (startWith == 0) {
-		title(info);
+
+	if constexpr (TesseractEnabled) {
+		if (startWith == 0) {
+			title(info);
+		}
 	}
-#endif
+
 	return sections;
 }
 
@@ -197,7 +201,7 @@ string Converter::scan(function<void(string)> notify, function<void(int)> progre
 		fn = selectSaveStrategy();
 		if (fn.empty()) {
 			notify("用户放弃了保存. ");
-			return;
+			return string();
 		}
 		if (fn.back() != '\\') fn.append("\\");
 		fn.append(name).append(".musicxml");
@@ -212,6 +216,7 @@ string Converter::scan(function<void(string)> notify, function<void(int)> progre
 		delete doc;
 		doc = nullptr;
 	}
+	return name + ".musicxml";
 }
 
 void Converter::setSavePic(bool ifSave) {

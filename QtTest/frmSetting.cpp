@@ -39,12 +39,14 @@ QString frmSetting::selectFile(QString title, QString dir, QString filter){
 
 void frmSetting::onTrain()
 {
-	if (QMessageBox::No == QMessageBox::information(this, u8"重新训练", "您确实要重新训练吗? 这将清除所有已有的数据. ", 
+	if (QMessageBox::No == QMessageBox::information(this, QString::fromLocal8Bit("重新训练"), 
+		QString::fromLocal8Bit("您确实要重新训练吗? 这将清除所有已有的数据. "),
 		QMessageBox::Yes | QMessageBox::No)) {
 		return;
 	}
 	Converter::Train();
-	QMessageBox::information(this, u8"训练已完成", "训练已完成, 数据位于" + ui.txtDataPth->text());
+	QMessageBox::information(this, QString::fromLocal8Bit("训练已完成"), 
+		QString::fromLocal8Bit("训练已完成, 数据位于") + ui.txtDataPth->text());
 }
 
 void frmSetting::onSave()
