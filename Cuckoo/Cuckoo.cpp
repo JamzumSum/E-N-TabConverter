@@ -136,7 +136,8 @@ void Measure::recStaffLines() {
 		cont.erase(remove_if(cont.begin(), cont.end(), 
 			[](const vector<Point>& v) {return v.size() < 10; }), cont.end());
 		if (!cont.empty()) {
-			dealWithLink(recArc(cont[0], i.tl()));
+			auto a = recArc(cont[0], i.tl());
+			dealWithLink(a);
 			cont.clear();
 		}
 	}
@@ -149,13 +150,13 @@ void Measure::recStaffLines() {
 */
 bool Measure::rescan(unsigned pos, Value v) {
 	Rect rect(pos - maxCharacterWidth, rows[0][1] - maxCharacterHeight / 2, 
-		2 * maxCharacterWidth, rows[5][1] - rows[0][1] + maxCharacterHeight);
+		2 * maxCharacterWidth, rows[5][1] - rows[0][1] + maxCharacterHeight / 2);
 	rect &= Rect(Point(0, 0), denoised.size());
 	Mat img = denoised(rect);
 	vector<vector<Point>> cont;
 	vector<Rect> region;
 
-	findContours(denoised, cont, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
+	findContours(img, cont, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
 	region.resize(cont.size());
 	transform(cont.begin(), cont.end(), region.begin(), [](const vector<Point>& c) {return boundingRect(c); });
 	region.resize(distance(region.begin(), remove_if(region.begin(), region.end(), 
@@ -164,7 +165,9 @@ bool Measure::rescan(unsigned pos, Value v) {
 	vector<EasyNote> tmp;
 
 	for (const auto& i : region) {
-		EasyNote newNote = recNum(i);
+		if(countBlack(img(i)) > 0.9 * i.area()) continue;
+
+		EasyNote newNote = recNum(Rect(rect.tl() + i.tl(), i.size()));
 		if (newNote.string < 0) continue;
 		tmp.emplace_back(newNote);
 	}
@@ -276,16 +279,17 @@ void Measure::recTime() {
 	}
 	//不应该含全音符
 	
+	Value v = Value::whole;
 	for (auto& i : notes) {
 		auto ub = intervalAccess(timeValue, i.first, t);
-		Value v = ub == timeValue.end() ? Value::whole : ub->second;
-		//错误: 找不到对应的时值. 处理方案: 时值置whole. 
+		v = ub == timeValue.end() ? v : ub->second;
+		//错误: 找不到对应的时值. 处理方案: 置上一个note的时值. 
 		for (auto& j : i.second) j.time = v;
 		if(ub != timeValue.end()) timeValue.erase(ub);
 	}
 
 	for (auto i : timeValue) {
-		if(!rescan(i.first))
+		if(!rescan(i.first, i.second))
 			notes.insert(make_pair(i.first, ChordSet::rest(i.first, i.second)));
 	}
 }
@@ -422,12 +426,6 @@ Measure::Measure(Mat origin, size_t id)
 {
 	maxCharacterWidth = getkey(characterWidth) / 2;
 	maxCharacterHeight = maxCharacterWidth + 1;
-	
-	//TODO: id = 0 is deprecated
-	if (org.cols < getkey(colLenth) / 5) {
-		this->id = 0;
-		return;
-	}
 }
 
 void Measure::start(const vector<Vec4i>& rows, const vector<int>& width) {
@@ -552,17 +550,13 @@ void Measure::dealWithLink(const pair<Vec4i, double>& arcVec) {
 		notes.insert(make_pair(arcVec.first[0], ChordSet::rest(arcVec.first[0], Value::none)));
 		l_it = notes.lower_bound(arcVec.first[0]);
 	}*/
-	if (r_it == notes.end()) {
+	if (r_it == notes.end() && arcVec.first[2] < denoised.cols) {
 		notes.insert(make_pair(arcVec.first[2], ChordSet::rest(arcVec.first[2], Value::none)));
 		r_it = notes.lower_bound(arcVec.first[2]);
 	}
 
-	if (l_it == notes.end()) {
-		return;
-	}
-
-	auto lnote = l_it->second.at(string);
-	auto rnote = r_it->second.at(string);
+	auto lnote = l_it == notes.end() ? nullptr : l_it->second.at(string);
+	auto rnote = r_it == notes.end() ? nullptr : r_it->second.at(string);
 
 	if (!lnote) {
 		return;
@@ -573,12 +567,12 @@ void Measure::dealWithLink(const pair<Vec4i, double>& arcVec) {
 		const_cast<EasyNote*>(rnote)->addNotation('h');
 	}
 	else {
+		const_cast<ChordSet&>(r_it->second).removeRest();
 		const_cast<ChordSet&>(r_it->second).push_back(*lnote);
 		rnote = r_it->second.at(string);
 		const_cast<EasyNote*>(rnote)->pos = r_it->first;
 
 		const_cast<EasyNote*>(lnote)->addNotation('L');
-		const_cast<ChordSet&>(r_it->second).removeRest();
 		const_cast<EasyNote*>(rnote)->addNotation('l');
 	}
 }

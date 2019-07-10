@@ -113,15 +113,19 @@ auto Converter::scan (const int startWith, string picPath, function<void(string)
 	vector<Mat>().swap(piece); sectionsGrid.shrink_to_fit();
 	progress(30);
 
-	vector<Measure> sections;												//按行存储
+	vector<Measure> sections;			//按行存储
 	sections.reserve(n);
 	cnt = 0;
 	std::atomic_int cnt2 = 0;
 	tmpsize = static_cast<int>(sectionsGrid.size());
 	auto scanMeasure = [&cnt, &cnt2, &sections, &progress, tmpsize](const general& i, int index) {
 		vector<Mat> origin;
-		if (!std::get<1>(i).empty()) cut(get<3>(i), get<2>(i), 0, origin, true);	//切割
+		if (!std::get<1>(i).empty()) cut(get<3>(i), get<2>(i), 0, origin);
+		int avrWidth = getkey(colLenth);
 
+		origin.erase(remove_if(origin.begin(), origin.end(), 
+			[avrWidth](const Mat& x) {return x.cols < avrWidth / 5; }), origin.end());
+		
 		getkey(rowLenth) += get<3>(i).rows;
 
 		while (cnt < index) std::this_thread::yield();
@@ -144,7 +148,7 @@ auto Converter::scan (const int startWith, string picPath, function<void(string)
 	while (cnt2 < tmpsize) std::this_thread::yield();
 	vector<Mat>().swap(piece);
 
-	sections.erase(remove_if(sections.begin(), sections.end(), [](const Measure& x) -> bool {return x.ID() == 0; }),
+	sections.erase(remove_if(sections.begin(), sections.end(), [](const Measure& x) -> bool {return x.empty(); }),
 		sections.end());
 
 	for (auto& i : sections) i.setID(startWith + i.ID());

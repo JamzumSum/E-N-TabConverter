@@ -437,7 +437,7 @@ keepnote:
 		for (char c : srcnotes[i].notation.notation) {
 			switch (c) {
 			case 'L': {
-				auto tie = doc.NewElement("tie"), tie2 = doc.NewElement("tie");
+				auto tie = doc.NewElement("tie"), tie2 = doc.NewElement("tied");
 				tie->SetAttribute("type", "start");
 				tie2->SetAttribute("type", "start");
 				notes[i]->InsertEndChild(tie);
@@ -445,7 +445,7 @@ keepnote:
 				break;
 			}
 			case 'l': {
-				auto tie = doc.NewElement("tie"), tie2 = doc.NewElement("tie");
+				auto tie = doc.NewElement("tie"), tie2 = doc.NewElement("tied");
 				tie->SetAttribute("type", "stop");
 				tie2->SetAttribute("type", "stop");
 				notations[i]->InsertEndChild(tie);

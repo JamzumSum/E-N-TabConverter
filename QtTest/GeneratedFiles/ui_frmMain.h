@@ -129,13 +129,14 @@ public:
         sizePolicy4.setHeightForWidth(splitter_checks->sizePolicy().hasHeightForWidth());
         splitter_checks->setSizePolicy(sizePolicy4);
         splitter_checks->setMinimumSize(QSize(120, 60));
-        splitter_checks->setMaximumSize(QSize(160, 16777215));
+        splitter_checks->setMaximumSize(QSize(16777215, 16777215));
         splitter_checks->setOrientation(Qt::Vertical);
         ckbCut = new QCheckBox(splitter_checks);
         ckbCut->setObjectName(QStringLiteral("ckbCut"));
         splitter_checks->addWidget(ckbCut);
         ckbSave = new QCheckBox(splitter_checks);
         ckbSave->setObjectName(QStringLiteral("ckbSave"));
+        ckbSave->setChecked(true);
         splitter_checks->addWidget(ckbSave);
         splitter->addWidget(splitter_checks);
 

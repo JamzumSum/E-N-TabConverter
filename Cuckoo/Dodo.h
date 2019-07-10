@@ -2,14 +2,11 @@
 #include "type.h"
 #include "cv.h"
 
-#define SUCCEED(x) (x>=0)
-
 using cv::Mat;
 using cv::Vec4i;
 using std::vector;
 using std::string;
 
-//Dodo.cpp
 Mat threshold(cv::Mat);
 Mat perspect(Mat img, int width, int height);
 bool isEmptyLine(Mat img, int y, double rate);
@@ -20,6 +17,6 @@ void saveNums(string folder, vector<Mat> nums);
 unsigned whichLine(cv::Range verticalRange, const vector<Vec4i>& rows);
 Mat Morphology(Mat img, int len, bool horizontal, bool open);
 void savePic(string folder, Mat pic);
-int cut(Mat img, vector<Vec4i> divideBy, int direction, vector<Mat> &container, bool includeAll);
+size_t cut(Mat img, const vector<Vec4i>& divideBy, bool vertical, vector<Mat> &container);
 const std::pair<Vec4i, double> recArc(vector<cv::Point> pSet, const cv::Point& offset = cv::Point());
 const size_t countBlack(const Mat& number);

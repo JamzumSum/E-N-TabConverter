@@ -88,7 +88,9 @@ public:
 		clear(); emplace_back(0, 0);
 	}
 
-	void removeRest() { clear(); }
+	void removeRest() { 
+		erase(std::find_if(begin(), end(), [](const EasyNote& x) {return x.string == 0; }));
+	}
 };
 
 class ImageProcess {
@@ -127,6 +129,7 @@ public:
 
 	size_t ID() const { return id; }
 	void setID(size_t newID) { id = newID; }
+	bool empty() const { return notes.empty(); }
 };
 
 class Splitter: public ImageProcess{
