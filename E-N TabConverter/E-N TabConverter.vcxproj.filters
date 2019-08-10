@@ -65,6 +65,9 @@
     <ClInclude Include="converter.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="Accessor.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="E-N TabConverter.rc">

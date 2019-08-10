@@ -2,15 +2,17 @@
 #include "cv.h" 
 #include "music.h"
 #include "global.h"
+#include "eagle.h"
 #include <atomic>
 
-#if _DEBUG
+#ifdef _DEBUG
 #define imdebug(title, img) imshow((title), img); cv::waitKey()
+#define myassert(msg) _wassert((msg), __FILEW__, __LINE__)
 #else
 #define imdebug(title, img)
+#define myassert(msg)
 #endif
 
-extern GlobalPool global;
 
 class EasyNote {
 private:
@@ -39,7 +41,7 @@ public:
 			fret = 0;
 			switch (c) {
 			case 'x': addNotation('x'); break;
-			default: _wassert(L"invalid rec val: " + c, __FILEW__, __LINE__);
+			default: myassert(L"invalid rec val: " + c);
 			}
 		}
 	}
@@ -96,10 +98,9 @@ public:
 class ImageProcess {
 protected:
 	cv::Mat org;
+	const GlobalPool& global;
 public:
-	ImageProcess(cv::Mat origin) : org(origin) {
-		assert(org.empty() != true);
-	}
+	ImageProcess(cv::Mat origin);
 };
 
 class Measure: ImageProcess {
@@ -110,6 +111,7 @@ private:
 	std::map<unsigned, ChordSet> notes;
 	cv::Mat denoised;
 	std::vector<cv::Vec4i> rows;
+	const CharReader* reader;
 
 	void recStaffLines();
 	void recTime();

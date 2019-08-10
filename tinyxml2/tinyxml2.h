@@ -198,7 +198,7 @@ private:
 
 /*
 	A dynamic array of Plain Old Data. Doesn't support constructors, etc.
-	Has a small initial memory pool, so that low or no usage will not
+	Has a small initial memory global, so that low or no usage will not
 	cause a call to new/delete
 */
 template <class T, int INITIAL_SIZE>
@@ -323,7 +323,7 @@ private:
 
 
 /*
-	Parent virtual class of a pool for fast allocation
+	Parent virtual class of a global for fast allocation
 	and deallocation of objects.
 */
 class MemPool

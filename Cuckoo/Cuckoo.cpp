@@ -2,6 +2,7 @@
 #include "Cuckoo.h"
 #include "Dodo.h"
 #include "eagle.h"
+#include "converter.h"
 
 using namespace std;
 using namespace cv;
@@ -10,7 +11,7 @@ using namespace cv;
 #define Showline if constexpr(0)
 #define draw(func, img, from, to, color) Show##func func(img, from, to, color)
 
-static knnReader reader;
+extern thread_local const Converter* root;
 
 static int count(Mat img, Rect range, int delta) {
 	assert(img.isContinuous());
@@ -88,7 +89,7 @@ void Measure::recStaffLines() {
 
 	for (Rect& i : region) {
 		if (i.height < 5 * i.width
-			&& (getkey(characterWidth) ? (i.width > getkey(characterWidth) / 2) : 1)
+			&& (global["characterWidth"].isInit() ? (i.width > global["characterWidth"] / 2) : 1)
 			) {
 			if (i.height > rows[1][1] - rows[0][1]
 				|| i.height < i.width
@@ -194,7 +195,7 @@ void Measure::recTime() {
 	vector<vector<Point>> cont;
 	auto predictLenth = [&inv, &picValue, &cont, this]() -> int {
 		int predLen = 0;
-		if (org.rows < getkey(rowLenth) * 2 && org.rows > getkey(rowLenth) / 2) {
+		if (org.rows < global["rowLenth"] * 2 && org.rows > global["rowLenth"] / 2) {
 			inv = 255 - Morphology(picValue, picValue.rows / 3, false, true);
 			findContours(inv, cont, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
 
@@ -215,10 +216,10 @@ void Measure::recTime() {
 				Rect temp = boundingRect(i);
 				predLen = max((int)predLen, temp.height);
 			}
-			getkey(valueSignalLen) += predLen;
+			const_cast<GlobalUnit&>(global["valueSignalLen"]) += predLen;
 		}
 		else {
-			predLen = getkey(valueSignalLen);
+			predLen = global["valueSignalLen"];
 		}
 		return predLen;
 	};
@@ -251,15 +252,16 @@ void Measure::recTime() {
 
 	vector<Rect> region = time_denoise();						//去掉节拍记号再往下的乱七八糟的东西
 
-	for (Rect &i: region) {
+	for (const Rect &i: region) {
 		int sum1 = 0, sum2 = 0, sum3 = 0;
 		sum1 = count(picValue, i, -2);
 		sum2 = count(picValue, i, 2);
 		sum3 = count(picValue, i, 1);
 		if (i.height <= predLen / 2 && !sum1 && !sum2) {
-			sum1--; sum2--;
+			sum1--; sum2--;										//TODO: 我写的这是啥?
+																//PS. 这好像是检查二分音符
 		}
-		Value newc = time.beat_type / (int)pow(2, max(sum1, !sum3 && sum2 ? sum2 - 1 : sum2));
+		Value newc = time.beat_type / (float)pow(2, max(sum1, !sum3 && sum2 ? sum2 - 1 : sum2));
 		newc.dot = !sum3 && sum2;
 		timeValue[i.x + i.width / 2] = newc;
 	}
@@ -335,10 +337,10 @@ EasyNote Measure::dealWithIt(const Rect& region) {
 		cont.clear(); cont.shrink_to_fit();
 		for (Rect& i : re) {
 			if (i.height < 2.5 * i.width
-				&& (getkey(characterWidth) ? (i.width > getkey(characterWidth) / 2) : 1)
+				&& (global["characterWidth"].isInit() ? (i.width > global["characterWidth"] / 2) : 1)
 				&& i.height > i.width) {
 				EasyNote newNote;
-				newNote.acceptRecData(reader.rec(img(i), 45.0f));
+				newNote.acceptRecData(reader->rec(img(i), 45.0f));
 				newNote.string = whichLine(Rect(region.tl() + i.tl(), i.size()), rows);
 				if (newNote.fret > 0 && newNote.string) {
 					newNote.pos = region.x + i.x + i.width / 2;
@@ -368,10 +370,10 @@ EasyNote Measure::dealWithIt(const Rect& region) {
 		cont.clear();
 		for (Rect& i : re) {
 			if (i.height < 2.5 * i.width
-				&& (getkey(characterWidth) ? (i.width > getkey(characterWidth) / 2) : 1)
+				&& (global["characterWidth"].isInit() ? (i.width > global["characterWidth"] / 2) : 1)
 				&& i.height > i.width) {
 				EasyNote newNote;
-				newNote.acceptRecData(reader.rec(img(i), 45.0f));
+				newNote.acceptRecData(reader->rec(img(i), 45.0f));
 				newNote.string = whichLine(Rect(region.tl() + i.tl(), i.size()), rows);
 				if (newNote.fret > 0 && newNote.string) {
 					newNote.pos = region.x + i.x + i.width / 2;
@@ -389,7 +391,7 @@ EasyNote Measure::dealWithIt(const Rect& region) {
 			EasyNote newNote;
 			newNote.string = whichLine(region, rows);
 			newNote.pos = i + trueWidth / 2;
-			newNote.acceptRecData(reader.rec(test, 25.0f));
+			newNote.acceptRecData(reader->rec(test, 25.0f));
 			if (newNote.fret > 0 && newNote.string) return newNote;
 		}
 		return EasyNote::invalid();
@@ -399,7 +401,7 @@ EasyNote Measure::dealWithIt(const Rect& region) {
 		for (int i = 0; i < img.rows - trueHeight; i++) {
 			Mat test = img(Range(i, i + trueHeight), Range::all());
 			EasyNote newNote;
-			newNote.acceptRecData(reader.rec(test, 25.0f));
+			newNote.acceptRecData(reader->rec(test, 25.0f));
 			if (newNote.fret > 0) {
 				newNote.string = whichLine(Range(i, i + trueHeight), rows);
 				if (newNote.string) {
@@ -422,9 +424,9 @@ EasyNote Measure::dealWithIt(const Rect& region) {
 }
 
 Measure::Measure(Mat origin, size_t id)
-	: id(id), ImageProcess(origin)
+	: id(id), ImageProcess(origin), reader(root->Reader.operator CharReader*())
 {
-	maxCharacterWidth = getkey(characterWidth) / 2;
+	maxCharacterWidth = global["characterWidth"] / 2;
 	maxCharacterHeight = maxCharacterWidth + 1;
 }
 
@@ -511,7 +513,7 @@ EasyNote Measure::recNum(const cv::Rect& rect) {
 	newNote.string = whichLine(rect, rows);											//几何关系判断string
 	if (!newNote.string) return EasyNote::invalid();
 	try {
-		newNote.acceptRecData(reader.rec(number));									//识别数字fret
+		newNote.acceptRecData(reader->rec(number));									//识别数字fret
 		if (newNote.fret < 0) return EasyNote::invalid();							//较大的几率不是数字
 	}
 	catch (runtime_error ex) {
@@ -519,7 +521,7 @@ EasyNote Measure::recNum(const cv::Rect& rect) {
 	}
 
 	newNote.pos = rect.width / 2 + rect.x;
-	getkey(characterWidth) += rect.width;
+	const_cast<GlobalUnit&>(global["characterWidth"]) += rect.width;
 
 	maxCharacterWidth = max(maxCharacterWidth, rect.width);
 	maxCharacterHeight = max(maxCharacterHeight, rect.height);
@@ -575,4 +577,8 @@ void Measure::dealWithLink(const pair<Vec4i, double>& arcVec) {
 		const_cast<EasyNote*>(lnote)->addNotation('L');
 		const_cast<EasyNote*>(rnote)->addNotation('l');
 	}
+}
+
+inline ImageProcess::ImageProcess(cv::Mat origin) : org(origin), global(root->Global) {
+	assert(org.empty() != true);
 }

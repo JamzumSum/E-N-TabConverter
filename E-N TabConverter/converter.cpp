@@ -14,12 +14,15 @@
 using std::get;
 using std::thread;
 
-GlobalPool global(cfgPath);
-extern bool savepic;
+thread_local const Converter* root;
 
 void Converter::Train() {
-	CharReader::train(defaultCSV);
+	CharReader::train(prop);
 }
+
+const std::tuple<int, int, int> Converter::cvVersion() { return {CV_VERSION_MAJOR, CV_VERSION_MINOR, CV_VERSION_REVISION}; }
+const std::tuple<int, int, int> Converter::Version() { return { EN_VERSION_MAJOR, EN_VERSION_MINOR, EN_VERSION_REVISON }; }
+const std::tuple<int, int, int> Converter::TinyXMLVersion() { return { TINYXML2_MAJOR_VERSION, TINYXML2_MINOR_VERSION, TINYXML2_PATCH_VERSION }; };
 
 void Converter::title(const vector<Mat>& info) {
 	Mat ccolor;
@@ -40,6 +43,7 @@ void Converter::title(const vector<Mat>& info) {
 }
 
 Converter::Converter(const vector<string>& pics): api(new tesseract::TessBaseAPI()) {
+	root = this;
 	using namespace tesseract;
 	assert(!pics.empty());
 	picPath = pics;
@@ -83,7 +87,8 @@ auto Converter::scan (const int startWith, string picPath, function<void(string)
 	vector<general> sectionsGrid; sectionsGrid.reserve(n);
 
 	std::atomic_int cnt = 0;
-	auto scanGrid = [&cnt, &sectionsGrid, &n, &info](Mat i, int index) {
+	auto scanGrid = [this, &cnt, &sectionsGrid, &n, &info](Mat i, int index) {
+		root = this;
 		vector<Vec4i> rows;
 		LineFinder finder(i, 10);
 		finder.findRow(rows);
@@ -113,30 +118,32 @@ auto Converter::scan (const int startWith, string picPath, function<void(string)
 	vector<Mat>().swap(piece); sectionsGrid.shrink_to_fit();
 	progress(30);
 
-	vector<Measure> sections;			//按行存储
+	reader = new knnReader();
+	vector<const Measure*> sections;			//按行存储
 	sections.reserve(n);
 	cnt = 0;
 	std::atomic_int cnt2 = 0;
 	tmpsize = static_cast<int>(sectionsGrid.size());
-	auto scanMeasure = [&cnt, &cnt2, &sections, &progress, tmpsize](const general& i, int index) {
+	auto scanMeasure = [this, &cnt, &cnt2, &sections, &progress, tmpsize](const general& i, int index) {
+		root = this;
 		vector<Mat> origin;
 		if (!std::get<1>(i).empty()) cut(get<3>(i), get<2>(i), 0, origin);
-		int avrWidth = getkey(colLenth);
+		int avrWidth = global["colLenth"];
 
 		origin.erase(remove_if(origin.begin(), origin.end(), 
 			[avrWidth](const Mat& x) {return x.cols < avrWidth / 5; }), origin.end());
 		
-		getkey(rowLenth) += get<3>(i).rows;
+		const_cast<GlobalUnit&>(global["rowLenth"]) += get<3>(i).rows;
 
 		while (cnt < index) std::this_thread::yield();
 		size_t pre = sections.size();
 		for (size_t j = 0; j < origin.size(); j++) {
-			sections.emplace(sections.begin() + pre + j, origin[j], pre + j + 1);
+			sections.emplace(sections.begin() + pre + j, new Measure(origin[j], pre + j + 1));
 		}
 		cnt++;
 
 		for (size_t j = 0; j < origin.size(); j++) {
-			sections[pre + j].start(get<0>(i), get<1>(i));
+			const_cast<Measure*>(sections[pre + j])->start(get<0>(i), get<1>(i));
 		}
 		cnt2++;
 		progress(cnt2 / tmpsize / 2 + 30);
@@ -148,10 +155,10 @@ auto Converter::scan (const int startWith, string picPath, function<void(string)
 	while (cnt2 < tmpsize) std::this_thread::yield();
 	vector<Mat>().swap(piece);
 
-	sections.erase(remove_if(sections.begin(), sections.end(), [](const Measure& x) -> bool {return x.empty(); }),
+	sections.erase(remove_if(sections.begin(), sections.end(), [](const Measure* x) -> bool {return x->empty(); }),
 		sections.end());
 
-	for (auto& i : sections) i.setID(startWith + i.ID());
+	for (auto& i : sections) const_cast<Measure*>(i)->setID(startWith + i->ID());
 
 	if constexpr (TesseractEnabled) {
 		if (startWith == 0) {
@@ -166,7 +173,7 @@ string Converter::scan(function<void(string)> notify, function<void(int)> progre
 	int n = static_cast<int>(picPath.size());
 	size_t ms = 0;
 	vector<int> prog(n);
-	vector<vector<Measure>> ptr(n);
+	vector<vector<const Measure*>> ptr(n);
 	std::atomic_int cnt = 0;
 	for (int i = 0; i < n; i++) {
 		ptr[i] = scan(static_cast<int>(ms), picPath[i], notify,
@@ -190,12 +197,14 @@ string Converter::scan(function<void(string)> notify, function<void(int)> progre
 	while (cnt) std::this_thread::yield();
 
 	for (const auto& v : ptr) {
-		for (const auto& m : v) {
-			assert(m.ID() != 0);
-			finish->saveMeasure(m.getNotes());
+		for (const auto m : v) {
+			assert(m->ID() != 0);
+			finish->saveMeasure(m->getNotes());
 			progress(static_cast<int>(80 + i++ / ms));
 		}
 	}
+
+	for (const auto& v : ptr) for (const auto m : v) delete m;
 
 	string fn = outputDir;
 	if (fn.back() != '\\') fn.append("\\");
@@ -223,10 +232,6 @@ string Converter::scan(function<void(string)> notify, function<void(int)> progre
 	return name + ".musicxml";
 }
 
-void Converter::setSavePic(bool ifSave) {
-	savepic = ifSave;
-}
-
 Converter::~Converter() {
 	if (doc) {
 		delete reinterpret_cast<saveDoc*>(doc);
@@ -235,5 +240,9 @@ Converter::~Converter() {
 	if (api) {
 		reinterpret_cast<tesseract::TessBaseAPI*>(api)->End();
 		api = nullptr;
+	}
+	if (reader) {
+		delete reader;
+		reader = nullptr;
 	}
 }

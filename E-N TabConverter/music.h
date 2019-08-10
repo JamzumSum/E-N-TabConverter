@@ -20,44 +20,44 @@ public:
 		v = 1.0f / init;
 	}
 	Value() {}
-	const Value operator= (const int x) {
+	const int operator= (const int x) {
 		v = 1.0f / x;
 		return x;
 	}
-	const Value operator= (const Value x) {
+	const Value& operator= (const Value& x) {
 		v = x.v;
 		return x;
 	}
-	Value operator+(const int x) {
+	Value operator+(const int x) const {
 		return Value(v + 1.0f / x);
 	}
 	Value operator+= (const int x) {
 		v += 1.0f / x;
 		return *this;
 	}
-	Value operator-(const int x) {
+	Value operator-(const int x) const {
 		return Value(abs(v - 1.0f / x));
 	}
-	const Value operator*(const int x) {
+	const Value operator*(const int x) const {
 		return Value(v * x);
 	}
-	const Value operator/(const int x) {
+	const Value operator/(const float x) const {
 		return Value(v / x);
 	}
-	bool operator<(const int x) {
+	bool operator<(const int x) const {
 		return v < 1.0f / x;
 	}
-	bool operator>(const int x) {
+	bool operator>(const int x) const {
 		return v > 1.0f / x;
 	}
-	bool operator==(const int x){
+	bool operator==(const int x) const {
 		return x == int(round(1 / v));
 	}
 	bool operator==(const Value& x) const {
 		return x.v == int(round(1 / v)) && x.dot == dot;
 	}
-	operator int() {
-		return int(round(1 / v));
+	operator int() const {
+		return static_cast<int>(round(1 / v));
 	}
 };
 

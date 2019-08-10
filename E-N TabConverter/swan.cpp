@@ -10,6 +10,11 @@ using namespace std;
 #define txtx(x) XMLText* x##Text = doc.NewText(x)
 #define txts(x,s) XMLText* x##Text = doc.NewText(#s)
 #define txt(x) txts(x,x)
+#ifdef _DEBUG
+#define myassert(msg) _wassert((msg), __FILEW__, __LINE__)
+#else
+#define myassert(msg)
+#endif
 
 static char* pitch(int string,int fret,const char* tuning,char* r,bool & up) {
 	char law[13] = "CCDDEFFGGAAB";
@@ -375,52 +380,53 @@ keepnote:
 		case 1:
 			types[i]->InsertEndChild(doc.NewText("whole"));
 			break;
-		case 3:
+		/*case 3:
 			types[i]->InsertEndChild(doc.NewText("half"));
 			notes[i]->InsertEndChild(doc.NewElement("dot"));
-			break;
+			break;*/
 		case 2:
 			types[i]->InsertEndChild(doc.NewText("half"));
 			break;
-		case 6:
+		/*case 6:
 			types[i]->InsertEndChild(doc.NewText("quarter"));
 			notes[i]->InsertEndChild(doc.NewElement("dot"));
-			break;
+			break;*/
 		case 4:
 			types[i]->InsertEndChild(doc.NewText("quarter"));
 			break;
-		case 12:
+		/*case 12:
 			types[i]->InsertEndChild(doc.NewText("eighth"));
 			notes[i]->InsertEndChild(doc.NewElement("dot"));
-			break;
+			break;*/
 		case 8:
 			types[i]->InsertEndChild(doc.NewText("eighth"));
 			break;
-		case 24:
+		/*case 24:
 			types[i]->InsertEndChild(doc.NewText("16th"));
 			notes[i]->InsertEndChild(doc.NewElement("dot"));
-			break;
+			break;*/
 		case 16:
 			types[i]->InsertEndChild(doc.NewText("16th"));
 			break;
-		case 48:
+		/*case 48:
 			types[i]->InsertEndChild(doc.NewText("32th"));
 			notes[i]->InsertEndChild(doc.NewElement("dot"));
-			break;
+			break;*/
 		case 32:
 			types[i]->InsertEndChild(doc.NewText("32th"));
 			break;
-		case 96:
+		/*case 96:
 			types[i]->InsertEndChild(doc.NewText("64th"));
 			notes[i]->InsertEndChild(doc.NewElement("dot"));
-			break;
+			break;*/
 		case 64:
 			notes[i]->InsertEndChild(doc.NewText("64th"));
 			break;
 		default:
-			raiseErr("timeValue: unexpected value in switch.", 2);
-			break;
+			myassert(L"timeValue: unexpected value in switch.");
+			continue;
 		}
+		if (srcnotes[i].timeValue.dot) notes[i]->InsertEndChild(doc.NewElement("dot"));
 		notes[i]->InsertEndChild(types[i]);
 		notes[i]->InsertEndChild(doc.NewElement("stem"))->InsertEndChild(doc.NewText("up"));
 		_itoa_s(sta, a, 10);

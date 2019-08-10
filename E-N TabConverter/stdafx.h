@@ -9,8 +9,7 @@
 #include <thread>
 #include <atomic>
 
-const std::string cfgPath = "C:\\Users\\Administrator\\Desktop\\E-N TabConverter\\global.xml";
-const std::string samplePath = "C:\\Users\\Administrator\\Desktop\\E-N TabConverter\\sample_classified\\";
-const std::string defaultCSV = "C:\\Users\\Administrator\\Desktop\\E-N TabConverter\\tData.csv";
-const std::string picFolder = "C:\\Users\\Administrator\\Desktop\\oh";
-const char* const PROJECT = "E-N TabConverter";
+constexpr auto EN_VERSION_MAJOR = 2;
+constexpr auto EN_VERSION_MINOR = 0;
+constexpr auto EN_VERSION_REVISON = 1;
+constexpr auto PROJECT = "E-N TabConverter";

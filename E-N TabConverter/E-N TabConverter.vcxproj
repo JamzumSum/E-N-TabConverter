@@ -43,12 +43,12 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>F:\Downloads\tesseract-5.0.0-alpha\out\install\x64-Debug\include\tesseract;$(SolutionDir)E-N TabConverter;$(SolutionDir)Cuckoo;$(SolutionDir)tinyxml2;$(OPENCV_BUILD)\include;$(OPENCV_BUILD)\include\opencv;$(OPENCV_BUILD)\include\opencv2;$(SolutionDir);$(IncludePath)</IncludePath>
-    <LibraryPath>F:\Downloads\tesseract-5.0.0-alpha\out\install\x64-Debug\lib;$(OutDir);$(OPENCV_DIR)\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>F:\Downloads\tesseract-5.0.0-alpha\out\install\$(Platform)-$(Configuration)\include\tesseract;$(SolutionDir)E-N TabConverter;$(SolutionDir)Cuckoo;$(SolutionDir)tinyxml2;$(OPENCV_BUILD)\include;$(OPENCV_BUILD)\include\opencv;$(OPENCV_BUILD)\include\opencv2;$(SolutionDir);$(IncludePath)</IncludePath>
+    <LibraryPath>F:\Downloads\tesseract-5.0.0-alpha\out\install\$(Platform)-$(Configuration)\lib;$(OutDir);$(OPENCV_DIR)\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(SolutionDir)E-N TabConverter;$(SolutionDir)Cuckoo;$(SolutionDir)tinyxml2;$(OPENCV_BUILD)\include;$(OPENCV_BUILD)\include\opencv;$(OPENCV_BUILD)\include\opencv2;$(SolutionDir);$(IncludePath)</IncludePath>
-    <LibraryPath>D:\vcpkg\installed\x64-windows-static\lib;$(OutDir);$(OPENCV_DIR)\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>F:\Downloads\tesseract-5.0.0-alpha\out\install\$(Platform)-$(Configuration)\include\tesseract;$(SolutionDir)E-N TabConverter;$(SolutionDir)Cuckoo;$(SolutionDir)tinyxml2;$(OPENCV_BUILD)\include;$(OPENCV_BUILD)\include\opencv;$(OPENCV_BUILD)\include\opencv2;$(SolutionDir);$(IncludePath)</IncludePath>
+    <LibraryPath>F:\Downloads\tesseract-5.0.0-alpha\out\install\$(Platform)-$(Configuration)\lib;D:\vcpkg\installed\x64-windows-static\lib;$(OutDir);$(OPENCV_DIR)\lib;$(LibraryPath)</LibraryPath>
     <CodeAnalysisRuleSet>..\zzs_learning_rule.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -95,7 +95,7 @@
       <AdditionalManifestDependencies>%(AdditionalManifestDependencies)</AdditionalManifestDependencies>
     </Link>
     <Lib>
-      <AdditionalDependencies>Cuckoo.lib;tesseract40.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Cuckoo.lib;tesseract50.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
     <Lib>
       <AdditionalLibraryDirectories>$(OutDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
@@ -112,6 +112,7 @@
     <ClInclude Include="..\Cuckoo\Cuckoo.h" />
     <ClInclude Include="..\Cuckoo\Dodo.h" />
     <ClInclude Include="..\tinyxml2\tinyxml2.h" />
+    <ClInclude Include="Accessor.hpp" />
     <ClInclude Include="converter.h" />
     <ClInclude Include="global.h" />
     <ClInclude Include="music.h" />

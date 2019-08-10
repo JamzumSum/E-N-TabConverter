@@ -1,7 +1,8 @@
 #pragma once
-#include "stdafx.h"
+#include "global.h"
 #include "opencv.hpp"
 #include "ml.hpp"
+#include "converter.h"
 
 using cv::Mat;
 using std::string;
@@ -16,21 +17,22 @@ private:
 	int preferHeight = 14;
 
 protected:
-	virtual bool onDestroyed(const string& csv) noexcept;
+	const Property& prop;
+	virtual bool onDestroyed(const string& csv) const noexcept;
 
 public:
 
-	static void train(string save);
+	static void train(Property save);
 
-	virtual map<char, float> rec(Mat character, float threshold = 60.0f) = 0;
+	virtual map<char, float> rec(Mat character, float threshold = 60.0f) const = 0;
 	virtual bool isTrained() = 0;
-	virtual void load(string csv) = 0;
+	virtual void load(string csv) const = 0;
 
-	CharReader() {}
-	CharReader(string csv) { load(csv); }
+	CharReader();
+	CharReader(string csv);
 
-	int getPreferWidth() { return preferWidth; }
-	int getPreferHeight() { return preferHeight; }
+	int getPreferWidth() const { return preferWidth; }
+	int getPreferHeight() const { return preferHeight; }
 	void setPreferSize(int width, int height) {
 		preferWidth = width;
 		preferHeight = height;
@@ -41,11 +43,12 @@ public:
 
 class knnReader: public CharReader {
 private:
-	cv::Ptr<KNearest> knn = KNearest::create();
+	cv::Ptr<KNearest> knn;
 	using CharReader::onDestroyed;
 public:
 	bool isTrained() { return knn->isTrained(); }
 
-	map<char, float> rec(Mat character, float threshold = 60.0f);
-	void load(string csv);
+	map<char, float> rec(Mat character, float threshold = 60.0f) const;
+	void load(string csv) const;
+	knnReader();
 };

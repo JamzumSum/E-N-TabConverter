@@ -1,15 +1,27 @@
+#include "tinyxml2.h"
 #include "stdafx.h"
 #include "global.h"
 
 using namespace std;
 
-GlobalUnit& GlobalPool::get(string key) {
-	return table[key];
+namespace easy {
+	string itos(int i) {
+		char buf[6];
+		_itoa_s(i, buf, 10);
+		return buf;
+	}
 }
 
-GlobalPool::GlobalPool(string path): path(path) {
-	
+const GlobalUnit& GlobalPool::operator[](const string& key) const {
+	//use operator[] because the map needs to insert a key if the key is not found. 
+	return *table[key];
 }
+
+GlobalPool::~GlobalPool() {
+	for (const auto& p : table) delete p.second;
+}
+
+GlobalPool::GlobalPool() {}
 
 /*
  * @retval -1 when error, else predicted value. 
@@ -48,22 +60,23 @@ void GlobalPool::setCol(int col) {
 	this->col = col;
 	XMLDocument doc;
 	XMLElement* root;
-	XMLError errXml = doc.LoadFile(path.c_str());
+	XMLError errXml = doc.LoadFile(prop.cfgPath.c_str());
 
 	//then get root
 	if (XML_SUCCESS == errXml) root = doc.RootElement();
-	else return;
+	else throw runtime_error(easy::itos(errXml));
 	
 
 	map<string, map<int, int>> all;
-	for (XMLElement* elmkey = root->FirstChildElement(); elmkey; elmkey = elmkey->NextSiblingElement()) {
-		all[elmkey->Name()][elmkey->IntAttribute("col")] = atoi(elmkey->GetText());
+	for (XMLElement* elmitem = root->FirstChildElement(); elmitem; elmitem = elmitem->NextSiblingElement()) {
+		for(XMLElement* elmkey = elmitem->FirstChildElement(elmitem->Name()); elmkey; elmkey = elmkey->NextSiblingElement(elmitem->Name()))
+			all[elmkey->Name()][elmkey->IntAttribute("col")] = atoi(elmkey->GetText());
 	}
 	//all data in `all` yet. 
 
 	for (auto i : all) {
 		int p = predictValue(col, i.second);
-		table[i.first] = p > 0 ? GlobalUnit(p) : GlobalUnit();
+		table[i.first] = p == -1 ? new GlobalUnit() : new GlobalUnit(p);
 	}
 
 }
@@ -73,7 +86,7 @@ void GlobalPool::save() {
 
 	XMLDocument doc;
 	XMLElement* root;
-	XMLError errXml = doc.LoadFile(path.c_str());
+	XMLError errXml = doc.LoadFile(prop.cfgPath.c_str());
 
 	//then get root
 	if (XML_SUCCESS == errXml) {
@@ -87,21 +100,24 @@ void GlobalPool::save() {
 	}
 
 	//search for: <key col = this.col>
-	for (auto i : table) {
-		XMLElement* elmkey = NULL;
-		for (elmkey = root->FirstChildElement(i.first.c_str()); elmkey; elmkey = root->NextSiblingElement(i.first.c_str())) {
+	for (const auto& i : table) {
+		XMLElement* elmkey = nullptr;
+		XMLElement* item = root->FirstChildElement(i.first.c_str());
+		if (!item) item = doc.NewElement(i.first.c_str());
+
+		for (elmkey = item->FirstChildElement(i.first.c_str()); elmkey; elmkey = elmkey->NextSiblingElement(i.first.c_str())) {
 			if (elmkey->IntAttribute("col") == this->col) break;
 		}
 		if (elmkey) {
-			elmkey->SetText(int(i.second));
+			elmkey->SetText(i.second->operator int());
 		}
 		else {
 			elmkey = doc.NewElement(i.first.c_str());
 			elmkey->SetAttribute("col", this->col);
-			elmkey->SetText(int(i.second));
-			root->InsertEndChild(elmkey);
+			elmkey->SetText(i.second->operator int());
+			item->InsertEndChild(elmkey);
 		}
 	}
 
-	doc.SaveFile(path.c_str());
+	doc.SaveFile(prop.cfgPath.c_str());
 }

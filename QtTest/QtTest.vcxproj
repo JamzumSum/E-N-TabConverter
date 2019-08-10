@@ -33,12 +33,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
     <LibraryPath>$(OutDir);$(OPENCV_DIR)\lib;$(LibraryPath)</LibraryPath>
-    <IncludePath>$(OPENCV_BUILD)\include;$(OPENCV_BUILD)\include\opencv;$(OPENCV_BUILD)\include\opencv2;$(SolutionDir);$(SolutionDir)E-N TabConverter;$(IncludePath)</IncludePath>
+    <IncludePath>$(OPENCV_BUILD)\include;$(OPENCV_BUILD)\include\opencv;$(OPENCV_BUILD)\include\opencv2;$(SolutionDir);$(SolutionDir)Cuckoo;$(SolutionDir)E-N TabConverter;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
     <LibraryPath>$(OutDir);$(OPENCV_DIR)\lib;$(LibraryPath)</LibraryPath>
-    <IncludePath>$(OPENCV_BUILD)\include;$(OPENCV_BUILD)\include\opencv;$(OPENCV_BUILD)\include\opencv2;$(SolutionDir);$(SolutionDir)E-N TabConverter;$(IncludePath)</IncludePath>
+    <IncludePath>$(OPENCV_BUILD)\include;$(OPENCV_BUILD)\include\opencv;$(OPENCV_BUILD)\include\opencv2;$(SolutionDir);$(SolutionDir)Cuckoo;$(SolutionDir)E-N TabConverter;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <Target Name="QtMsBuildNotFound" BeforeTargets="CustomBuild;ClCompile" Condition="!Exists('$(QtMsBuild)\qt.targets') or !Exists('$(QtMsBuild)\qt.props')">
     <Message Importance="High" Text="QtMsBuild: could not locate qt.targets, qt.props; project may not build correctly." />

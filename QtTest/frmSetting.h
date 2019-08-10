@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QDialog>
+#include <QSettings>
 #include "ui_frmSetting.h"
 
 class frmSetting : public QDialog
@@ -16,6 +17,7 @@ private:
 	bool changed;
 	QString selectDir(QString title, QString dir = QString());
 	QString selectFile(QString title, QString dir = QString(), QString filter = QString());
+	QSettings qs;
 
 public slots:
 	void onTrain();

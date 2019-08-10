@@ -156,7 +156,7 @@ void LineFinder::findRow(vector<Vec4i> & lines) {
 	vector<Vec4i> copy(lines);
 	thickness.resize(rcls.size());
 	lines.resize(rcls.size());
-	std::transform(rcls.begin(), rcls.end(), thickness.begin(), [](const vector<Vec4i> x) -> int { int i = (int)x.size();  getkey(lineThickness) += i; return int(i); });
+	std::transform(rcls.begin(), rcls.end(), thickness.begin(), [this](const vector<Vec4i> x) -> int { int i = (int)x.size();  const_cast<GlobalUnit&>(global["lineThickness"]) += i; return int(i); });
 	std::transform(rcls.begin(), rcls.end(), lines.begin(), [](const vector<Vec4i> x) -> Vec4i {return x[x.size() / 2]; });
 
 	upper = std::min(lines[5][1], lines[5][3]);
@@ -208,8 +208,8 @@ void LineFinder::findCol(vector<Vec4i> & lines) {
 
 
 	for (size_t i = 1; i < lines.size(); i++) {
-		if (lines[i][0] - lines[i - 1][0] >= max(16, getkey(colLenth) / 5)) {
-			getkey(colLenth) += lines[i][0] - lines[i - 1][0];
+		if (lines[i][0] - lines[i - 1][0] >= max(16, global["colLenth"] / 5)) {
+			const_cast<GlobalUnit&>(global["colLenth"]) += lines[i][0] - lines[i - 1][0];
 		}
 	}
 

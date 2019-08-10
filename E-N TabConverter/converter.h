@@ -7,19 +7,26 @@
 #include <functional>
 #include <string>
 #include <vector>
-#include <cv.h>
+#include "eagle.h"
+#include "Accessor.hpp"
+#include "global.h"
 
 using std::string;
 using std::function;
 using std::vector;
 
 constexpr bool TesseractEnabled = false;
+class CharReader;
 
 class Converter {
 private:
 	vector<string> picPath;
 	string outputDir;
 	function<string(void)> selectSaveStrategy;
+	GlobalPool global;
+	const Property& prop = global.Prop;
+	CharReader* reader = nullptr;
+
 	void* api;
 	bool ifCut;
 	void* doc = nullptr;
@@ -29,33 +36,28 @@ private:
 	void title(const vector<cv::Mat>& info);
 public:
 	Converter(const vector<string>& pics);
+	Converter() {}
 
-	static void Train();
+	void Train();
 
-	static auto cvVersion() { return CV_VERSION; }
+	static const std::tuple<int, int, int> cvVersion();
+	static const std::tuple<int, int, int> TinyXMLVersion();
+	static const std::tuple<int, int, int> Version();
 
 	string scan(function<void(string)> notify, function<void(int)> progress);
 
-	void setCut(bool ifCut) {
-		this->ifCut = ifCut;
-	}
-
-	bool getCut() { return ifCut; }
-
-	void setOutputDir(string dir) {
-		outputDir = dir;
-	}
-
-	string getOutputDir() { return outputDir; }
-
-	void setSelectSaveStrategy(function<string(void)> strategy) { selectSaveStrategy = strategy; }
-
-	void setPicPath(vector<string> pics) {
-		assert(!pics.empty());
-		picPath = pics;
-	}
-
-	void setSavePic(bool ifSave);
+	Accessor<bool, ReadWrite> Cut = prop.ifCut;
+	Accessor<string, ReadWrite> OutputDir = outputDir;
+	Accessor<function<string(void)>, WriteOnly> SelectSaveStrategy = selectSaveStrategy;
+	Accessor<vector<string>, WriteOnly> PicPath = picPath;
+	Accessor<string, ReadWrite> CfgPath = prop.cfgPath;
+	Accessor<string, ReadWrite> CSVPath = prop.defaultCSV;
+	Accessor<string, ReadWrite> PicSavePath = prop.picFolder;
+	Accessor<string, ReadWrite> SamplePath = prop.samplePath;
+	Accessor<bool, ReadWrite> SavePic = prop.savePic;
+	Accessor<Property, ReadOnly> Prop = prop;
+	Accessor<GlobalPool, ReadOnly> Global = global;
+	Accessor<CharReader*, ReadOnly> Reader = reader;
 
 	~Converter();
 };

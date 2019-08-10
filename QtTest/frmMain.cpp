@@ -9,7 +9,7 @@ frmMain::frmMain(QWidget *parent)
 	: QMainWindow(parent)
 {
 	ui.setupUi(this);
-	ui.statusBar->showMessage("press 'Scan' to start. ");
+	ui.statusBar->showMessage(QString::fromLocal8Bit("拖动曲谱到列表, 点击`Scan`"));
 }
 
 frmMain::~frmMain()
@@ -35,21 +35,27 @@ void frmMain::dropEvent(QDropEvent* e)
 
 void frmMain::onScan() {
 	if (ui.listWidget->count() == 0) {
-		ui.statusBar->showMessage("What are you doing buddy? Don't you see the list is empty? ");
+		ui.statusBar->showMessage(QString::fromLocal8Bit("列表是空的啊(＃°Д°)"));
 		return;
 	}
 	vector<string> list;
 	for (int i = 0; i < ui.listWidget->count(); i++) {
 		list.emplace_back(reinterpret_cast<QPathIconItem*>(ui.listWidget->item(i))->text().toLocal8Bit());
 	}
+
+	QSettings qs("settings.ini", QSettings::IniFormat);
 	Converter converter(list);
-	converter.setCut(ui.ckbCut->isChecked());
-	converter.setSavePic(ui.ckbSave->isChecked());
-	converter.setOutputDir(string(QDropListWidget::outputDir.toLocal8Bit()));
-	converter.setSelectSaveStrategy([this]() -> string {
-		return QFileDialog::getSaveFileName(this, "select where to save", 
-			QDropListWidget::outputDir, "XML files (*.xml);;All files (*)").toLocal8Bit();
-	});
+	converter.Cut = ui.ckbCut->isChecked();
+	converter.SavePic = ui.ckbSave->isChecked();
+	converter.OutputDir = QDropListWidget::outputDir.toLocal8Bit().toStdString();
+	converter.SelectSaveStrategy = [this]() -> string {
+		return QFileDialog::getSaveFileName(this, QString::fromLocal8Bit("选择存储位置"), 
+			QDropListWidget::outputDir, "XML files (*.xml);;All files (*)").toLocal8Bit().toStdString();
+	};
+	converter.CfgPath = qs.value("Recognize/ConfigPath", "./RecData/global.xml").toByteArray().toStdString();
+	converter.CSVPath = qs.value("Train/DataPath", "./TrainData/tData.csv").toByteArray().toStdString();
+	converter.PicSavePath = qs.value("Recognize/SaveTo", "./sample/unclassified").toByteArray().toStdString();
+	converter.SamplePath = qs.value("Train/SamplePath", "./sample/classified").toByteArray().toStdString();
 
 	progress(0);
 	try {
@@ -70,6 +76,13 @@ void frmMain::onSetting() {
 }
 
 void frmMain::showAbout() {
-	QMessageBox::about(this, "About", "Developed by JamzumSum. \n"
-		"Credit: OpenCV");
+	constexpr auto ABOUT =
+		"Version %s"
+		"TinyXML version %s\n"
+		"OpenCV version %s\n"
+		"Developed by JamzumSum. \n";
+	constexpr int bufCount = 1024;
+	char buf[bufCount];
+	snprintf(buf, bufCount, ABOUT, Converter::Version(), Converter::TinyXMLVersion(), Converter::cvVersion());
+	QMessageBox::about(this, "About", buf);
 }
